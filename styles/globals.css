@@ -751,3 +751,9 @@ img {
     padding: 2.25rem;
   }
 }
+
+.site-header__status {
+  color: var(--color-muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+}

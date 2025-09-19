@@ -25,6 +25,7 @@ export type MaintenanceRequest = {
   status: 'Open' | 'In Progress' | 'Resolved';
   priority: 'Low' | 'Medium' | 'High';
   description: string;
+  category?: string;
 };
 
 export type Announcement = {
@@ -48,6 +49,40 @@ export type LeaseDocument = {
   updatedOn: string;
   downloadUrl: string;
 };
+
+export type SupportContact = {
+  id: string;
+  department: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  hours: string;
+  preferredChannel: 'Email' | 'Phone' | 'Chat';
+};
+
+export type QuickAction = {
+  id: string;
+  label: string;
+  description: string;
+  href: string;
+};
+
+export type ResidentResource = {
+  id: string;
+  title: string;
+  summary: string;
+  link: string;
+};
+
+export const maintenanceCategories = [
+  'Appliance',
+  'Electrical',
+  'HVAC',
+  'Plumbing',
+  'Safety',
+  'Structural',
+  'Other'
+] as const;
 
 export const tenantDashboard = {
   residentName: 'Morgan Rivera',
@@ -96,7 +131,8 @@ export const tenantDashboard = {
       submittedOn: '2024-05-18',
       status: 'Resolved',
       priority: 'Low',
-      description: 'Filters were replaced and system inspected. All readings normal.'
+      description: 'Filters were replaced and system inspected. All readings normal.',
+      category: 'HVAC'
     },
     {
       id: 'mnt-002',
@@ -104,7 +140,8 @@ export const tenantDashboard = {
       submittedOn: '2024-05-25',
       status: 'In Progress',
       priority: 'High',
-      description: 'Technician scheduled for follow-up visit with replacement part delivery on May 28.'
+      description: 'Technician scheduled for follow-up visit with replacement part delivery on May 28.',
+      category: 'Appliance'
     },
     {
       id: 'mnt-003',
@@ -112,7 +149,8 @@ export const tenantDashboard = {
       submittedOn: '2024-05-29',
       status: 'Open',
       priority: 'Medium',
-      description: 'Door alignment shifted after recent storm. Awaiting vendor availability.'
+      description: 'Door alignment shifted after recent storm. Awaiting vendor availability.',
+      category: 'Structural'
     }
   ] satisfies MaintenanceRequest[],
   announcements: [
@@ -132,7 +170,7 @@ export const tenantDashboard = {
   messages: [
     {
       id: 'msg-001',
-      from: 'Julia Chen · Property Manager',
+      from: 'Julia Chen - Property Manager',
       sentAt: '2024-05-27T09:30:00Z',
       snippet: 'Following up on your dishwasher repair. The vendor has confirmed the new part will arrive tomorrow.',
       unread: true
@@ -171,7 +209,76 @@ export const tenantDashboard = {
       updatedOn: '2024-01-18',
       downloadUrl: '#'
     }
-  ] satisfies LeaseDocument[]
+  ] satisfies LeaseDocument[],
+  quickActions: [
+    {
+      id: 'qa-001',
+      label: 'Set up AutoPay',
+      description: 'Enable automatic rent payments to stay on schedule.',
+      href: '#autopay'
+    },
+    {
+      id: 'qa-002',
+      label: 'Update Renter Insurance',
+      description: 'Upload your active insurance policy for compliance.',
+      href: '#insurance'
+    },
+    {
+      id: 'qa-003',
+      label: 'Reserve Amenities',
+      description: 'Book the rooftop lounge or community workspace.',
+      href: '#amenities'
+    }
+  ] satisfies QuickAction[],
+  supportContacts: [
+    {
+      id: 'sc-001',
+      department: 'Property Manager',
+      contactName: 'Julia Chen',
+      email: 'julia@nxtlevelmngmnt.com',
+      phone: '(555) 201-3321',
+      hours: 'Mon-Fri - 9am-6pm',
+      preferredChannel: 'Email'
+    },
+    {
+      id: 'sc-002',
+      department: 'Resident Services',
+      contactName: 'Darius Patel',
+      email: 'services@nxtlevelmngmnt.com',
+      phone: '(555) 201-4440',
+      hours: 'Daily - 8am-8pm',
+      preferredChannel: 'Chat'
+    },
+    {
+      id: 'sc-003',
+      department: 'Emergency Maintenance',
+      contactName: 'On-call Technician',
+      email: 'urgent@nxtlevelmngmnt.com',
+      phone: '(555) 201-9110',
+      hours: '24/7 Response',
+      preferredChannel: 'Phone'
+    }
+  ] satisfies SupportContact[],
+  residentResources: [
+    {
+      id: 'rr-001',
+      title: 'Move-in Checklist',
+      summary: 'Step-by-step guide to settle into your new home.',
+      link: '#move-in'
+    },
+    {
+      id: 'rr-002',
+      title: 'Community Events',
+      summary: 'Stay in the loop on building events and workshops.',
+      link: '#events'
+    },
+    {
+      id: 'rr-003',
+      title: 'Preferred Vendors',
+      summary: 'Discounted services from trusted local partners.',
+      link: '#vendors'
+    }
+  ] satisfies ResidentResource[]
 };
 
 export type TenantDashboard = typeof tenantDashboard;

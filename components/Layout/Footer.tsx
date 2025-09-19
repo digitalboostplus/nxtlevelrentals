@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Footer() {
   return (
     <footer className="site-footer" id="contact">
@@ -23,9 +25,9 @@ export default function Footer() {
         </div>
         <div>
           <div className="site-footer__title">Resources</div>
-          <a className="site-footer__link" href="/portal">
+          <Link className="site-footer__link" href="/portal">
             Tenant Portal
-          </a>
+          </Link>
           <a className="site-footer__link" href="https://docs.nxtlevelrentals.com" target="_blank" rel="noreferrer">
             Documentation
           </a>

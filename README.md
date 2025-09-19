@@ -112,6 +112,9 @@ The application will be available at `http://localhost:3000`
 ### Environment Variables
 Update your `.env` file with the following keys:
 
+The provided .env.example is prefilled with the rental-app-3ec4a Firebase web configuration. Override these values if you provision a different Firebase project.
+
+
 - `NEXT_PUBLIC_FIREBASE_API_KEY`: Firebase web API key
 - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`: Firebase auth domain
 - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`: Firebase project ID
@@ -171,3 +174,15 @@ For support and inquiries:
 ---
 
 **Built with ❤️ by the Next Level Rentals Team**
+
+
+### Role Seeding Script
+
+Use `scripts/seed-roles.js` to create the required Firestore documents for your admin and tenant users. Install Firebase Admin locally (`npm install firebase-admin --save-dev`), then run:
+
+```bash
+node scripts/seed-roles.js path/to/serviceAccountKey.json
+```
+
+Update the placeholder UIDs in the script before executing it; the values should match the Firebase Authentication UIDs for your accounts. You can re-run the script any time you add new users.
+

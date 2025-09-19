@@ -43,6 +43,9 @@ export default function MaintenanceRequests({ requests, activeStatus, onStatusCh
           ))}
         </div>
         <div className="maintenance-grid">
+          {filtered.length === 0 ? (
+            <p style={{ gridColumn: '1 / -1', color: 'var(--color-muted)' }}>No requests matching this status.</p>
+          ) : null}
           {filtered.map((request) => (
             <article className="maintenance-card" key={request.id}>
               <div className="maintenance-card__meta">
@@ -51,11 +54,30 @@ export default function MaintenanceRequests({ requests, activeStatus, onStatusCh
               </div>
               <h3 className="maintenance-card__title">{request.title}</h3>
               <p className="maintenance-card__description">{request.description}</p>
-              <p style={{ marginTop: '0.85rem', fontWeight: 600 }}>Priority: {request.priority}</p>
+              <div className="maintenance-card__foot">
+                <span>Priority: {request.priority}</span>
+                {request.category ? <span>Category: {request.category}</span> : null}
+              </div>
             </article>
           ))}
         </div>
       </div>
+      <style jsx>{`
+        .maintenance-card__foot {
+          display: flex;
+          justify-content: space-between;
+          color: var(--color-muted);
+          font-size: 0.9rem;
+          margin-top: 1rem;
+        }
+
+        @media (max-width: 520px) {
+          .maintenance-card__foot {
+            flex-direction: column;
+            gap: 0.35rem;
+          }
+        }
+      `}</style>
     </section>
   );
 }

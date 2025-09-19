@@ -2,11 +2,15 @@ import { FirebaseApp, initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
+import { getMessaging, type Messaging } from 'firebase/messaging';
+import { getAnalytics, type Analytics } from 'firebase/analytics';
 
 let firebaseApp: FirebaseApp | undefined;
 let authInstance: Auth | undefined;
 let firestoreInstance: Firestore | undefined;
 let storageInstance: FirebaseStorage | undefined;
+let messagingInstance: Messaging | undefined;
+let analyticsInstance: Analytics | undefined;
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,7 +18,8 @@ const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 export const getFirebaseApp = (): FirebaseApp => {
@@ -51,4 +56,34 @@ export const getStorageClient = (): FirebaseStorage => {
   }
 
   return storageInstance;
+};
+
+export const getMessagingClient = (): Messaging | null => {
+  if (typeof window === 'undefined') return null; // Only available in browser
+  
+  if (!messagingInstance) {
+    try {
+      messagingInstance = getMessaging(getFirebaseApp());
+    } catch (error) {
+      console.warn('Firebase Messaging not supported in this environment');
+      return null;
+    }
+  }
+
+  return messagingInstance;
+};
+
+export const getAnalyticsClient = (): Analytics | null => {
+  if (typeof window === 'undefined') return null; // Only available in browser
+  
+  if (!analyticsInstance) {
+    try {
+      analyticsInstance = getAnalytics(getFirebaseApp());
+    } catch (error) {
+      console.warn('Firebase Analytics not supported in this environment');
+      return null;
+    }
+  }
+
+  return analyticsInstance;
 };
