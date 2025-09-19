@@ -1,10 +1,10 @@
 # Next Level Rentals - Property Management Tenant Portal
 
-A modern, user-friendly tenant portal and landing page for property management services, designed to streamline communication between property managers and tenants.
+A modern, user-friendly tenant portal and landing page for property management services, designed to streamline communication between property managers and tenants. The platform is powered by Firebase to deliver secure authentication, real-time data syncing, and scalable cloud infrastructure.
 
 ## 🏠 Overview
 
-Next Level Rentals is a comprehensive property management system that provides tenants with easy access to essential services and property managers with efficient tools to manage their properties. The platform features a clean, intuitive interface with both a public landing page and a secure tenant portal.
+Next Level Rentals is a comprehensive property management system that provides tenants with easy access to essential services and property managers with efficient tools to manage their properties. The platform features a clean, intuitive interface with both a public landing page and a secure tenant portal backed by Firebase services.
 
 ## ✨ Features
 
@@ -17,21 +17,21 @@ Next Level Rentals is a comprehensive property management system that provides t
 - **Call-to-Action**: Clear pathways for prospective tenants and property owners
 
 ### Tenant Portal
-- **Secure Authentication**: Multi-factor authentication for account security
+- **Secure Authentication**: Firebase Authentication with optional multi-factor support
 - **Dashboard**: Personalized overview of account status and important notifications
-- **Rent Management**: 
+- **Rent Management**:
   - Online rent payment processing
   - Payment history and receipts
   - Automatic payment setup
-- **Maintenance Requests**: 
+- **Maintenance Requests**:
   - Submit and track maintenance requests
-  - Photo upload capability
-  - Real-time status updates
-- **Communication Hub**: 
+  - Photo upload capability via Firebase Storage
+  - Real-time status updates using Cloud Firestore
+- **Communication Hub**:
   - Direct messaging with property managers
   - Important announcements and notifications
   - Document sharing capabilities
-- **Lease Management**: 
+- **Lease Management**:
   - Access to lease documents
   - Renewal notifications and processes
   - Policy updates and amendments
@@ -39,13 +39,13 @@ Next Level Rentals is a comprehensive property management system that provides t
 ## 🛠️ Technology Stack
 
 - **Frontend**: React.js with modern UI components
-- **Backend**: Node.js with Express.js
-- **Database**: PostgreSQL for data persistence
-- **Authentication**: JWT-based authentication with bcrypt
-- **Payment Processing**: Stripe integration for secure payments
-- **File Storage**: AWS S3 for document and image storage
-- **Email Service**: SendGrid for automated communications
-- **Hosting**: AWS EC2 with load balancing
+- **Backend**: Firebase Cloud Functions (Node.js runtime)
+- **Database**: Cloud Firestore for real-time data persistence
+- **Authentication**: Firebase Authentication
+- **Payment Processing**: Stripe integration triggered from Cloud Functions
+- **File Storage**: Firebase Storage for documents and images
+- **Email & Notifications**: SendGrid or Firebase Extensions triggered via Cloud Functions
+- **Hosting**: Firebase Hosting with optional Cloud Run for server-side needs
 
 ## 📱 Responsive Design
 
@@ -59,8 +59,9 @@ The platform is fully responsive and optimized for:
 
 ### Prerequisites
 - Node.js (v14 or higher)
-- PostgreSQL (v12 or higher)
 - npm or yarn package manager
+- Firebase CLI (`npm install -g firebase-tools`)
+- Access to a Firebase project (or create one at [console.firebase.google.com](https://console.firebase.google.com))
 
 ### Installation
 
@@ -80,17 +81,24 @@ yarn install
 3. Set up environment variables
 ```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env with your Firebase and service configuration
 ```
 
-4. Set up the database
+4. Configure Firebase
+- Login to Firebase: `firebase login`
+- Set the active project: `firebase use <your-project-id>`
+- Enable the following Firebase products in the console:
+  - Authentication (Email/Password, SSO providers as needed)
+  - Cloud Firestore
+  - Firebase Storage
+  - Cloud Functions (upgrade project to Blaze plan for external network calls such as Stripe)
+
+5. Initialize the database and storage rules (optional but recommended)
 ```bash
-npm run db:setup
-# or
-yarn db:setup
+firebase firestore:indexes && firebase deploy --only firestore:rules,storage:rules
 ```
 
-5. Start the development server
+6. Start the development server
 ```bash
 npm run dev
 # or
@@ -102,14 +110,22 @@ The application will be available at `http://localhost:3000`
 ## 🔧 Configuration
 
 ### Environment Variables
-- `DATABASE_URL`: PostgreSQL connection string
-- `JWT_SECRET`: Secret key for JWT token generation
-- `STRIPE_PUBLIC_KEY`: Stripe publishable key
-- `STRIPE_SECRET_KEY`: Stripe secret key
-- `AWS_ACCESS_KEY_ID`: AWS access key for S3
-- `AWS_SECRET_ACCESS_KEY`: AWS secret key for S3
-- `AWS_S3_BUCKET`: S3 bucket name for file storage
-- `SENDGRID_API_KEY`: SendGrid API key for email services
+Update your `.env` file with the following keys:
+
+- `NEXT_PUBLIC_FIREBASE_API_KEY`: Firebase web API key
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`: Firebase auth domain
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`: Firebase project ID
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`: Firebase storage bucket name
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`: Sender ID for Firebase Cloud Messaging (if used)
+- `NEXT_PUBLIC_FIREBASE_APP_ID`: Firebase app ID
+- `FIREBASE_CLIENT_EMAIL`: Service account client email for Firebase Admin SDK
+- `FIREBASE_PRIVATE_KEY`: Service account private key (escape newlines when storing in `.env`)
+- `FIREBASE_DATABASE_URL`: Realtime Database URL (if applicable)
+- `STRIPE_PUBLIC_KEY`: Stripe publishable key for client-side usage
+- `STRIPE_SECRET_KEY`: Stripe secret key for Cloud Functions
+- `SENDGRID_API_KEY`: API key for transactional email (if using SendGrid)
+
+> **Note:** Keep your service account credentials secure. For local development, you can store the Firebase Admin SDK JSON as a base64 string and decode it in your configuration.
 
 ## 📊 Features in Development
 
