@@ -178,11 +178,11 @@ For support and inquiries:
 
 ### Role Seeding Script
 
-Use `scripts/seed-roles.js` to create the required Firestore documents for your admin and tenant users. Install Firebase Admin locally (`npm install firebase-admin --save-dev`), then run:
+Use `scripts/seed-roles.js` to create the required Firestore documents for your super admin, admin, and tenant users. Install Firebase Admin locally (`npm install firebase-admin --save-dev`), then run:
 
 ```bash
 node scripts/seed-roles.js path/to/serviceAccountKey.json
 ```
 
-Update the placeholder UIDs in the script before executing it; the values should match the Firebase Authentication UIDs for your accounts. You can re-run the script any time you add new users.
+Update the placeholder UIDs in the script before executing it; the values should match the Firebase Authentication UIDs for your super admin, admin, and tenant accounts. You can re-run the script any time you add new users.
 

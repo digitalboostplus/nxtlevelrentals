@@ -29,6 +29,14 @@ const seedUsers = [
     }
   },
   {
+    uid: 'REPLACE_WITH_SUPER_ADMIN_UID',
+    data: {
+      displayName: 'Jordan Blake',
+      email: 'jordan@nxtlevelmngmnt.com',
+      role: 'super-admin'
+    }
+  },
+  {
     uid: 'REPLACE_WITH_TENANT_UID',
     data: {
       displayName: 'Morgan Rivera',

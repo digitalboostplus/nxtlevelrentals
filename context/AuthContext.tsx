@@ -9,7 +9,7 @@ import {
 import { doc, getDoc, type DocumentData } from 'firebase/firestore';
 import { getFirebaseAuth, getFirestoreClient } from '@/lib/firebase';
 
-export type UserRole = 'admin' | 'tenant';
+export type UserRole = 'admin' | 'tenant' | 'super-admin';
 
 export type UserProfile = {
   id: string;

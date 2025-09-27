@@ -16,6 +16,7 @@ export default function Header() {
   const isLanding = router.pathname === '/';
   const isPortalRoute = router.pathname.startsWith('/portal');
   const isAdminRoute = router.pathname.startsWith('/admin');
+  const hasAdminAccess = role === 'admin' || role === 'super-admin';
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -26,7 +27,12 @@ export default function Header() {
     }
   }, [router, signOutUser]);
 
-  const dashboardHref = role === 'admin' ? '/admin' : '/portal';
+  const dashboardHref = hasAdminAccess ? '/admin' : '/portal';
+  const dashboardLabel = hasAdminAccess
+    ? role === 'super-admin'
+      ? 'Super Admin Console'
+      : 'Admin Console'
+    : 'Tenant Portal';
   const showLandingLinks = isLanding;
 
   return (
@@ -55,7 +61,7 @@ export default function Header() {
                   isPortalRoute || isAdminRoute ? ' filter-chip--active' : ''
                 }`}
               >
-                {role === 'admin' ? 'Admin Console' : 'Tenant Portal'}
+                {dashboardLabel}
               </Link>
               <button type="button" className="ghost-button" onClick={() => void handleSignOut()}>
                 Sign out

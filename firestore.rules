@@ -3,47 +3,71 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Users collection - users can read/write their own data
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && (
+        request.auth.uid == userId ||
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'super-admin'
+        )
+      );
     }
     
     // Properties collection - admins can read/write, tenants can read
     match /properties/{propertyId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow write: if request.auth != null && (
+        let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+        callerRole == 'admin' || callerRole == 'super-admin'
+      );
     }
     
     // Maintenance requests - tenants can create/read their own, admins can read/write all
     match /maintenanceRequests/{requestId} {
       allow read: if request.auth != null && (
         resource.data.tenantId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'admin' || callerRole == 'super-admin'
+        )
       );
       allow create: if request.auth != null && request.auth.uid == resource.data.tenantId;
       allow update: if request.auth != null && (
         resource.data.tenantId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'admin' || callerRole == 'super-admin'
+        )
       );
     }
-    
+
     // Lease documents - tenants can read their own, admins can read/write all
     match /leaseDocuments/{documentId} {
       allow read: if request.auth != null && (
         resource.data.tenantId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'admin' || callerRole == 'super-admin'
+        )
       );
-      allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow write: if request.auth != null && (
+        let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+        callerRole == 'admin' || callerRole == 'super-admin'
+      );
     }
-    
+
     // Payment history - tenants can read their own, admins can read/write all
     match /payments/{paymentId} {
       allow read: if request.auth != null && (
         resource.data.tenantId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'admin' || callerRole == 'super-admin'
+        )
       );
-      allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow write: if request.auth != null && (
+        let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+        callerRole == 'admin' || callerRole == 'super-admin'
+      );
     }
   }
 }

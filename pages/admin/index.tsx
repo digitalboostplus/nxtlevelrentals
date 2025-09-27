@@ -48,6 +48,6 @@ const AdminPage: NextPageWithAuth = () => {
 };
 
 AdminPage.requireAuth = true;
-AdminPage.allowedRoles = ['admin'];
+AdminPage.allowedRoles = ['admin', 'super-admin'];
 
 export default AdminPage;
