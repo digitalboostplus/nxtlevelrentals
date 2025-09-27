@@ -19,7 +19,7 @@ service cloud.firestore {
         resource.data.tenantId == request.auth.uid ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
-      allow create: if request.auth != null && request.auth.uid == resource.data.tenantId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.tenantId;
       allow update: if request.auth != null && (
         resource.data.tenantId == request.auth.uid ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
