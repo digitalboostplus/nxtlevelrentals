@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import type { MaintenanceRequest } from '@/data/portal';
 
+import { formatLocalDate } from '@/lib/date';
+
 type MaintenanceRequestsProps = {
   requests: MaintenanceRequest[];
   activeStatus: MaintenanceRequest['status'] | 'All';
@@ -49,7 +51,7 @@ export default function MaintenanceRequests({ requests, activeStatus, onStatusCh
           {filtered.map((request) => (
             <article className="maintenance-card" key={request.id}>
               <div className="maintenance-card__meta">
-                <span>{new Date(request.submittedOn).toLocaleDateString()}</span>
+                <span>{formatLocalDate(request.submittedOn)}</span>
                 <span className={statusColors[request.status]}>{request.status}</span>
               </div>
               <h3 className="maintenance-card__title">{request.title}</h3>

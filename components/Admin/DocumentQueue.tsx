@@ -1,5 +1,7 @@
 import type { DocumentTask } from '@/data/admin';
 
+import { formatLocalDate } from '@/lib/date';
+
 type DocumentQueueProps = {
   tasks: DocumentTask[];
 };
@@ -26,7 +28,7 @@ export default function DocumentQueue({ tasks }: DocumentQueueProps) {
                 </div>
                 <div>
                   <dt>Received</dt>
-                  <dd>{new Date(task.receivedOn).toLocaleDateString()}</dd>
+                  <dd>{formatLocalDate(task.receivedOn)}</dd>
                 </div>
               </dl>
               <div className="document-queue__actions">

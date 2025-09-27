@@ -1,5 +1,7 @@
 import type { WorkOrder } from '@/data/admin';
 
+import { formatLocalDate } from '@/lib/date';
+
 type WorkOrderTableProps = {
   workOrders: WorkOrder[];
 };
@@ -28,7 +30,7 @@ export default function WorkOrderTable({ workOrders }: WorkOrderTableProps) {
                 <tr key={order.id}>
                   <th scope="row">{order.summary}</th>
                   <td>{order.unit}</td>
-                  <td>{new Date(order.submittedOn).toLocaleDateString()}</td>
+                  <td>{formatLocalDate(order.submittedOn)}</td>
                   <td>{order.status}</td>
                   <td>
                     <span className={`tag ${order.priority === 'High' ? 'tag--warning' : 'tag--info'}`}>
