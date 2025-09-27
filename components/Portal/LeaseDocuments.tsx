@@ -1,5 +1,7 @@
 import type { LeaseDocument } from '@/data/portal';
 
+import { formatLocalDate } from '@/lib/date';
+
 type LeaseDocumentsProps = {
   documents: LeaseDocument[];
 };
@@ -17,7 +19,7 @@ export default function LeaseDocuments({ documents }: LeaseDocumentsProps) {
             <div className="document-row" key={document.id}>
               <div className="document-row__info">
                 <span className="document-row__title">{document.title}</span>
-                <span className="document-row__meta">Updated {new Date(document.updatedOn).toLocaleDateString()}</span>
+                <span className="document-row__meta">Updated {formatLocalDate(document.updatedOn)}</span>
               </div>
               <a className="outline-button" href={document.downloadUrl}>
                 Download

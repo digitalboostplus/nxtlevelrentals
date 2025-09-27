@@ -1,10 +1,9 @@
 import type { DashboardMetrics } from '@/data/portal';
 
+import { formatLocalDate } from '@/lib/date';
+
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
-
-const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
 type DashboardHighlightsProps = {
   metrics: DashboardMetrics;
@@ -15,7 +14,7 @@ export default function DashboardHighlights({ metrics }: DashboardHighlightsProp
     {
       label: 'Current Balance',
       value: formatCurrency(metrics.currentBalance),
-      meta: `Due ${formatDate(metrics.dueDate)}`
+      meta: `Due ${formatLocalDate(metrics.dueDate, { month: 'short', day: 'numeric', year: 'numeric' })}`
     },
     {
       label: 'AutoPay',
@@ -24,13 +23,17 @@ export default function DashboardHighlights({ metrics }: DashboardHighlightsProp
     },
     {
       label: 'Next Inspection',
-      value: formatDate(metrics.nextInspection),
+      value: formatLocalDate(metrics.nextInspection, { month: 'short', day: 'numeric', year: 'numeric' }),
       meta: 'A reminder will be sent 72 hours prior'
     },
     {
       label: 'Lease Renewal',
-      value: formatDate(metrics.leaseRenewalDate),
-      meta: `Last payment ${formatDate(metrics.lastPaymentDate)} · ${formatCurrency(metrics.lastPaymentAmount)}`
+      value: formatLocalDate(metrics.leaseRenewalDate, { month: 'short', day: 'numeric', year: 'numeric' }),
+      meta: `Last payment ${formatLocalDate(metrics.lastPaymentDate, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })} · ${formatCurrency(metrics.lastPaymentAmount)}`
     }
   ];
 

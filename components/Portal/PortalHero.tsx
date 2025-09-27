@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { formatLocalDate } from '@/lib/date';
+
 type PortalHeroProps = {
   residentName: string;
   propertyName: string;
@@ -32,11 +34,8 @@ export default function PortalHero({ residentName, propertyName, unit, nextDueDa
             <strong>Unit:</strong> {unit}
           </div>
           <div>
-            <strong>Next rent due:</strong> {new Date(nextDueDate).toLocaleDateString(undefined, {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric'
-            })}
+            <strong>Next rent due:</strong>{' '}
+            {formatLocalDate(nextDueDate, { month: 'long', day: 'numeric', year: 'numeric' })}
           </div>
         </div>
       </div>

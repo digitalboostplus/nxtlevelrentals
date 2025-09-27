@@ -1,10 +1,9 @@
 import type { PaymentRecord } from '@/data/portal';
 
+import { formatLocalDate } from '@/lib/date';
+
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
-
-const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
 
 type PaymentHistoryProps = {
   payments: PaymentRecord[];
@@ -38,7 +37,7 @@ export default function PaymentHistory({ payments }: PaymentHistoryProps) {
             <tbody>
               {payments.map((payment) => (
                 <tr key={payment.id}>
-                  <td>{formatDate(payment.date)}</td>
+                  <td>{formatLocalDate(payment.date, { month: 'long', day: 'numeric', year: 'numeric' })}</td>
                   <td>{formatCurrency(payment.amount)}</td>
                   <td>
                     <span className={statusTagClass[payment.status]}>{payment.status}</span>

@@ -1,5 +1,7 @@
 import type { TenantSummary } from '@/data/admin';
 
+import { formatLocalDate } from '@/lib/date';
+
 type TenantPortfolioTableProps = {
   tenants: TenantSummary[];
 };
@@ -28,7 +30,7 @@ export default function TenantPortfolioTable({ tenants }: TenantPortfolioTablePr
                 <tr key={tenant.id}>
                   <th scope="row">{tenant.name}</th>
                   <td>{tenant.unit}</td>
-                  <td>{new Date(tenant.leaseEnd).toLocaleDateString()}</td>
+                  <td>{formatLocalDate(tenant.leaseEnd)}</td>
                   <td>{tenant.balance === 0 ? 'Paid' : `$${tenant.balance.toFixed(2)}`}</td>
                   <td>
                     <span className={`tag ${tenant.autopay ? 'tag--success' : 'tag--warning'}`}>
