@@ -59,7 +59,7 @@ export default function LoginPage() {
       <Head>
         <title>Sign in - Next Level Rentals</title>
       </Head>
-      <main className="auth">
+      <div className="auth">
         <section className="auth-card" aria-labelledby="loginHeading">
           <div className="auth-card__header">
             <h1 id="loginHeading">Welcome back</h1>
@@ -103,7 +103,7 @@ export default function LoginPage() {
             <Link href="mailto:management@nxtlevelrentals.com">Contact the management team</Link>
           </div>
         </section>
-      </main>
+      </div>
       <style jsx>{`
         .auth {
           display: flex;
