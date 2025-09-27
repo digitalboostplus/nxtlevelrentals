@@ -13,6 +13,21 @@ const errorMap: Record<string, string> = {
   [AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER]: 'Too many attempts. Please wait a moment and retry.'
 };
 
+const portalHighlights = [
+  {
+    title: 'Plan ahead with smart alerts',
+    description: 'Receive push, email, or SMS notifications for weather, maintenance appointments, and community news.'
+  },
+  {
+    title: 'Keep documents at your fingertips',
+    description: 'Download leases, renewal offers, and inspection reports from a secure digital vault whenever you need them.'
+  },
+  {
+    title: 'Report issues in minutes',
+    description: 'Submit maintenance requests with photos, pick preferred times, and chat with technicians in real time.'
+  }
+];
+
 export default function LoginPage() {
   const router = useRouter();
   const { user, signIn, error, loading } = useAuth();
@@ -57,14 +72,40 @@ export default function LoginPage() {
   return (
     <SiteLayout>
       <Head>
-        <title>Sign in - Next Level Rentals</title>
+        <title>Sign in · Next Level Rentals Tenant Portal</title>
+        <meta
+          name="description"
+          content="Access your Next Level Rentals tenant portal to view documents, submit maintenance requests, and stay informed about community updates."
+        />
       </Head>
-      <div className="auth">
-        <section className="auth-card" aria-labelledby="loginHeading">
-          <div className="auth-card__header">
-            <h1 id="loginHeading">Welcome back</h1>
-            <p>Sign in to continue to your tenant or admin portal.</p>
+      <div className="auth" aria-labelledby="loginHeading">
+        <section className="auth__welcome" aria-label="Resident experience highlights">
+          <div className="auth__welcome-inner">
+            <p className="auth__eyebrow">Tenant access</p>
+            <h1 id="loginHeading">Sign in to manage your home</h1>
+            <p className="auth__intro">
+              Your personalized resident hub keeps payments, documents, maintenance, and neighborhood updates organized. Sign in
+              to stay connected to your property team.
+            </p>
+            <ul className="auth__highlights">
+              {portalHighlights.map((highlight) => (
+                <li key={highlight.title}>
+                  <strong>{highlight.title}</strong>
+                  <p>{highlight.description}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="auth__support">
+              <span>Need help accessing your account?</span>
+              <Link href="mailto:support@nxtlevelrentals.com">Email resident support</Link>
+            </div>
           </div>
+        </section>
+        <section className="auth-card" aria-label="Tenant login form">
+          <header className="auth-card__header">
+            <h2>Welcome back</h2>
+            <p>Use your registered email and password to access the tenant portal.</p>
+          </header>
           <form onSubmit={handleSubmit} className="auth-form">
             <label className="auth-form__label" htmlFor="email">
               Email address
@@ -77,6 +118,7 @@ export default function LoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
+              disabled={loading || submitting}
             />
 
             <label className="auth-form__label" htmlFor="password">
@@ -90,46 +132,117 @@ export default function LoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Your password"
+              disabled={loading || submitting}
             />
 
             {formError ? <p className="auth-form__error" role="alert">{formError}</p> : null}
 
-            <button type="submit" className="primary-button auth-form__submit" disabled={submitting}>
-              {submitting ? 'Signing in...' : 'Sign in'}
+            <button type="submit" className="primary-button auth-form__submit" disabled={submitting || loading}>
+              {submitting ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
-          <div className="auth-card__footer">
-            <span>Need access?</span>
-            <Link href="mailto:management@nxtlevelrentals.com">Contact the management team</Link>
-          </div>
+          <footer className="auth-card__footer">
+            <div>
+              <span>New to the community?</span>
+              <Link href="mailto:welcome@nxtlevelrentals.com">Request an invite</Link>
+            </div>
+            <div>
+              <span>Looking for the resident handbook?</span>
+              <Link href="/">Return to landing page</Link>
+            </div>
+          </footer>
         </section>
       </div>
       <style jsx>{`
         .auth {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          min-height: calc(100vh - 120px);
+          background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 55%), #f8fafc;
+        }
+
+        .auth__welcome {
           display: flex;
-          justify-content: center;
-          padding: 6rem 1.5rem;
+          align-items: center;
+          padding: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 6vw, 5rem);
+        }
+
+        .auth__welcome-inner {
+          max-width: 460px;
+          display: grid;
+          gap: 1.5rem;
+        }
+
+        .auth__eyebrow {
+          text-transform: uppercase;
+          letter-spacing: 0.28em;
+          font-weight: 700;
+          font-size: 0.85rem;
+          color: rgba(15, 23, 42, 0.6);
+        }
+
+        .auth__intro {
+          color: rgba(15, 23, 42, 0.72);
+          line-height: 1.7;
+        }
+
+        .auth__highlights {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: grid;
+          gap: 1rem;
+        }
+
+        .auth__highlights li {
+          background: white;
+          border-radius: var(--radius-lg);
+          padding: 1.25rem 1.5rem;
+          box-shadow: var(--shadow-sm);
+          border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .auth__highlights strong {
+          display: block;
+          font-size: 1rem;
+          color: #1e293b;
+          margin-bottom: 0.35rem;
+        }
+
+        .auth__highlights p {
+          color: rgba(15, 23, 42, 0.65);
+          line-height: 1.6;
+        }
+
+        .auth__support {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem 1.5rem;
+          font-size: 0.95rem;
+          color: rgba(15, 23, 42, 0.65);
+        }
+
+        .auth__support a {
+          color: var(--color-primary);
+          font-weight: 600;
         }
 
         .auth-card {
-          width: min(450px, 100%);
-          background: var(--color-surface);
-          padding: 3rem;
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-md);
-          border: 1px solid rgba(108, 92, 231, 0.08);
+          background: white;
+          padding: clamp(3rem, 5vw, 4rem);
           display: grid;
           gap: 2rem;
+          border-radius: 0;
+          box-shadow: none;
         }
 
-        .auth-card__header h1 {
+        .auth-card__header h2 {
           font-size: 2rem;
-          margin-bottom: 0.5rem;
-          color: #111827;
+          color: #0f172a;
         }
 
         .auth-card__header p {
-          color: var(--color-muted);
+          color: rgba(15, 23, 42, 0.6);
         }
 
         .auth-form {
@@ -145,15 +258,21 @@ export default function LoginPage() {
         .auth-form input {
           border-radius: 12px;
           border: 1px solid var(--color-border);
-          padding: 0.85rem 1rem;
+          padding: 0.9rem 1rem;
           font-size: 1rem;
           transition: border 0.2s ease, box-shadow 0.2s ease;
+          background: #f8fafc;
         }
 
         .auth-form input:focus {
           outline: none;
           border-color: rgba(108, 92, 231, 0.45);
           box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.12);
+        }
+
+        .auth-form input:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
         }
 
         .auth-form__error {
@@ -166,11 +285,10 @@ export default function LoginPage() {
         }
 
         .auth-card__footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+          display: grid;
+          gap: 1rem;
           font-size: 0.95rem;
-          color: var(--color-muted);
+          color: rgba(15, 23, 42, 0.6);
         }
 
         .auth-card__footer a {
@@ -178,9 +296,14 @@ export default function LoginPage() {
           font-weight: 600;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 900px) {
+          .auth {
+            min-height: auto;
+          }
+
           .auth-card {
-            padding: 2.25rem;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            box-shadow: var(--shadow-md);
           }
         }
       `}</style>
