@@ -1,26 +1,30 @@
 import Head from 'next/head';
 import SiteLayout from '@/components/Layout/SiteLayout';
-import HeroSection from '@/components/Landing/HeroSection';
-import ServicesSection from '@/components/Landing/ServicesSection';
-import PropertiesSection from '@/components/Landing/PropertiesSection';
-import TestimonialsSection from '@/components/Landing/TestimonialsSection';
-import CTASection from '@/components/Landing/CTASection';
+import TenantHero from '@/components/Landing/TenantHero';
+import CityEventsSection from '@/components/Landing/CityEventsSection';
+import WeatherAlertsSection from '@/components/Landing/WeatherAlertsSection';
+import MaintenanceScheduleSection from '@/components/Landing/MaintenanceScheduleSection';
+import TenantResourcesSection from '@/components/Landing/TenantResourcesSection';
+import TenantCTASection from '@/components/Landing/TenantCTASection';
 
 export default function HomePage() {
   return (
     <SiteLayout>
       <Head>
-        <title>Next Level Rentals · Property Management Tenant Portal</title>
+        <title>Next Level Rentals · Tenant Experience Hub</title>
         <meta
           name="description"
-          content="A modern tenant portal and landing page for property management teams with Firebase-powered workflows and secure rent collection."
+          content="Explore upcoming events, weather notifications, and maintenance schedules curated for Next Level Rentals tenants. Log in to access your personalized resident portal."
         />
       </Head>
-      <HeroSection />
-      <ServicesSection />
-      <PropertiesSection />
-      <TestimonialsSection />
-      <CTASection />
+      <main>
+        <TenantHero />
+        <CityEventsSection />
+        <WeatherAlertsSection />
+        <MaintenanceScheduleSection />
+        <TenantResourcesSection />
+        <TenantCTASection />
+      </main>
     </SiteLayout>
   );
 }
