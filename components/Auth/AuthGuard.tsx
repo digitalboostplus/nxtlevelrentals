@@ -43,6 +43,7 @@ const LoadingState = () => (
 export default function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
   const router = useRouter();
   const { user, role, loading } = useAuth();
+  const isSuperAdmin = role === 'super-admin';
 
   useEffect(() => {
     if (loading) return;
@@ -56,12 +57,12 @@ export default function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
       return;
     }
 
-    if (allowedRoles && role && !allowedRoles.includes(role)) {
+    if (allowedRoles && role && !allowedRoles.includes(role) && !isSuperAdmin) {
       void router.replace('/');
     }
-  }, [allowedRoles, loading, role, router, user]);
+  }, [allowedRoles, isSuperAdmin, loading, role, router, user]);
 
-  const roleRestricted = allowedRoles && role && !allowedRoles.includes(role);
+  const roleRestricted = Boolean(allowedRoles && role && !allowedRoles.includes(role) && !isSuperAdmin);
 
   if (loading || !user || roleRestricted) {
     return <LoadingState />;

@@ -83,6 +83,6 @@ const PortalPage: NextPageWithAuth = () => {
 };
 
 PortalPage.requireAuth = true;
-PortalPage.allowedRoles = ['tenant', 'admin'];
+PortalPage.allowedRoles = ['tenant', 'admin', 'super-admin'];
 
 export default PortalPage;

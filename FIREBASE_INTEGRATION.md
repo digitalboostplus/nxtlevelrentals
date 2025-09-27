@@ -6,7 +6,7 @@ This document outlines the Firebase services integrated into the NextLevel Renta
 
 ### 1. Firebase Authentication
 - **Email/Password Authentication**: Users can sign up and sign in
-- **User Role Management**: Tenant and Admin roles with Firestore-based permissions
+- **User Role Management**: Tenant, Admin, and Super Admin roles with Firestore-based permissions
 - **Auth State Management**: Real-time authentication state tracking
 
 ### 2. Cloud Firestore Database
@@ -148,16 +148,16 @@ messagingUtils.onMessage((payload) => {
 ## 🔒 Security Rules
 
 ### Firestore Rules
-- Users can only read/write their own user document
-- Properties are readable by all authenticated users, writable by admins only
-- Maintenance requests are readable by the tenant who created them and admins
-- Lease documents and payments follow similar tenant/admin access patterns
+- Users can only read/write their own user document, with super admins able to manage every profile
+- Properties are readable by all authenticated users, writable by admins and super admins
+- Maintenance requests are readable by the tenant who created them, admins, and super admins
+- Lease documents and payments follow similar tenant/admin/super-admin access patterns
 
 ### Storage Rules
-- Users can upload their own profile images
-- Property images are readable by all, writable by admins
-- Maintenance request attachments are accessible by the requesting tenant and admins
-- Lease documents are readable by tenants, writable by admins
+- Users can upload their own profile images, while super admins can manage any profile asset
+- Property images are readable by all, writable by admins and super admins
+- Maintenance request attachments are accessible by the requesting tenant, admins, and super admins
+- Lease documents are readable by tenants, admins, and super admins, writable by admins and super admins
 
 ## 📊 Analytics Events
 

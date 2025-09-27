@@ -43,7 +43,7 @@ import {
 
 // Types
 export interface UserRole {
-  role: 'tenant' | 'admin';
+  role: 'tenant' | 'admin' | 'super-admin';
   displayName?: string;
   email?: string;
   propertyIds?: string[];
