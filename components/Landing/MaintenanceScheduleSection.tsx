@@ -23,7 +23,7 @@ const maintenanceItems = [
 
 export default function MaintenanceScheduleSection() {
   return (
-    <section className="maintenance" aria-labelledby="maintenanceHeading">
+    <section className="maintenance" id="maintenance-schedule" aria-labelledby="maintenanceHeading">
       <div className="maintenance__inner">
         <div className="maintenance__header">
           <p className="section-eyebrow">Routine upkeep</p>

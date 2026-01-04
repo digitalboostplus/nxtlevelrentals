@@ -21,7 +21,7 @@ const cityEvents = [
 
 export default function CityEventsSection() {
   return (
-    <section className="city-events" aria-labelledby="cityEventsHeading">
+    <section className="city-events" id="city-events" aria-labelledby="cityEventsHeading">
       <div className="city-events__inner">
         <div className="city-events__header">
           <p className="section-eyebrow">Around the city</p>

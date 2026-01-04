@@ -3,6 +3,8 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
+  setPersistence,
+  browserSessionPersistence,
   type AuthError,
   type User as FirebaseUser
 } from 'firebase/auth';
@@ -18,6 +20,12 @@ export type UserProfile = {
   role: UserRole;
   propertyIds?: string[];
   managedProperties?: string[];
+  unit?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  monthlyRent?: number;
 };
 
 type AuthContextValue = {
@@ -42,7 +50,13 @@ const parseProfile = (user: FirebaseUser, data: DocumentData | undefined): UserP
     displayName: data?.displayName ?? data?.fullName ?? user.displayName ?? 'Resident',
     role,
     propertyIds: data?.propertyIds,
-    managedProperties: data?.managedProperties
+    managedProperties: data?.managedProperties,
+    unit: data?.unit,
+    address: data?.address,
+    city: data?.city,
+    state: data?.state,
+    zip: data?.zip,
+    monthlyRent: data?.monthlyRent ? Number(data.monthlyRent) : undefined
   } satisfies UserProfile;
 };
 
@@ -95,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       setLoading(true);
+      // Force session persistence (logout on tab close) for stricter security
+      await setPersistence(auth, browserSessionPersistence);
       const credentials = await signInWithEmailAndPassword(auth, email, password);
       await loadProfile(credentials.user);
     } catch (err) {

@@ -1,44 +1,44 @@
-import { 
-  getFirebaseAuth, 
-  getFirestoreClient, 
-  getStorageClient, 
-  getMessagingClient, 
-  getAnalyticsClient 
+import {
+  getFirebaseAuth,
+  getFirestoreClient,
+  getStorageClient,
+  getMessagingClient,
+  getAnalyticsClient
 } from './firebase';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
   User,
   updateProfile
 } from 'firebase/auth';
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  orderBy, 
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
   limit,
   addDoc,
   serverTimestamp
 } from 'firebase/firestore';
-import { 
-  ref, 
-  uploadBytes, 
-  getDownloadURL, 
-  deleteObject 
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
 } from 'firebase/storage';
-import { 
-  getToken, 
-  onMessage 
+import {
+  getToken,
+  onMessage
 } from 'firebase/messaging';
-import { 
-  logEvent 
+import {
+  logEvent
 } from 'firebase/analytics';
 
 // Types
@@ -57,7 +57,7 @@ export interface MaintenanceRequest {
   title: string;
   description: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'submitted' | 'in_progress' | 'completed' | 'cancelled';
   createdAt: any;
   updatedAt: any;
   attachments?: string[];
@@ -87,9 +87,89 @@ export interface Payment {
   amount: number;
   dueDate: any;
   paidDate?: any;
-  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
+  status: 'pending' | 'paid' | 'overdue' | 'cancelled' | 'processing' | 'failed';
   description: string;
   createdAt: any;
+  // Stripe-specific fields
+  stripePaymentIntentId?: string;
+  stripeCheckoutSessionId?: string;
+  paymentMethod?: 'card' | 'ach' | 'apple_pay' | 'google_pay' | 'cash' | 'check';
+  receiptUrl?: string;
+  stripeReceiptUrl?: string;
+  lastFourDigits?: string;
+  checkNumber?: string | null;
+}
+
+export interface LedgerEntry {
+  id?: string;
+  tenantId: string;
+  propertyId: string;
+  amount: number; // Positive for charges, negative (or just marked as payment) for payments.
+  // Convention: Charge is positive, Payment is negative? Or use 'type'.
+  type: 'charge' | 'payment' | 'adjustment';
+  category: 'rent' | 'utility' | 'late_fee' | 'deposit' | 'other';
+  date: any;
+  status: 'pending' | 'completed' | 'failed' | 'overdue';
+  description: string;
+  createdAt: any;
+  // Stripe-specific fields
+  stripePaymentIntentId?: string;
+  paymentMethod?: 'card' | 'ach' | 'apple_pay' | 'google_pay' | 'cash' | 'check';
+  receiptUrl?: string;
+  manualEntry?: boolean;
+  recordedBy?: string; // Admin UID who recorded manual payment
+  checkNumber?: string;
+}
+
+export interface PaymentPlan {
+  id?: string;
+  tenantId: string;
+  propertyId: string;
+  totalAmount: number;
+  remainingAmount: number;
+  startDate: any;
+  endDate: any;
+  installments: {
+    dueDate: any;
+    amount: number;
+    status: 'pending' | 'paid' | 'overdue';
+  }[];
+  status: 'active' | 'completed' | 'broken';
+  notes?: string;
+  createdAt: any;
+}
+
+export interface LeaseDocument {
+  id?: string;
+  tenantId: string;
+  propertyId: string;
+  documentUrl: string;
+  documentType: 'lease' | 'addendum' | 'notice' | 'other';
+  fileName: string;
+  createdAt: any;
+}
+
+export interface SavedPaymentMethod {
+  id?: string;
+  tenantId: string;
+  stripePaymentMethodId: string;
+  type: 'card' | 'us_bank_account';
+  lastFour: string;
+  brand?: string; // e.g., 'visa', 'mastercard'
+  expiryMonth?: number;
+  expiryYear?: number;
+  bankName?: string; // For ACH
+  accountType?: 'checking' | 'savings'; // For ACH
+  isDefault: boolean;
+  createdAt: any;
+}
+
+export interface StripeCustomer {
+  tenantId: string; // Also use as document ID for easy lookup
+  stripeCustomerId: string; // cus_...
+  email: string;
+  createdAt: any;
+  updatedAt: any;
 }
 
 // Authentication utilities
@@ -214,6 +294,88 @@ export const paymentUtils = {
       createdAt: serverTimestamp()
     });
     return docRef.id;
+  },
+
+  // Ledger utilities
+  async getLedgerByTenant(tenantId: string) {
+    const db = getFirestoreClient();
+    const q = query(
+      collection(db, 'ledger'),
+      where('tenantId', '==', tenantId),
+      orderBy('date', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LedgerEntry));
+  },
+
+  async createLedgerEntry(entryData: Omit<LedgerEntry, 'id' | 'createdAt'>) {
+    const db = getFirestoreClient();
+    const docRef = await addDoc(collection(db, 'ledger'), {
+      ...entryData,
+      createdAt: serverTimestamp()
+    });
+    return docRef.id;
+  },
+
+  // Payment Plan utilities
+  async getPaymentPlansByTenant(tenantId: string) {
+    const db = getFirestoreClient();
+    const q = query(
+      collection(db, 'paymentPlans'),
+      where('tenantId', '==', tenantId),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaymentPlan));
+  },
+
+  async createPaymentPlan(planData: Omit<PaymentPlan, 'id' | 'createdAt'>) {
+    const db = getFirestoreClient();
+    const docRef = await addDoc(collection(db, 'paymentPlans'), {
+      ...planData,
+      createdAt: serverTimestamp()
+    });
+    return docRef.id;
+  }
+};
+
+// Admin utilities
+export const adminUtils = {
+  async getAllTenants() {
+    const db = getFirestoreClient();
+    const q = query(collection(db, 'users'), where('role', '==', 'tenant'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  },
+
+  async getLeaseDocuments(tenantId: string) {
+    const db = getFirestoreClient();
+    const q = query(
+      collection(db, 'leaseDocuments'),
+      where('tenantId', '==', tenantId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LeaseDocument));
+  },
+
+  async getPortfolioStats() {
+    const db = getFirestoreClient();
+
+    // This would typically be a cloud function or a more complex query in production
+    // For now, we fetch and aggregate
+    const propertiesSnap = await getDocs(collection(db, 'properties'));
+    const tenantsSnap = await getDocs(query(collection(db, 'users'), where('role', '==', 'tenant')));
+    const overdueLedgerSnap = await getDocs(query(collection(db, 'ledger'), where('status', '==', 'overdue')));
+
+    const totalRent = propertiesSnap.docs.reduce((acc, doc) => acc + (doc.data().rent || 0), 0);
+    const overdueAmount = overdueLedgerSnap.docs.reduce((acc, doc) => acc + (doc.data().amount || 0), 0);
+
+    return {
+      totalProperties: propertiesSnap.size,
+      activeTenants: tenantsSnap.size,
+      totalRentValue: totalRent,
+      overdueAmount: overdueAmount
+    };
   }
 };
 
@@ -238,7 +400,7 @@ export const messagingUtils = {
   async requestPermission() {
     const messaging = getMessagingClient();
     if (!messaging) return null;
-    
+
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
@@ -254,8 +416,8 @@ export const messagingUtils = {
 
   onMessage(callback: (payload: any) => void) {
     const messaging = getMessagingClient();
-    if (!messaging) return () => {};
-    
+    if (!messaging) return () => { };
+
     return onMessage(messaging, callback);
   }
 };
@@ -265,7 +427,7 @@ export const analyticsUtils = {
   logEvent(eventName: string, parameters?: any) {
     const analytics = getAnalyticsClient();
     if (!analytics) return;
-    
+
     logEvent(analytics, eventName, parameters);
   },
 

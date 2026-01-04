@@ -1,3 +1,13 @@
+// Check if we're in mock mode (no Firebase config)
+const USE_MOCK = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_USE_MOCK === 'true';
+
+if (USE_MOCK) {
+  console.log('🔧 Running in mock mode - Firebase disabled');
+}
+
+// Import mock implementation if in mock mode
+const mockFirebase = USE_MOCK ? require('./firebase-mock') : null;
+
 import { FirebaseApp, initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
@@ -23,6 +33,10 @@ const firebaseConfig = {
 };
 
 export const getFirebaseApp = (): FirebaseApp => {
+  if (USE_MOCK) {
+    return mockFirebase.getFirebaseApp();
+  }
+  
   if (!firebaseApp) {
     if (!getApps().length) {
       firebaseApp = initializeApp(firebaseConfig);
@@ -35,6 +49,10 @@ export const getFirebaseApp = (): FirebaseApp => {
 };
 
 export const getFirebaseAuth = (): Auth => {
+  if (USE_MOCK) {
+    return mockFirebase.getFirebaseAuth() as any;
+  }
+  
   if (!authInstance) {
     authInstance = getAuth(getFirebaseApp());
   }
@@ -43,6 +61,10 @@ export const getFirebaseAuth = (): Auth => {
 };
 
 export const getFirestoreClient = (): Firestore => {
+  if (USE_MOCK) {
+    return mockFirebase.getFirestoreClient() as any;
+  }
+  
   if (!firestoreInstance) {
     firestoreInstance = getFirestore(getFirebaseApp());
   }
@@ -51,6 +73,10 @@ export const getFirestoreClient = (): Firestore => {
 };
 
 export const getStorageClient = (): FirebaseStorage => {
+  if (USE_MOCK) {
+    return mockFirebase.getStorageClient() as any;
+  }
+  
   if (!storageInstance) {
     storageInstance = getStorage(getFirebaseApp());
   }
@@ -59,6 +85,10 @@ export const getStorageClient = (): FirebaseStorage => {
 };
 
 export const getMessagingClient = (): Messaging | null => {
+  if (USE_MOCK) {
+    return mockFirebase.getMessagingClient();
+  }
+  
   if (typeof window === 'undefined') return null; // Only available in browser
   
   if (!messagingInstance) {
@@ -74,6 +104,10 @@ export const getMessagingClient = (): Messaging | null => {
 };
 
 export const getAnalyticsClient = (): Analytics | null => {
+  if (USE_MOCK) {
+    return mockFirebase.getAnalyticsClient();
+  }
+  
   if (typeof window === 'undefined') return null; // Only available in browser
   
   if (!analyticsInstance) {

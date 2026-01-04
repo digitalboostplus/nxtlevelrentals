@@ -9,3 +9,9 @@ yarn-error.log*
 .env.local
 .env*.local
 *.log
+
+# Firebase deployment artifacts
+.firebase/
+
+# Claude CLI
+.claude/

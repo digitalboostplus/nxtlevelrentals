@@ -4,10 +4,9 @@ import { useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 const landingLinks = [
-  { href: '#services', label: 'Services' },
-  { href: '#properties', label: 'Properties' },
-  { href: '#testimonials', label: 'Testimonials' },
-  { href: '#contact', label: 'Contact' }
+  { href: '#city-events', label: 'Events' },
+  { href: '#maintenance-schedule', label: 'Schedule' },
+  { href: '#tenant-resources', label: 'Resources' }
 ];
 
 export default function Header() {
@@ -44,10 +43,10 @@ export default function Header() {
         <nav className="site-header__nav" aria-label="Primary">
           {showLandingLinks
             ? landingLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="site-header__link">
-                  {link.label}
-                </Link>
-              ))
+              <Link key={link.href} href={link.href} className="site-header__link">
+                {link.label}
+              </Link>
+            ))
             : null}
         </nav>
         <div className="site-header__actions">
@@ -57,9 +56,8 @@ export default function Header() {
             <>
               <Link
                 href={dashboardHref}
-                className={`outline-button${
-                  isPortalRoute || isAdminRoute ? ' filter-chip--active' : ''
-                }`}
+                className={`outline-button${isPortalRoute || isAdminRoute ? ' filter-chip--active' : ''
+                  }`}
               >
                 {dashboardLabel}
               </Link>

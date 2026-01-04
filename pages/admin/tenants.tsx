@@ -1,0 +1,181 @@
+import Head from 'next/head';
+import { useEffect, useState } from 'react';
+import SiteLayout from '@/components/Layout/SiteLayout';
+import { adminUtils } from '@/lib/firebase-utils';
+import Link from 'next/link';
+import type { NextPageWithAuth } from '../_app';
+
+const TenantsPage: NextPageWithAuth = () => {
+    const [tenants, setTenants] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTenants = async () => {
+            try {
+                const data = await adminUtils.getAllTenants();
+                setTenants(data);
+            } catch (error) {
+                console.error('Error fetching tenants:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTenants();
+    }, []);
+
+    return (
+        <SiteLayout>
+            <Head>
+                <title>Tenants - Landlord Portal</title>
+            </Head>
+
+            <div className="admin-container">
+                <header className="admin-header">
+                    <div>
+                        <h1>Tenants</h1>
+                        <p>Manage your residents and view their payment history.</p>
+                    </div>
+                </header>
+
+                {loading ? (
+                    <div className="loading-state">Loading tenants...</div>
+                ) : (
+                    <div className="table-card">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Unit</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {tenants.map((tenant) => (
+                                    <tr key={tenant.id}>
+                                        <td>
+                                            <div className="tenant-info">
+                                                <span className="tenant-name">{tenant.displayName}</span>
+                                            </div>
+                                        </td>
+                                        <td>{tenant.unit || 'Not assigned'}</td>
+                                        <td>{tenant.email}</td>
+                                        <td>
+                                            <span className="tag tag--success">Active</span>
+                                        </td>
+                                        <td>
+                                            <Link href={`/admin/ledger/${tenant.id}`} className="view-link">
+                                                View Ledger
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            <style jsx>{`
+        .admin-container {
+          padding: 2rem;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .admin-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+        }
+
+        h1 {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        p {
+          color: #64748b;
+          margin: 0.5rem 0 0;
+        }
+
+        .table-card {
+          background: white;
+          border-radius: var(--radius-lg);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: var(--shadow-sm);
+          overflow: hidden;
+        }
+
+        .admin-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        th, td {
+          padding: 1.25rem 1.5rem;
+          text-align: left;
+        }
+
+        thead {
+          background: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        tbody tr {
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .tenant-name {
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .view-link {
+          color: var(--color-primary);
+          font-weight: 500;
+          text-decoration: none;
+        }
+
+        .view-link:hover {
+          text-decoration: underline;
+        }
+
+        .loading-state {
+          text-align: center;
+          padding: 4rem;
+          color: #64748b;
+        }
+
+        .tag {
+          padding: 0.25rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 500;
+        }
+
+        .tag--success {
+          background: #dcfce7;
+          color: #166534;
+        }
+      `}</style>
+        </SiteLayout>
+    );
+};
+
+TenantsPage.requireAuth = true;
+TenantsPage.allowedRoles = ['admin', 'super-admin'];
+
+export default TenantsPage;

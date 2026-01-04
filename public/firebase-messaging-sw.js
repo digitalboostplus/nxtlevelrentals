@@ -1,45 +1,126 @@
-// Import Firebase scripts
-importScripts('https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.11.0/firebase-messaging-compat.js');
+// Firebase Cloud Messaging Service Worker
+// This service worker handles background push notifications
 
-// Initialize Firebase
+// Import Firebase scripts from CDN
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+// Firebase configuration
+// Note: These values are public and safe to include in client-side code
 const firebaseConfig = {
-  apiKey: "AIzaSyDk-hHzNDVrUFg72Hu5e_yBEen5ZC1GFDM",
-  authDomain: "nxtlevelrentals.firebaseapp.com",
-  projectId: "nxtlevelrentals",
-  storageBucket: "nxtlevelrentals.firebasestorage.app",
-  messagingSenderId: "872992577854",
-  appId: "1:872992577854:web:9b1c5c87751586f105f46f"
+  apiKey: "AIzaSyCf2ZEMjwVbzkZzVAWlX8Bxf5k66Uc3VMs",
+  authDomain: "rental-app-3ec4a.firebaseapp.com",
+  projectId: "rental-app-3ec4a",
+  storageBucket: "rental-app-3ec4a.firebasestorage.app",
+  messagingSenderId: "118318302192",
+  appId: "1:118318302192:web:aa9b75535dcb24c61b5335"
 };
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Initialize Firebase Messaging
+// Retrieve Firebase Messaging object
 const messaging = firebase.messaging();
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message ', payload);
-  
-  const notificationTitle = payload.notification?.title || 'NextLevel Rentals';
+  console.log('[firebase-messaging-sw.js] Received background message:', payload);
+
+  // Extract notification data
+  const notificationTitle = payload.notification?.title || 'Next Level Rentals';
   const notificationOptions = {
-    body: payload.notification?.body || 'You have a new notification',
-    icon: '/icon-192x192.png',
-    badge: '/badge-72x72.png',
-    data: payload.data
+    body: payload.notification?.body || '',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    data: {
+      ...payload.data,
+      url: payload.fcmOptions?.link || payload.data?.link || '/notifications'
+    },
+    tag: payload.data?.maintenanceRequestId || 'general',
+    requireInteraction: false,
+    actions: [
+      {
+        action: 'view',
+        title: 'View Details',
+        icon: '/favicon.ico'
+      },
+      {
+        action: 'dismiss',
+        title: 'Dismiss',
+        icon: '/favicon.ico'
+      }
+    ]
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // Show notification
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 // Handle notification click
 self.addEventListener('notificationclick', (event) => {
-  console.log('Notification click received.');
-  
+  console.log('[firebase-messaging-sw.js] Notification clicked:', event);
+
   event.notification.close();
-  
-  // Handle the notification click
+
+  // Get the URL to open from notification data
+  const urlToOpen = event.notification.data?.url || '/notifications';
+
+  // Handle action buttons
+  if (event.action === 'dismiss') {
+    // User clicked dismiss, just close the notification
+    return;
+  }
+
+  // Open or focus the app window
   event.waitUntil(
-    clients.openWindow('/portal')
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then((clientList) => {
+      // Check if there's already a window open with the app
+      for (const client of clientList) {
+        if (client.url.includes(self.registration.scope) && 'focus' in client) {
+          // If found, focus it and navigate to the URL
+          return client.focus().then(() => {
+            if ('navigate' in client) {
+              return client.navigate(urlToOpen);
+            }
+          });
+        }
+      }
+
+      // If no window is open, open a new one
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });
+
+// Handle push events (in case onBackgroundMessage doesn't fire)
+self.addEventListener('push', (event) => {
+  console.log('[firebase-messaging-sw.js] Push received:', event);
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+
+      const notificationTitle = payload.notification?.title || 'Next Level Rentals';
+      const notificationOptions = {
+        body: payload.notification?.body || '',
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        data: payload.data || {},
+        tag: payload.data?.maintenanceRequestId || 'general'
+      };
+
+      event.waitUntil(
+        self.registration.showNotification(notificationTitle, notificationOptions)
+      );
+    } catch (error) {
+      console.error('[firebase-messaging-sw.js] Error parsing push data:', error);
+    }
+  }
+});
+
+console.log('[firebase-messaging-sw.js] Service Worker loaded and ready');
