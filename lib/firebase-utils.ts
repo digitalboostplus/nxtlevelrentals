@@ -379,6 +379,175 @@ export const adminUtils = {
   }
 };
 
+// Rent Tracking utilities
+export const rentTrackingUtils = {
+  /**
+   * Calculate payment status for a property based on rent charges and payments
+   */
+  calculatePaymentStatus(
+    rentCharge: LedgerEntry | null,
+    payments: LedgerEntry[],
+    dueDate: Date
+  ): { status: 'paid' | 'pending' | 'overdue' | 'partial'; amountPaid: number } {
+    if (!rentCharge) {
+      return { status: 'pending', amountPaid: 0 };
+    }
+
+    const totalPaid = payments.reduce((sum, payment) => sum + Math.abs(payment.amount), 0);
+    const amountDue = rentCharge.amount;
+    const now = new Date();
+    const isOverdue = now > dueDate;
+
+    if (totalPaid >= amountDue) {
+      return { status: 'paid', amountPaid: totalPaid };
+    } else if (totalPaid > 0) {
+      return { status: 'partial', amountPaid: totalPaid };
+    } else if (isOverdue) {
+      return { status: 'overdue', amountPaid: 0 };
+    } else {
+      return { status: 'pending', amountPaid: 0 };
+    }
+  },
+
+  /**
+   * Get rent status for all properties for a specific month
+   */
+  async getAllPropertiesRentStatus(month?: string): Promise<any[]> {
+    const db = getFirestoreClient();
+
+    // Default to current month if not specified
+    const targetMonth = month || new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+    const [year, monthNum] = targetMonth.split('-').map(Number);
+
+    // Get month boundaries
+    const monthStart = new Date(year, monthNum - 1, 1);
+    const monthEnd = new Date(year, monthNum, 0, 23, 59, 59);
+
+    // Fetch all properties
+    const propertiesSnap = await getDocs(collection(db, 'properties'));
+    const properties = propertiesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property & { id: string }));
+
+    // Fetch all ledger entries for the month
+    const ledgerQuery = query(
+      collection(db, 'ledger'),
+      where('date', '>=', monthStart),
+      where('date', '<=', monthEnd)
+    );
+    const ledgerSnap = await getDocs(ledgerQuery);
+    const ledgerEntries = ledgerSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as LedgerEntry));
+
+    // Fetch all tenants
+    const tenantsSnap = await getDocs(query(collection(db, 'users'), where('role', '==', 'tenant')));
+    const tenants = tenantsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserRole & { id: string })) as (UserRole & { id: string })[];
+
+    // Build rent status for each property
+    const rentStatuses = properties.map(property => {
+      // Find tenant for this property
+      const tenant = tenants.find(t => property.id && t.propertyIds?.includes(property.id));
+
+      // Find rent charges for this property
+      const rentCharges = ledgerEntries.filter(
+        entry => entry.propertyId === property.id &&
+          entry.category === 'rent' &&
+          entry.type === 'charge'
+      );
+
+      // Find payments for this property
+      const payments = ledgerEntries.filter(
+        entry => entry.propertyId === property.id &&
+          entry.category === 'rent' &&
+          entry.type === 'payment'
+      );
+
+      // Get the primary rent charge (usually first of month)
+      const rentCharge = rentCharges.length > 0 ? rentCharges[0] : null;
+      const dueDate = rentCharge?.date?.toDate ? rentCharge.date.toDate() : new Date(year, monthNum - 1, 1);
+
+      // Calculate status
+      const { status, amountPaid } = this.calculatePaymentStatus(rentCharge, payments, dueDate);
+
+      // Find last payment
+      const sortedPayments = payments.sort((a, b) => {
+        const dateA = a.date?.toDate ? a.date.toDate().getTime() : 0;
+        const dateB = b.date?.toDate ? b.date.toDate().getTime() : 0;
+        return dateB - dateA;
+      });
+      const lastPayment = sortedPayments[0];
+
+      return {
+        propertyId: property.id,
+        propertyName: property.name || 'Unknown Property',
+        propertyAddress: property.address || '',
+        tenantId: tenant?.id || '',
+        tenantName: tenant?.displayName || 'No Tenant',
+        monthlyRent: property.rent || 0,
+        dueDate: dueDate,
+        status: status,
+        amountPaid: amountPaid,
+        amountDue: property.rent || 0,
+        lastPaymentDate: lastPayment?.date?.toDate ? lastPayment.date.toDate() : undefined,
+        paymentMethod: lastPayment?.paymentMethod || undefined
+      };
+    });
+
+    return rentStatuses;
+  },
+
+  /**
+   * Get rent status for a specific property
+   */
+  async getPropertyRentStatus(propertyId: string, month?: string): Promise<any | null> {
+    const allStatuses = await this.getAllPropertiesRentStatus(month);
+    return allStatuses.find(status => status.propertyId === propertyId) || null;
+  },
+
+  /**
+   * Get monthly payment summary statistics
+   */
+  async getMonthlyPaymentSummary(month?: string): Promise<any> {
+    const rentStatuses = await this.getAllPropertiesRentStatus(month);
+
+    const summary = {
+      month: month || new Date().toISOString().slice(0, 7),
+      totalProperties: rentStatuses.length,
+      paidCount: rentStatuses.filter(s => s.status === 'paid').length,
+      pendingCount: rentStatuses.filter(s => s.status === 'pending').length,
+      overdueCount: rentStatuses.filter(s => s.status === 'overdue').length,
+      partialCount: rentStatuses.filter(s => s.status === 'partial').length,
+      totalCollected: rentStatuses.reduce((sum, s) => sum + s.amountPaid, 0),
+      totalExpected: rentStatuses.reduce((sum, s) => sum + s.amountDue, 0),
+      collectionRate: 0
+    };
+
+    // Calculate collection rate percentage
+    summary.collectionRate = summary.totalExpected > 0
+      ? (summary.totalCollected / summary.totalExpected) * 100
+      : 0;
+
+    return summary;
+  },
+
+  /**
+   * Get payment history for a property over multiple months
+   */
+  async getPaymentHistory(propertyId: string, months: number = 6): Promise<any[]> {
+    const history = [];
+    const now = new Date();
+
+    for (let i = 0; i < months; i++) {
+      const targetDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthStr = targetDate.toISOString().slice(0, 7);
+
+      const status = await this.getPropertyRentStatus(propertyId, monthStr);
+      if (status) {
+        history.push({ ...status, month: monthStr });
+      }
+    }
+
+    return history;
+  }
+};
+
 // Storage utilities
 export const storageUtils = {
   async uploadFile(file: File, path: string, metadata?: any) {

@@ -6,57 +6,59 @@ import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 
 interface AdminLayoutProps {
-    children: ReactNode;
-    title?: string;
+  children: ReactNode;
+  title?: string;
 }
 
 export default function AdminLayout({ children, title }: AdminLayoutProps) {
-    const router = useRouter();
+  const router = useRouter();
 
-    const navItems = [
-        { label: 'Dashboard', path: '/admin', icon: '📊' },
-        { label: 'Properties', path: '/admin/properties', icon: '🏠' },
-        { label: 'Tenants', path: '/admin/tenants', icon: '👥' },
-        // { label: 'Invoices', path: '/admin/invoices', icon: '📄' },
-    ];
+  const navItems = [
+    { label: 'Dashboard', path: '/admin', icon: '📊' },
+    { label: 'Properties', path: '/admin/properties', icon: '🏠' },
+    { label: 'Tenants', path: '/admin/tenants', icon: '👥' },
+    { label: 'Rent Payments', path: '/admin/rent-payments', icon: '💰' },
+    { label: 'Maintenance', path: '/admin/maintenance', icon: '🔧' },
+    // { label: 'Invoices', path: '/admin/invoices', icon: '📄' },
+  ];
 
-    const activeTitle = title ? `${title} | Admin Portal` : 'Admin Portal - Next Level Rentals';
+  const activeTitle = title ? `${title} | Admin Portal` : 'Admin Portal - Next Level Rentals';
 
-    return (
-        <div className="admin-layout">
-            <Head>
-                <title>{activeTitle}</title>
-            </Head>
+  return (
+    <div className="admin-layout">
+      <Head>
+        <title>{activeTitle}</title>
+      </Head>
 
-            <Header />
+      <Header />
 
-            <div className="admin-body">
-                <aside className="admin-sidebar">
-                    <nav>
-                        <ul>
-                            {navItems.map((item) => (
-                                <li key={item.path}>
-                                    <Link
-                                        href={item.path}
-                                        className={`nav-link ${router.pathname === item.path ? 'active' : ''}`}
-                                    >
-                                        <span className="icon">{item.icon}</span>
-                                        <span className="label">{item.label}</span>
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-                </aside>
+      <div className="admin-body">
+        <aside className="admin-sidebar">
+          <nav>
+            <ul>
+              {navItems.map((item) => (
+                <li key={item.path}>
+                  <Link
+                    href={item.path}
+                    className={`nav-link ${router.pathname === item.path ? 'active' : ''}`}
+                  >
+                    <span className="icon">{item.icon}</span>
+                    <span className="label">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
 
-                <main className="admin-content">
-                    {children}
-                </main>
-            </div>
+        <main className="admin-content">
+          {children}
+        </main>
+      </div>
 
-            <Footer />
+      <Footer />
 
-            <style jsx>{`
+      <style jsx>{`
         .admin-layout {
           display: flex;
           flex-direction: column;
@@ -120,6 +122,6 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

@@ -44,8 +44,8 @@ npm run seed:roles
 ### Utility Scripts
 Located in `scripts/` directory:
 - `seed-roles.js` - Create initial user roles in Firestore (update UIDs before running)
-- `import-ghl-tenants.js` - Import tenants from GoHighLevel CRM
-- `sync-all-tenants.js` - Sync tenant data from GoHighLevel
+- `manual-sync-ghl.js` - Manually sync individual tenant from GoHighLevel
+- `sync-all-tenants.js` - Sync all tenant data from GoHighLevel
 - `seed-maintenance.js` - Seed maintenance request data
 
 Run with: `node scripts/<script-name>.js [args]`
