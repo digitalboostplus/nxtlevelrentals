@@ -1,34 +1,44 @@
 {
-  "name": "nxtlevelrentalmanager",
+  "name": "nxtlevelrentals",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20"
+  },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 4000",
+    "dev:3000": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "seed:roles": "node scripts/seed-roles.js",
+    "deploy": "npm run build && firebase deploy",
+    "deploy:hosting": "npm run build && firebase deploy --only hosting",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage",
+    "emulators": "firebase emulators:start"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^7.1.0",
-    "@fortawesome/free-brands-svg-icons": "^7.1.0",
-    "@fortawesome/free-solid-svg-icons": "^7.1.0",
-    "@fortawesome/react-fontawesome": "^3.1.0",
-    "@tailwindcss/oxide-win32-x64-msvc": "^4.1.16",
-    "firebase": "^12.5.0",
-    "lightningcss-win32-x64-msvc": "^1.30.2",
-    "next": "16.0.1",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "recharts": "^2.15.0"
+    "@google/generative-ai": "^0.24.1",
+    "@opentelemetry/api": "1.9.0",
+    "@sendgrid/mail": "^8.1.6",
+    "@stripe/stripe-js": "^8.6.0",
+    "firebase": "^10.11.0",
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^7.0.2",
+    "micro": "^10.0.1",
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "recharts": "^3.6.0",
+    "stripe": "^20.1.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@types/node": "20.14.9",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "@types/stripe": "^8.0.416",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.5",
+    "typescript": "5.4.5"
   }
 }

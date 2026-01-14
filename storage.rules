@@ -1,0 +1,57 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Users can upload their own profile images
+    match /users/{userId}/profile/{allPaths=**} {
+      allow read, write: if request.auth != null && (
+        request.auth.uid == userId ||
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'super-admin'
+        )
+      );
+    }
+    
+    // Property images - admins can upload, everyone can read
+    match /properties/{propertyId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (
+        let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+        callerRole == 'admin' || callerRole == 'super-admin'
+      );
+    }
+    
+    // Maintenance request attachments - tenants can upload for their requests, admins can read/write all
+    match /maintenanceRequests/{requestId}/{allPaths=**} {
+      allow read: if request.auth != null && (
+        resource.metadata.tenantId == request.auth.uid ||
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'admin' || callerRole == 'super-admin'
+        )
+      );
+      allow write: if request.auth != null && (
+        request.resource.metadata.tenantId == request.auth.uid ||
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'admin' || callerRole == 'super-admin'
+        )
+      );
+    }
+    
+    // Lease documents - admins can upload, tenants can read their own
+    match /leaseDocuments/{documentId}/{allPaths=**} {
+      allow read: if request.auth != null && (
+        resource.metadata.tenantId == request.auth.uid ||
+        (
+          let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+          callerRole == 'admin' || callerRole == 'super-admin'
+        )
+      );
+      allow write: if request.auth != null && (
+        let callerRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+        callerRole == 'admin' || callerRole == 'super-admin'
+      );
+    }
+  }
+}

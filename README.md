@@ -1,187 +1,188 @@
-# 🏠 NXTLevel Rental Manager
+# Next Level Rentals - Property Management Tenant Portal
 
-A comprehensive property management platform built with Next.js, Firebase, and AI-powered insights. Designed for property owners, managers, and tenants to streamline rental operations, financial tracking, and maintenance management.
+A modern, user-friendly tenant portal and landing page for property management services, designed to streamline communication between property managers and tenants. The platform is powered by Firebase to deliver secure authentication, real-time data syncing, and scalable cloud infrastructure.
+
+## 🏠 Overview
+
+Next Level Rentals is a comprehensive property management system that provides tenants with easy access to essential services and property managers with efficient tools to manage their properties. The platform features a clean, intuitive interface with both a public landing page and a secure tenant portal backed by Firebase services.
 
 ## ✨ Features
 
-### 🏢 Owner / Manager Dashboard
-- **Financial Tracking** - Real-time income vs. expense monitoring with visual charts
-- **Expense Management** - Categorized expense tracking with vendor information
-- **Property Performance** - Occupancy rates, rent collection, and vacancy alerts
-- **Maintenance Overview** - Track pending, in-progress, and completed maintenance requests
-- **AI-Powered Insights** - Automated portfolio analysis and recommendations
-- **Report Generation** - Downloadable monthly and year-to-date financial reports (CSV)
+### Landing Page
+- **Modern Design**: Clean, responsive layout optimized for all devices
+- **Property Showcase**: Featured properties with high-quality images and details
+- **Service Overview**: Comprehensive list of property management services
+- **Contact Information**: Easy-to-find contact details and inquiry forms
+- **Testimonials**: Customer reviews and success stories
+- **Call-to-Action**: Clear pathways for prospective tenants and property owners
 
-### 🔧 Maintenance Portal (Coming Soon)
-- Tenant maintenance request submission
-- Real-time status tracking
-- Vendor assignment and management
+### Tenant Portal
+- **Secure Authentication**: Firebase Authentication with optional multi-factor support
+- **Dashboard**: Personalized overview of account status and important notifications
+- **Rent Management**:
+  - Online rent payment processing
+  - Payment history and receipts
+  - Automatic payment setup
+- **Maintenance Requests**:
+  - Submit and track maintenance requests
+  - Photo upload capability via Firebase Storage
+  - Real-time status updates using Cloud Firestore
+- **Communication Hub**:
+  - Direct messaging with property managers
+  - Important announcements and notifications
+  - Document sharing capabilities
+- **Lease Management**:
+  - Access to lease documents
+  - Renewal notifications and processes
+  - Policy updates and amendments
 
-### 💳 Tenant Portal (Coming Soon)
-- Online rent payments via Stripe
-- Lease document access
-- Maintenance request tracking
+## 🛠️ Technology Stack
+
+- **Frontend**: React.js with modern UI components
+- **Backend**: Firebase Cloud Functions (Node.js runtime)
+- **Database**: Cloud Firestore for real-time data persistence
+- **Authentication**: Firebase Authentication
+- **Payment Processing**: Stripe integration triggered from Cloud Functions
+- **File Storage**: Firebase Storage for documents and images
+- **Email & Notifications**: SendGrid or Firebase Extensions triggered via Cloud Functions
+- **Hosting**: Firebase Hosting with optional Cloud Run for server-side needs
+
+## 📱 Responsive Design
+
+The platform is fully responsive and optimized for:
+- Desktop computers
+- Tablets
+- Mobile devices
+- Various screen sizes and orientations
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Firebase account
-- (Optional) OpenAI API key for AI insights
+- Node.js (v14 or higher)
+- npm or yarn package manager
+- Firebase CLI (`npm install -g firebase-tools`)
+- Access to a Firebase project (or create one at [console.firebase.google.com](https://console.firebase.google.com))
 
 ### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd nxtlevelrentalmanager
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables:**
-   
-   Create a `.env.local` file in the root directory:
-   ```env
-   # Firebase Configuration
-   NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-   NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
-   
-   # Optional: OpenAI for AI Insights
-   OPENAI_API_KEY=sk-your-openai-api-key
-   ```
-
-4. **Set up Firestore:**
-   
-   Follow the detailed guide in [FIRESTORE_SETUP.md](./FIRESTORE_SETUP.md) to:
-   - Create required collections
-   - Configure security rules
-   - Add sample data for testing
-
-5. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-
-6. **Open your browser:**
-   - Main site: [http://localhost:3000](http://localhost:3000)
-   - Owner Dashboard: [http://localhost:3000/manager](http://localhost:3000/manager)
-   - Maintenance Portal: [http://localhost:3000/maintenance](http://localhost:3000/maintenance)
-
-## 📁 Project Structure
-
-```
-src/
-├── app/
-│   ├── page.tsx                 # Landing page
-│   ├── manager/                 # Owner dashboard
-│   │   ├── page.tsx
-│   │   └── components/
-│   ├── maintenance/             # Maintenance portal
-│   │   └── page.tsx
-│   └── api/                     # API routes
-│       ├── expenses/
-│       ├── ai/
-│       └── reports/
-├── lib/
-│   └── firebase.ts              # Firebase configuration
-└── globals.css                  # Global styles
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/nxtlevelrentals.git
+cd nxtlevelrentals
 ```
 
-## 📖 Documentation
+2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+```
 
-- **[OWNER_DASHBOARD.md](./OWNER_DASHBOARD.md)** - Complete owner dashboard documentation
-- **[FIRESTORE_SETUP.md](./FIRESTORE_SETUP.md)** - Database setup guide
-- **[MAINTENANCE_PORTAL.md](./MAINTENANCE_PORTAL.md)** - Maintenance portal documentation
+3. Set up environment variables
+```bash
+cp .env.example .env
+# Edit .env with your Firebase and service configuration
+```
 
-## 🎨 Design System
+4. Configure Firebase
+- Login to Firebase: `firebase login`
+- Set the active project: `firebase use <your-project-id>`
+- Enable the following Firebase products in the console:
+  - Authentication (Email/Password, SSO providers as needed)
+  - Cloud Firestore
+  - Firebase Storage
+  - Cloud Functions (upgrade project to Blaze plan for external network calls such as Stripe)
 
-Following NueSynergy branding guidelines:
-- **Primary:** Deep Blue (#1E4E6B)
-- **Accent:** Lime Green (#A4C639)
-- **Backgrounds:** Light gradients (#f0f4f8 to #e8f2f6)
-- **Text:** Primary (#2d3748), Secondary (#64748b)
+5. Initialize the database and storage rules (optional but recommended)
+```bash
+firebase firestore:indexes && firebase deploy --only firestore:rules,storage:rules
+```
 
-## 🔑 Key Technologies
+6. Start the development server
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-- **Framework:** Next.js 16 (App Router)
-- **UI:** React 19, Tailwind CSS 4
-- **Backend:** Firebase (Firestore, Auth, Storage)
-- **Charts:** Recharts
-- **AI:** OpenAI GPT-4o-mini (optional)
-- **Language:** TypeScript
+The application will be available at `http://localhost:3000`
 
-## 📊 API Endpoints
+## 🔧 Configuration
 
-| Endpoint                      | Method | Description                    |
-| ----------------------------- | ------ | ------------------------------ |
-| `/api/expenses`               | GET    | Fetch all expenses             |
-| `/api/expenses`               | POST   | Add new expense                |
-| `/api/ai/owner-insights`      | GET    | Get AI portfolio insights      |
-| `/api/reports/monthly`        | GET    | Download monthly report (CSV)  |
-| `/api/reports/ytd`            | GET    | Download YTD report (CSV)      |
+### Environment Variables
+Update your `.env` file with the following keys:
 
-## 🧪 Testing
+The provided .env.example is prefilled with the rental-app-3ec4a Firebase web configuration. Override these values if you provision a different Firebase project.
 
-Add sample data to Firestore using the examples in [FIRESTORE_SETUP.md](./FIRESTORE_SETUP.md), then:
 
-1. Visit `http://localhost:3000/manager`
-2. View financial charts and metrics
-3. Click "Add Expense" to test expense creation
-4. Generate monthly/YTD reports
-5. View AI-generated insights
+- `NEXT_PUBLIC_FIREBASE_API_KEY`: Firebase web API key
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`: Firebase auth domain
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`: Firebase project ID
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`: Firebase storage bucket name
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`: Sender ID for Firebase Cloud Messaging (if used)
+- `NEXT_PUBLIC_FIREBASE_APP_ID`: Firebase app ID
+- `FIREBASE_CLIENT_EMAIL`: Service account client email for Firebase Admin SDK
+- `FIREBASE_PRIVATE_KEY`: Service account private key (escape newlines when storing in `.env`)
+- `FIREBASE_DATABASE_URL`: Realtime Database URL (if applicable)
+- `STRIPE_PUBLIC_KEY`: Stripe publishable key for client-side usage
+- `STRIPE_SECRET_KEY`: Stripe secret key for Cloud Functions
+- `SENDGRID_API_KEY`: API key for transactional email (if using SendGrid)
 
-## 🚧 Roadmap
+> **Note:** Keep your service account credentials secure. For local development, you can store the Firebase Admin SDK JSON as a base64 string and decode it in your configuration.
 
-- [x] Owner/Manager Dashboard
-- [x] Financial tracking and reporting
-- [x] AI-powered insights
-- [ ] Firebase Authentication integration
-- [ ] Tenant portal with rent payments
-- [ ] Stripe integration for payments
-- [ ] Email notifications and automated reports
-- [ ] Mobile-responsive optimizations
-- [ ] Lease management system
-- [ ] Multi-user roles and permissions
+## 📊 Features in Development
+
+- **Mobile App**: Native iOS and Android applications
+- **Property Analytics**: Advanced reporting and analytics dashboard
+- **Smart Home Integration**: IoT device management
+- **Virtual Property Tours**: 360° property viewing capabilities
+- **AI-Powered Support**: Chatbot for common inquiries
+- **Multi-language Support**: Internationalization features
 
 ## 🤝 Contributing
 
+We welcome contributions to improve Next Level Rentals! Please follow these steps:
+
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
-## 📄 License
+## 📝 License
 
-This project is private and proprietary.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 💬 Support
+## 📞 Support
 
-For questions or issues, please refer to the documentation files or create an issue in the repository.
+For support and inquiries:
+- **Email**: support@nxtlevelrentals.com
+- **Phone**: (555) 123-4567
+- **Website**: https://nxtlevelrentals.com
+- **Documentation**: https://docs.nxtlevelrentals.com
+
+## 🎯 Roadmap
+
+- [ ] Version 2.0 - Advanced Analytics Dashboard
+- [ ] Mobile Application Launch
+- [ ] Integration with Smart Home Devices
+- [ ] Multi-property Management Tools
+- [ ] Advanced Reporting Features
+- [ ] API for Third-party Integrations
 
 ---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Built with ❤️ by the Next Level Rentals Team**
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+### Role Seeding Script
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Use `scripts/seed-roles.js` to create the required Firestore documents for your super admin, admin, and tenant users. Install Firebase Admin locally (`npm install firebase-admin --save-dev`), then run:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+node scripts/seed-roles.js path/to/serviceAccountKey.json
+```
 
-## Deploy on Vercel
+Update the placeholder UIDs in the script before executing it; the values should match the Firebase Authentication UIDs for your super admin, admin, and tenant accounts. You can re-run the script any time you add new users.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
