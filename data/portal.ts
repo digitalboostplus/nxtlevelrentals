@@ -64,7 +64,8 @@ export type QuickAction = {
   id: string;
   label: string;
   description: string;
-  href: string;
+  href?: string;
+  onClick?: () => void;
 };
 
 export type ResidentResource = {
@@ -212,22 +213,24 @@ export const tenantDashboard = {
   ] satisfies LeaseDocument[],
   quickActions: [
     {
-      id: 'qa-001',
+      id: 'qa-pay-rent',
+      label: 'Pay Rent',
+      description: 'Make a one-time payment or view your balance.',
+    },
+    {
+      id: 'qa-autopay',
       label: 'Set up AutoPay',
       description: 'Enable automatic rent payments to stay on schedule.',
-      href: '#autopay'
     },
     {
-      id: 'qa-002',
-      label: 'Update Renter Insurance',
-      description: 'Upload your active insurance policy for compliance.',
-      href: '#insurance'
+      id: 'qa-maintenance',
+      label: 'Request Maintenance',
+      description: 'Submit a new maintenance request for your unit.',
     },
     {
-      id: 'qa-003',
-      label: 'Reserve Amenities',
-      description: 'Book the rooftop lounge or community workspace.',
-      href: '#amenities'
+      id: 'qa-documents',
+      label: 'View Documents',
+      description: 'Access your lease agreement and other documents.',
     }
   ] satisfies QuickAction[],
   supportContacts: [

@@ -54,7 +54,7 @@ const TenantLedgerPage: NextPageWithAuth = () => {
 
             <div className="ledger-page">
                 <header className="page-header">
-                    <button onClick={() => router.back()} className="back-button">← Back to Tenants</button>
+                    <button onClick={() => router.push('/admin/tenants')} className="back-button">← Back to Tenants</button>
                     <h1>{tenant?.displayName}</h1>
                     <p>Resident Ledger & Financial History</p>
                 </header>

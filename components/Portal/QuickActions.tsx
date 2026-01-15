@@ -17,9 +17,19 @@ export default function QuickActions({ actions }: QuickActionsProps) {
             <article className="quick-action" key={action.id}>
               <h3>{action.label}</h3>
               <p>{action.description}</p>
-              <a className="outline-button" href={action.href}>
-                Open
-              </a>
+              {action.onClick ? (
+                <button className="outline-button" onClick={action.onClick} type="button">
+                  Open
+                </button>
+              ) : action.href ? (
+                <a className="outline-button" href={action.href}>
+                  Open
+                </a>
+              ) : (
+                <button className="outline-button" disabled type="button">
+                  Coming Soon
+                </button>
+              )}
             </article>
           ))}
         </div>

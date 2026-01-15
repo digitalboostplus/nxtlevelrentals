@@ -1,12 +1,14 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import SiteLayout from '@/components/Layout/SiteLayout';
 import { propertyUtils } from '@/lib/firebase-utils';
 import type { Property } from '@/lib/firebase-utils';
 import type { NextPageWithAuth } from '../_app';
 
 const PropertiesPage: NextPageWithAuth = () => {
+  const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +26,16 @@ const PropertiesPage: NextPageWithAuth = () => {
     fetchProperties();
   }, []);
 
+  const handleAddProperty = () => {
+    alert('Add Property feature coming soon! This will open a form to create a new property listing.');
+  };
+
+  const handleManageProperty = (property: Property) => {
+    // Navigate to tenants page filtered by this property, or show property details
+    // For now, show an alert with property info
+    alert(`Managing: ${property.name}\nAddress: ${property.address}\nRent: $${property.rent}/mo\n\nProperty detail page coming soon!`);
+  };
+
   return (
     <SiteLayout>
       <Head>
@@ -36,7 +48,7 @@ const PropertiesPage: NextPageWithAuth = () => {
             <h1>Properties</h1>
             <p>Overview of all physical units and their current status.</p>
           </div>
-          <button className="primary-button">+ Add Property</button>
+          <button className="primary-button" onClick={handleAddProperty}>+ Add Property</button>
         </header>
 
         {loading ? (
@@ -70,7 +82,7 @@ const PropertiesPage: NextPageWithAuth = () => {
                   </div>
                   <div className="property-footer">
                     <span className="rent">${property.rent}/mo</span>
-                    <button className="secondary-button">Manage</button>
+                    <button className="secondary-button" onClick={() => handleManageProperty(property)}>Manage</button>
                   </div>
                 </div>
               </div>

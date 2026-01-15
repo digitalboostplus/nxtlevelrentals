@@ -41,7 +41,7 @@ export default function MaintenanceRequestForm({ onSubmit, submitting }: Mainten
   };
 
   return (
-    <section className="section">
+    <section className="section" id="maintenance-form">
       <div className="section__inner">
         <div className="card__header" style={{ marginBottom: '1.5rem' }}>
           <h2 className="card__title">Submit a maintenance request</h2>

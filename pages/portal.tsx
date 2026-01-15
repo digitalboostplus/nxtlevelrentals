@@ -162,11 +162,18 @@ const PortalPage: NextPageWithAuth = () => {
       />
       <DashboardHighlights metrics={metrics} />
       <QuickActions
-        actions={tenantDashboard.quickActions.map((action) =>
-          action.id === 'pay-rent'
-            ? { ...action, onClick: () => setIsPayRentModalOpen(true) }
-            : action
-        )}
+        actions={tenantDashboard.quickActions.map((action) => {
+          switch (action.id) {
+            case 'qa-pay-rent':
+              return { ...action, onClick: () => setIsPayRentModalOpen(true) };
+            case 'qa-maintenance':
+              return { ...action, onClick: () => document.getElementById('maintenance-form')?.scrollIntoView({ behavior: 'smooth' }) };
+            case 'qa-documents':
+              return { ...action, onClick: () => document.getElementById('lease-documents')?.scrollIntoView({ behavior: 'smooth' }) };
+            default:
+              return action;
+          }
+        })}
       />
       <PaymentHistory payments={tenantDashboard.payments} />
 

@@ -8,7 +8,7 @@ type LeaseDocumentsProps = {
 
 export default function LeaseDocuments({ documents }: LeaseDocumentsProps) {
   return (
-    <section className="section section--muted">
+    <section className="section section--muted" id="lease-documents">
       <div className="section__inner">
         <div className="card__header" style={{ marginBottom: '1.5rem' }}>
           <h2 className="card__title">Lease & documents</h2>
