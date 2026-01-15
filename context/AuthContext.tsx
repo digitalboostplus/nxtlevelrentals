@@ -11,7 +11,7 @@ import {
 import { doc, getDoc, type DocumentData } from 'firebase/firestore';
 import { getFirebaseAuth, getFirestoreClient } from '@/lib/firebase';
 
-export type UserRole = 'admin' | 'tenant' | 'super-admin';
+export type UserRole = 'admin' | 'tenant' | 'super-admin' | 'landlord';
 
 export type UserProfile = {
   id: string;
@@ -20,6 +20,7 @@ export type UserProfile = {
   role: UserRole;
   propertyIds?: string[];
   managedProperties?: string[];
+  landlordId?: string; // Reference to landlords/{id} for landlord users
   unit?: string;
   address?: string;
   city?: string;
@@ -51,6 +52,7 @@ const parseProfile = (user: FirebaseUser, data: DocumentData | undefined): UserP
     role,
     propertyIds: data?.propertyIds,
     managedProperties: data?.managedProperties,
+    landlordId: data?.landlordId,
     unit: data?.unit,
     address: data?.address,
     city: data?.city,
