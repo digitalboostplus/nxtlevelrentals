@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import SiteLayout from '@/components/Layout/SiteLayout';
+import AddPropertyModal from '@/components/Admin/AddPropertyModal';
 import { propertyUtils } from '@/lib/firebase-utils';
 import type { Property } from '@/lib/firebase-utils';
 import type { NextPageWithAuth } from '../_app';
@@ -11,23 +12,32 @@ const PropertiesPage: NextPageWithAuth = () => {
   const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const fetchProperties = async () => {
+    try {
+      // Use getAllProperties for admin view (includes unavailable)
+      const data = await propertyUtils.getAllProperties();
+      setProperties(data);
+    } catch (error) {
+      console.error('Error fetching properties:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const data = await propertyUtils.getProperties();
-        setProperties(data);
-      } catch (error) {
-        console.error('Error fetching properties:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProperties();
   }, []);
 
   const handleAddProperty = () => {
-    alert('Add Property feature coming soon! This will open a form to create a new property listing.');
+    setIsAddModalOpen(true);
+  };
+
+  const handlePropertyCreated = () => {
+    setIsAddModalOpen(false);
+    setLoading(true);
+    fetchProperties();
   };
 
   const handleManageProperty = (property: Property) => {
@@ -90,6 +100,12 @@ const PropertiesPage: NextPageWithAuth = () => {
           </div>
         )}
       </div>
+
+      <AddPropertyModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={handlePropertyCreated}
+      />
 
       <style jsx>{`
         .admin-container {

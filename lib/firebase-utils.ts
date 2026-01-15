@@ -463,11 +463,54 @@ export const propertyUtils = {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
   },
 
+  async getAllProperties(): Promise<Property[]> {
+    const db = getFirestoreClient();
+    const q = query(collection(db, 'properties'), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
+  },
+
   async getProperty(propertyId: string) {
     const db = getFirestoreClient();
     const docRef = doc(db, 'properties', propertyId);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Property : null;
+  },
+
+  async createProperty(propertyData: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const db = getFirestoreClient();
+    const docRef = await addDoc(collection(db, 'properties'), {
+      ...propertyData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return docRef.id;
+  },
+
+  async updateProperty(propertyId: string, updates: Partial<Property>): Promise<void> {
+    const db = getFirestoreClient();
+    await updateDoc(doc(db, 'properties', propertyId), {
+      ...updates,
+      updatedAt: serverTimestamp()
+    });
+  },
+
+  async deleteProperty(propertyId: string): Promise<void> {
+    const db = getFirestoreClient();
+    const docRef = doc(db, 'properties', propertyId);
+    const { deleteDoc } = await import('firebase/firestore');
+    await deleteDoc(docRef);
+  },
+
+  async getPropertiesByLandlord(landlordId: string): Promise<Property[]> {
+    const db = getFirestoreClient();
+    const q = query(
+      collection(db, 'properties'),
+      where('landlordId', '==', landlordId),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
   }
 };
 
