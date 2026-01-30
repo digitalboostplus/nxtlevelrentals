@@ -1,4 +1,4 @@
-import type { PaymentRecord } from '@/data/portal';
+import type { Payment } from '@/types/schema';
 
 import { formatLocalDate } from '@/lib/date';
 
@@ -6,14 +6,32 @@ const formatCurrency = (value: number) =>
   new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
 
 type PaymentHistoryProps = {
-  payments: PaymentRecord[];
+  payments: Payment[];
 };
 
-const statusTagClass = {
-  Paid: 'tag tag--success',
-  Processing: 'tag tag--info',
-  Failed: 'tag tag--warning'
-} satisfies Record<PaymentRecord['status'], string>;
+// Map backend types to frontend display
+const getStatusConfig = (status: Payment['status']) => {
+  switch (status) {
+    case 'succeeded':
+    case 'paid': // handling potential legacy/alias
+      return { label: 'Paid', className: 'tag tag--success' };
+    case 'processing':
+    case 'pending':
+      return { label: 'Processing', className: 'tag tag--info' };
+    case 'failed':
+    case 'overdue':
+      return { label: 'Failed', className: 'tag tag--warning' };
+    default:
+      return { label: status, className: 'tag tag--neutral' };
+  }
+};
+
+const getMethodLabel = (payment: Payment) => {
+  // Payment method ID or type might be all we have initially
+  if (payment.type === 'deposit') return 'Security Deposit';
+  // Ideally we'd look up the method details, but for now we fallback
+  return payment.paymentMethodId ? 'Card/Bank' : 'Manual Entry';
+};
 
 export default function PaymentHistory({ payments }: PaymentHistoryProps) {
   return (
@@ -31,25 +49,35 @@ export default function PaymentHistory({ payments }: PaymentHistoryProps) {
                 <th scope="col">Amount</th>
                 <th scope="col">Status</th>
                 <th scope="col">Method</th>
-                <th scope="col">Receipt</th>
+                {/* <th scope="col">Receipt</th> - Receipt URL needs to be optional */}
               </tr>
             </thead>
             <tbody>
-              {payments.map((payment) => (
-                <tr key={payment.id}>
-                  <td>{formatLocalDate(payment.date, { month: 'long', day: 'numeric', year: 'numeric' })}</td>
-                  <td>{formatCurrency(payment.amount)}</td>
-                  <td>
-                    <span className={statusTagClass[payment.status]}>{payment.status}</span>
-                  </td>
-                  <td>{payment.method}</td>
-                  <td>
-                    <a href={payment.receiptUrl ?? '#'} className="site-header__link">
+              {payments.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-muted)' }}>No payment history found.</td>
+                </tr>
+              ) : null}
+              {payments.map((payment) => {
+                const statusConfig = getStatusConfig(payment.status);
+                const date = payment.paidAt || payment.dueDate;
+                // If paid, show paid date, else due date
+                return (
+                  <tr key={payment.id}>
+                    <td>{date ? formatLocalDate(date instanceof Date ? date.toISOString() : date as any, { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
+                    <td>{formatCurrency(payment.amount)}</td>
+                    <td>
+                      <span className={statusConfig.className}>{statusConfig.label}</span>
+                    </td>
+                    <td>{getMethodLabel(payment)}</td>
+                    {/* <td>
+                    <a href={'#'} className="site-header__link">
                       View receipt
                     </a>
-                  </td>
-                </tr>
-              ))}
+                  </td> */}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

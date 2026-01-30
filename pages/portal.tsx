@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import SiteLayout from '@/components/Layout/SiteLayout';
 import PortalHero from '@/components/Portal/PortalHero';
 import DashboardHighlights from '@/components/Portal/DashboardHighlights';
@@ -12,138 +12,89 @@ import SupportContacts from '@/components/Portal/SupportContacts';
 import MaintenanceRequestForm from '@/components/Portal/MaintenanceRequestForm';
 import ResidentResources from '@/components/Portal/ResidentResources';
 import PayRentModal from '@/components/Portal/PayRentModal';
-import { tenantDashboard, type MaintenanceRequest } from '@/data/portal';
-import { getMaintenanceRequests, createMaintenanceRequest } from '@/lib/maintenance';
+import { tenantDashboard } from '@/data/portal';
+import { createMaintenanceRequest } from '@/lib/maintenance';
 import { useAuth } from '@/context/AuthContext';
+import { usePortalData } from '@/hooks/usePortalData';
 import type { NextPageWithAuth } from './_app';
+import type { MaintenanceRequest } from '@/types/maintenance';
 
-type MaintenanceStatusFilter = MaintenanceRequest['status'] | 'All';
+type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
 
-type MaintenanceFormPayload = Omit<MaintenanceRequest, 'id' | 'submittedOn' | 'status'>;
+type MaintenanceFormPayload = Omit<MaintenanceRequest, 'id' | 'submittedOn' | 'status' | 'createdAt' | 'updatedAt' | 'tenantId' | 'propertyId'>;
 
 const PortalPage: NextPageWithAuth = () => {
   const { user, profile } = useAuth();
-  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([]);
+
+  // Use our new hook for data
+  const {
+    lease,
+    payments,
+    maintenanceRequests,
+    metrics: realMetrics,
+    loading,
+    refresh
+  } = usePortalData();
+
   const [maintenanceFilter, setMaintenanceFilter] = useState<MaintenanceStatusFilter>('All');
   const [requestSubmitting, setRequestSubmitting] = useState(false);
   const [isPayRentModalOpen, setIsPayRentModalOpen] = useState(false);
 
-  // State for GHL Data
-  const [leaseDoc, setLeaseDoc] = useState<any>(null); // TODO: Type this
-
-  // Helper to map backend type to frontend type for UI display
-  // Backend uses: 'submitted' | 'in_progress' | 'completed' | 'cancelled'
-  // Frontend displays: 'Open' | 'In Progress' | 'Resolved'
-  const mapBackendToFrontend = (req: any): MaintenanceRequest => {
-    let status: MaintenanceRequest['status'] = 'Open';
-    if (req.status === 'in_progress') status = 'In Progress';
-    if (req.status === 'completed') status = 'Resolved';
-    if (req.status === 'cancelled') status = 'Resolved'; // Treat cancelled as resolved for UI
-
-    return {
-      id: req.id,
-      title: req.title,
-      description: req.description,
-      priority: req.priority === 'emergency' ? 'High' : (req.priority === 'low' ? 'Low' : 'Medium'), // Approx mapping
-      category: req.category,
-      submittedOn: req.createdAt ? new Date(req.createdAt).toISOString() : new Date().toISOString(),
-      status: status
-    };
-  };
-
-  // Fetch requests & lease on load
-  useEffect(() => {
-    async function fetchData() {
-      if (!user || !profile) return;
-      try {
-        // 1. Maintenance
-        const data = await getMaintenanceRequests(user.uid, profile.role || 'tenant');
-        // Map backend types to frontend types to satisfy TS and UI
-        setMaintenanceRequests(data.map(mapBackendToFrontend));
-
-        // 2. Lease Document
-        const db = await import('@/lib/firebase').then(m => m.getFirestoreClient());
-        const { doc, getDoc } = await import('firebase/firestore');
-        const leaseSnap = await getDoc(doc(db, 'leaseDocuments', `lease-${user.uid}`));
-        if (leaseSnap.exists()) {
-          setLeaseDoc(leaseSnap.data());
-        }
-
-      } catch (err) {
-        console.error('Failed to fetch data', err);
-      }
-    }
-    fetchData();
-  }, [user, profile]);
-
+  // Combine real metrics with static fallbacks where needed
   const metrics = useMemo(
     () => ({
       ...tenantDashboard.metrics,
-      // Map GHL/Firestore Profile Data
-      currentBalance: profile?.monthlyRent || 0, // Show rent amount as balance/info for now
-      leaseRenewalDate: leaseDoc?.leaseEnd || '2025-01-01',
-      // Dynamic Maintenance Count
-      maintenanceOpen: maintenanceRequests.filter((request) => request.status !== 'Resolved').length
+      currentBalance: realMetrics.currentBalance,
+      dueDate: realMetrics.nextDueDate?.toISOString() || tenantDashboard.metrics.dueDate, // Fallback if null
+      leaseRenewalDate: lease?.endDate ? (lease.endDate as any).toDate().toISOString() : tenantDashboard.metrics.leaseRenewalDate,
+      // Dynamic Maintenance Count is now calculated in the hook? No, hook provides raw list.
+      // But DashboardHighlights expects a `DashboardMetrics` object.
+      // We are essentially patching the `tenantDashboard.metrics` object with real values.
+      maintenanceOpen: maintenanceRequests.filter((request) => request.status !== 'completed' && request.status !== 'cancelled').length,
+      lastPaymentDate: payments[0]?.paidAt ? (payments[0].paidAt as Date).toISOString() : tenantDashboard.metrics.lastPaymentDate,
+      lastPaymentAmount: payments[0]?.amount || tenantDashboard.metrics.lastPaymentAmount
     }),
-    [maintenanceRequests, profile, leaseDoc]
+    [realMetrics, lease, maintenanceRequests, payments]
   );
 
-  // Transform lease doc for UI
-  const documents = leaseDoc ? [{
+  // Transform lease doc for UI - currently mock structure
+  const documents = lease?.documents ? [{
     id: 'lease-doc',
-    title: leaseDoc.title || 'Lease Agreement',
-    updatedOn: leaseDoc.updatedAt || new Date().toISOString(),
-    downloadUrl: '#' // We don't have the PDF URL yet
-  }] : [];
+    title: 'Lease Agreement',
+    updatedOn: (lease.updatedAt as any)?.toDate?.().toISOString() || new Date().toISOString(),
+    downloadUrl: '#'
+  }] : tenantDashboard.documents;
+
 
   const handleRequestSubmit = async (payload: MaintenanceFormPayload) => {
     if (!user || !profile) return;
     setRequestSubmitting(true);
 
     try {
-      // 1. Create in Firestore
-      // 1. Create in Firestore
-      const newId = await createMaintenanceRequest({
+      await createMaintenanceRequest({
         ...payload,
         priority: payload.priority.toLowerCase() as any,
-        category: (payload.category?.toLowerCase() === 'safety' ? 'general' :
-          payload.category?.toLowerCase() === 'structural' ? 'other' :
-            payload.category?.toLowerCase() || 'other') as any,
-        tenantId: user.uid,
-        propertyId: profile.propertyIds?.[0] || 'unassigned', // Fallback if not set
-        // unitId: profile.unit // Optional if we had it in profile
-      });
-
-      // 2. Optimistic Update (or re-fetch)
-      const newRequest: MaintenanceRequest = {
-        id: newId,
-        status: 'submitted', // Matches the default in createMaintenanceRequest
-        submittedOn: new Date().toISOString(), // UI expects string/ISO usually, but DB saves timestamp. 
-        // We might need to normalize this if the UI components expect a specific format.
-        // The create fn uses Date.now(), so we should probably align types.
-        // However, for the UI display solely, ISO string is often easier if components expect it.
-        // Let's look at `MaintenanceRequest` type in `types/maintenance.ts` vs `data/portal.ts`.
-        ...payload,
+        category: (payload.category?.toLowerCase() || 'other') as any, // Safety check
         tenantId: user.uid,
         propertyId: profile.propertyIds?.[0] || 'unassigned',
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      } as unknown as MaintenanceRequest;
-      // Note: The `MaintenanceRequest` type from `data/portal` might differ slightly from `types/maintenance`.
-      // We should probably strictly use `types/maintenance` everywhere, but `PortalHero` and others rely on `data/portal` mocks.
-      // For now, I will cast to satisfy the immediate UI, but valid Typescript refactoring is needed to unify types.
+        // unitId: profile.unit 
+      });
 
-      // Re-fetch to be safe and consistent
-      const data = await getMaintenanceRequests(user.uid, profile.role || 'tenant');
-      setMaintenanceRequests(data.map(mapBackendToFrontend));
-
+      // Refresh data to show new request
+      await refresh();
       setMaintenanceFilter('All');
+
+      // Scroll to requests list is handled by UI likely, or we can add it here if needed.
+
     } catch (err) {
       console.error('Failed to create request', err);
     } finally {
       setRequestSubmitting(false);
     }
   };
+
+  // if (loading) return <SiteLayout><div className="loading">Loading Portal...</div></SiteLayout>; 
+  // Better to show skeleton or just let it pop in, keeping it simple for now as per instructions.
 
   return (
     <SiteLayout>
@@ -156,9 +107,9 @@ const PortalPage: NextPageWithAuth = () => {
       </Head>
       <PortalHero
         residentName={profile?.displayName || tenantDashboard.residentName}
-        propertyName={tenantDashboard.propertyName} // We could pull this from property details if we had them
-        unit={profile?.unit || tenantDashboard.unit} // We need to add 'unit' to UserProfile type if it's not there
-        nextDueDate={tenantDashboard.metrics.dueDate}
+        propertyName={tenantDashboard.propertyName} // TODO: Fetch Property Name
+        unit={profile?.unit || tenantDashboard.unit}
+        nextDueDate={metrics.dueDate}
       />
       <DashboardHighlights metrics={metrics} />
       <QuickActions
@@ -175,7 +126,7 @@ const PortalPage: NextPageWithAuth = () => {
           }
         })}
       />
-      <PaymentHistory payments={tenantDashboard.payments} />
+      <PaymentHistory payments={payments} />
 
       <PayRentModal
         isOpen={isPayRentModalOpen}
@@ -193,7 +144,7 @@ const PortalPage: NextPageWithAuth = () => {
         announcements={tenantDashboard.announcements}
         messages={tenantDashboard.messages}
       />
-      <LeaseDocuments documents={documents.length > 0 ? documents : tenantDashboard.documents} />
+      <LeaseDocuments documents={documents} />
       <ResidentResources resources={tenantDashboard.residentResources} />
       <SupportContacts contacts={tenantDashboard.supportContacts} />
     </SiteLayout>

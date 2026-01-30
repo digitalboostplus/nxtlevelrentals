@@ -88,6 +88,7 @@ export interface Property {
 
 export interface Payment {
   id?: string;
+  leaseId?: string; // Link to the Lease contract
   tenantId: string;
   propertyId: string;
   amount: number;

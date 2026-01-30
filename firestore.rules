@@ -69,6 +69,29 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Leases Core Collection - Management of lease terms
+    match /leases/{leaseId} {
+        // Tenants can read their own leases
+        allow read: if request.auth != null && (
+            resource.data.tenantId == request.auth.uid ||
+            (isLandlord() && resource.data.landlordId == request.auth.uid) ||
+            isAdmin()
+        );
+        
+        // Landlords can create leases for themselves
+        allow create: if request.auth != null && 
+            isLandlord() && 
+            request.resource.data.landlordId == request.auth.uid;
+
+        // Landlords can update their own leases
+        allow update: if request.auth != null && 
+            isLandlord() && 
+            resource.data.landlordId == request.auth.uid;
+            
+        // Admins can do everything
+        allow write: if isAdmin();
+    }
+
     // Payment history - tenants can read their own, admins can read/write all
     match /payments/{paymentId} {
       allow read: if request.auth != null && (

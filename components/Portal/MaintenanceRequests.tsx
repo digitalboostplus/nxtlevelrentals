@@ -1,15 +1,27 @@
 import { useMemo } from 'react';
-import type { MaintenanceRequest } from '@/data/portal';
+import type { MaintenanceRequest } from '@/types/maintenance';
 
 import { formatLocalDate } from '@/lib/date';
 
+type FrontendStatus = 'Open' | 'In Progress' | 'Resolved';
+
 type MaintenanceRequestsProps = {
   requests: MaintenanceRequest[];
-  activeStatus: MaintenanceRequest['status'] | 'All';
-  onStatusChange: (status: MaintenanceRequest['status'] | 'All') => void;
+  activeStatus: FrontendStatus | 'All';
+  onStatusChange: (status: FrontendStatus | 'All') => void;
 };
 
-const statusColors: Record<MaintenanceRequest['status'], string> = {
+const getFrontendStatus = (status: MaintenanceRequest['status']): FrontendStatus => {
+  switch (status) {
+    case 'submitted': return 'Open';
+    case 'in_progress': return 'In Progress';
+    case 'completed':
+    case 'cancelled': return 'Resolved';
+    default: return 'Open';
+  }
+};
+
+const statusColors: Record<FrontendStatus, string> = {
   Open: 'tag tag--warning',
   'In Progress': 'tag tag--info',
   Resolved: 'tag tag--success'
@@ -18,10 +30,10 @@ const statusColors: Record<MaintenanceRequest['status'], string> = {
 export default function MaintenanceRequests({ requests, activeStatus, onStatusChange }: MaintenanceRequestsProps) {
   const filtered = useMemo(() => {
     if (activeStatus === 'All') return requests;
-    return requests.filter((request) => request.status === activeStatus);
+    return requests.filter((request) => getFrontendStatus(request.status) === activeStatus);
   }, [requests, activeStatus]);
 
-  const openCount = requests.filter((request) => request.status !== 'Resolved').length;
+  const openCount = requests.filter((request) => getFrontendStatus(request.status) !== 'Resolved').length;
 
   return (
     <section className="section section--muted">
@@ -48,20 +60,24 @@ export default function MaintenanceRequests({ requests, activeStatus, onStatusCh
           {filtered.length === 0 ? (
             <p style={{ gridColumn: '1 / -1', color: 'var(--color-muted)' }}>No requests matching this status.</p>
           ) : null}
-          {filtered.map((request) => (
-            <article className="maintenance-card" key={request.id}>
-              <div className="maintenance-card__meta">
-                <span>{formatLocalDate(request.submittedOn)}</span>
-                <span className={statusColors[request.status]}>{request.status}</span>
-              </div>
-              <h3 className="maintenance-card__title">{request.title}</h3>
-              <p className="maintenance-card__description">{request.description}</p>
-              <div className="maintenance-card__foot">
-                <span>Priority: {request.priority}</span>
-                {request.category ? <span>Category: {request.category}</span> : null}
-              </div>
-            </article>
-          ))}
+          {filtered.map((request) => {
+            const displayStatus = getFrontendStatus(request.status);
+            return (
+              <article className="maintenance-card" key={request.id}>
+                <div className="maintenance-card__meta">
+                  <span>{formatLocalDate(new Date(request.createdAt).toISOString())}</span>
+                  <span className={statusColors[displayStatus]}>{displayStatus}</span>
+                </div>
+                <h3 className="maintenance-card__title">{request.title}</h3>
+                <p className="maintenance-card__description">{request.description}</p>
+                <div className="maintenance-card__foot">
+                  <span>Priority: {request.priority}</span>
+                  {/* {request.category ? <span>Category: {request.category}</span> : null} */}
+                  {/* Category exists in type but maybe not fully populated in new schema yet, safe to check */}
+                </div>
+              </article>
+            )
+          })}
         </div>
       </div>
       <style jsx>{`
