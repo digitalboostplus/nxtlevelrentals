@@ -173,65 +173,29 @@ export function percentTooltipFormatter(
 }
 
 /**
- * Render custom tooltip content with styling
- * @param props - Recharts tooltip props
- * @returns JSX element or null
+ * Get tooltip style configuration
+ * @returns Tooltip style object for Recharts
  */
-export function renderCustomTooltip(props: any) {
-  const { active, payload, label } = props;
-
-  if (!active || !payload || !payload.length) {
-    return null;
-  }
-
-  return (
-    <div
-      style={{
-        backgroundColor: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)',
-        padding: '12px',
-        boxShadow: 'var(--shadow-md)',
-      }}
-    >
-      <p
-        style={{
-          margin: '0 0 8px 0',
-          fontSize: '13px',
-          fontWeight: 600,
-          color: 'var(--color-text-secondary)',
-        }}
-      >
-        {label}
-      </p>
-      {payload.map((entry: any, index: number) => (
-        <p
-          key={`item-${index}`}
-          style={{
-            margin: '4px 0',
-            fontSize: '14px',
-            color: entry.color || 'var(--color-text)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span
-            style={{
-              display: 'inline-block',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: entry.color,
-            }}
-          />
-          <span>
-            {entry.name}: <strong>{formatCurrency(entry.value)}</strong>
-          </span>
-        </p>
-      ))}
-    </div>
-  );
+export function getTooltipStyle() {
+  return {
+    contentStyle: {
+      backgroundColor: 'var(--color-surface)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 'var(--radius-md)',
+      padding: '12px',
+      boxShadow: 'var(--shadow-md)',
+    },
+    itemStyle: {
+      color: 'var(--color-text)',
+      fontSize: '14px',
+    },
+    labelStyle: {
+      color: 'var(--color-text-secondary)',
+      fontSize: '13px',
+      fontWeight: 600,
+      marginBottom: '4px',
+    },
+  };
 }
 
 /**

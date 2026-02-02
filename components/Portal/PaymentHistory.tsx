@@ -13,14 +13,14 @@ type PaymentHistoryProps = {
 const getStatusConfig = (status: Payment['status']) => {
   switch (status) {
     case 'succeeded':
-    case 'paid': // handling potential legacy/alias
       return { label: 'Paid', className: 'tag tag--success' };
     case 'processing':
     case 'pending':
       return { label: 'Processing', className: 'tag tag--info' };
     case 'failed':
-    case 'overdue':
       return { label: 'Failed', className: 'tag tag--warning' };
+    case 'refunded':
+      return { label: 'Refunded', className: 'tag tag--neutral' };
     default:
       return { label: status, className: 'tag tag--neutral' };
   }
