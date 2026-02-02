@@ -20,6 +20,28 @@
   --color-error: #ef4444;
   --color-info: #3b82f6;
 
+  /* Chart-specific colors */
+  --chart-success: var(--color-success);
+  --chart-warning: var(--color-warning);
+  --chart-error: var(--color-error);
+  --chart-info: var(--color-info);
+  --chart-neutral: var(--color-muted);
+
+  /* Chart backgrounds */
+  --chart-background: var(--color-surface);
+  --chart-grid: rgba(229, 231, 235, 0.5);
+
+  /* Chart data series colors */
+  --chart-series-1: #6c5ce7;
+  --chart-series-2: #00b894;
+  --chart-series-3: #fd79a8;
+  --chart-series-4: #fdcb6e;
+  --chart-series-5: #74b9ff;
+
+  /* Chart gradients */
+  --chart-gradient-primary: linear-gradient(180deg, rgba(108, 92, 231, 0.2) 0%, rgba(108, 92, 231, 0.05) 100%);
+  --chart-gradient-success: linear-gradient(180deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%);
+
   /* Glassmorphism */
   --glass-background: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(255, 255, 255, 0.18);
@@ -71,6 +93,9 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+  /* Chart overrides for dark theme */
+  --chart-grid: rgba(51, 65, 85, 0.5);
 }
 
 /* Dark theme overrides */
