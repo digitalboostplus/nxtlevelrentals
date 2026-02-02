@@ -1,0 +1,119 @@
+{
+    "collection": "properties",
+    "description": "Physical real estate units managed by the system",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true,
+            "description": "Auto-generated document ID"
+        },
+        "landlord_id": {
+            "type": "string",
+            "required": true,
+            "description": "Reference to the landlord (user UID)"
+        },
+        "name": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Internal name or unit identifier (e.g., 'Apt 4B')"
+        },
+        "address": {
+            "type": "map",
+            "required": true,
+            "properties": {
+                "street": {
+                    "type": "string",
+                    "required": true
+                },
+                "city": {
+                    "type": "string",
+                    "required": true
+                },
+                "state": {
+                    "type": "string",
+                    "required": true
+                },
+                "zip_code": {
+                    "type": "string",
+                    "required": true
+                },
+                "country": {
+                    "type": "string",
+                    "default": "USA"
+                }
+            }
+        },
+        "description": {
+            "type": "string",
+            "required": false
+        },
+        "status": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "occupied",
+                "vacant",
+                "maintenance",
+                "listed"
+            ],
+            "default": "vacant"
+        },
+        "default_rent_amount": {
+            "type": "number",
+            "required": true,
+            "description": "Market/standard rent for this unit"
+        },
+        "currency": {
+            "type": "string",
+            "default": "USD"
+        },
+        "images": {
+            "type": "array",
+            "description": "List of URLs for property photos"
+        },
+        "features": {
+            "type": "array",
+            "description": "List of amenities (e.g., 'AC', 'Parking')"
+        },
+        "metadata": {
+            "type": "map",
+            "properties": {
+                "square_feet": {
+                    "type": "number"
+                },
+                "bedrooms": {
+                    "type": "number"
+                },
+                "bathrooms": {
+                    "type": "number"
+                }
+            }
+        },
+        "created_at": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updated_at": {
+            "type": "timestamp",
+            "required": true
+        }
+    },
+    "indexes": [
+        {
+            "fields": [
+                "landlord_id",
+                "status"
+            ],
+            "order": [
+                "asc",
+                "asc"
+            ],
+            "description": "Search properties by landlord and active status"
+        }
+    ],
+    "securityNotes": [
+        "Admins and the assigned Landlord can write",
+        "Public or authenticated users can read depending on listing status"
+    ]
+}

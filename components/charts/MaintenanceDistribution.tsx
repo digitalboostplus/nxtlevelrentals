@@ -1,4 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { generateChartAriaLabel } from '@/lib/chart-utils';
+import { RECHARTS_ANIMATION, CHART_SERIES_COLORS } from '@/lib/chart-config';
 
 interface MaintenanceCategory {
   name: string;
@@ -10,24 +12,21 @@ interface MaintenanceDistributionProps {
   data: MaintenanceCategory[];
 }
 
-const COLORS = [
-  'var(--color-primary)',
-  'var(--color-success, #22c55e)',
-  'var(--color-warning, #eab308)',
-  'var(--color-error, #ef4444)',
-  '#8b5cf6',
-  '#ec4899',
-  '#14b8a6'
-];
-
 export default function MaintenanceDistribution({ data }: MaintenanceDistributionProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+
+  const categoryBreakdown = data.map(item => `${item.name}: ${item.value}`).join(', ');
+  const ariaLabel = generateChartAriaLabel(
+    'Maintenance distribution by category',
+    data.length,
+    `Total ${total} requests. ${categoryBreakdown}`
+  );
 
   return (
     <div className="donut-container">
       <h3 className="donut-title">Maintenance by Category</h3>
       <div className="donut-wrapper">
-        <div className="donut-chart">
+        <div className="donut-chart" role="img" aria-label={ariaLabel}>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie
@@ -38,11 +37,12 @@ export default function MaintenanceDistribution({ data }: MaintenanceDistributio
                 outerRadius={70}
                 paddingAngle={2}
                 dataKey="value"
+                {...RECHARTS_ANIMATION}
               >
                 {data.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
+                    fill={CHART_SERIES_COLORS[index % CHART_SERIES_COLORS.length]}
                   />
                 ))}
               </Pie>
@@ -73,7 +73,7 @@ export default function MaintenanceDistribution({ data }: MaintenanceDistributio
             <div key={item.name} className="donut-legend-item">
               <span
                 className="donut-legend-dot"
-                style={{ background: COLORS[index % COLORS.length] }}
+                style={{ background: CHART_SERIES_COLORS[index % CHART_SERIES_COLORS.length] }}
               />
               <span className="donut-legend-label">{item.name}</span>
               <span className="donut-legend-value">{item.value}</span>
@@ -154,6 +154,14 @@ export default function MaintenanceDistribution({ data }: MaintenanceDistributio
           flex-shrink: 0;
         }
 
+        .donut-legend-item {
+          transition: opacity var(--transition-fast);
+        }
+
+        .donut-legend-item:hover {
+          opacity: 0.8;
+        }
+
         .donut-legend-label {
           color: var(--color-text);
           flex: 1;
@@ -162,6 +170,21 @@ export default function MaintenanceDistribution({ data }: MaintenanceDistributio
         .donut-legend-value {
           color: var(--color-text-secondary);
           font-weight: 500;
+        }
+
+        .donut-container {
+          animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         @media (max-width: 640px) {
@@ -173,6 +196,14 @@ export default function MaintenanceDistribution({ data }: MaintenanceDistributio
             width: 100%;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .donut-container,
+          .donut-legend-item {
+            animation: none;
+            transition-duration: 0.01ms !important;
           }
         }
       `}</style>

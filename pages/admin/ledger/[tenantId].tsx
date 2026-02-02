@@ -53,6 +53,7 @@ const TenantLedgerPage: NextPageWithAuth = () => {
                 <title>Tenant Ledger - {tenant?.displayName || 'Loading'}</title>
             </Head>
 
+            <div className="page-container">
             {loading ? (
                 <div className="content-section">
                     <LoadingState message="Loading tenant ledger..." />
@@ -229,7 +230,29 @@ const TenantLedgerPage: NextPageWithAuth = () => {
             transition-duration: 0.01ms !important;
           }
         }
+
+        .page-container {
+          animation: pageEnter 0.3s ease-out;
+        }
+
+        @keyframes pageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .page-container {
+            animation: none;
+          }
+        }
       `}</style>
+      </div>
         </AdminLayout>
     );
 };

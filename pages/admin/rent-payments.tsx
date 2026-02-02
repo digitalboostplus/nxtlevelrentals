@@ -115,6 +115,7 @@ const RentPaymentsPage: NextPageWithAuth = () => {
                 <title>Rent Payments - Admin - Next Level Rentals</title>
             </Head>
 
+            <div className="page-container">
             <PageHeader
                 title="Rent Payment Tracking"
                 subtitle="Monitor rent payments across all properties"
@@ -229,7 +230,29 @@ const RentPaymentsPage: NextPageWithAuth = () => {
             transition-duration: 0.01ms !important;
           }
         }
+
+        .page-container {
+          animation: pageEnter 0.3s ease-out;
+        }
+
+        @keyframes pageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .page-container {
+            animation: none;
+          }
+        }
       `}</style>
+      </div>
         </AdminLayout>
     );
 };

@@ -1,0 +1,77 @@
+{
+    "collection": "maintenance_requests",
+    "description": "Tenant maintenance and repair logs",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true
+        },
+        "tenant_id": {
+            "type": "string",
+            "required": true
+        },
+        "property_id": {
+            "type": "string",
+            "required": true
+        },
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "description": {
+            "type": "string",
+            "required": true
+        },
+        "category": {
+            "type": "string",
+            "required": true
+        },
+        "priority": {
+            "type": "string",
+            "enum": [
+                "low",
+                "medium",
+                "high",
+                "urgent"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "submitted",
+                "in_progress",
+                "completed",
+                "cancelled"
+            ],
+            "default": "submitted"
+        },
+        "attachments": {
+            "type": "array"
+        },
+        "admin_notes": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updated_at": {
+            "type": "timestamp",
+            "required": true
+        }
+    },
+    "indexes": [
+        {
+            "fields": [
+                "property_id",
+                "status",
+                "created_at"
+            ],
+            "order": [
+                "asc",
+                "asc",
+                "desc"
+            ]
+        }
+    ]
+}

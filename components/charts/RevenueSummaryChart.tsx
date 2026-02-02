@@ -124,9 +124,9 @@ export default function RevenueSummaryChart({ data }: RevenueSummaryChartProps) 
   };
 
   return (
-    <div className="chart-container" role="img" aria-label={ariaLabel}>
+    <div className="chart-container">
       <h3 className="chart-title">Revenue Summary</h3>
-      <div className="chart-wrapper">
+      <div className="chart-wrapper" role="img" aria-label={ariaLabel}>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid {...DEFAULT_GRID_CONFIG} />
@@ -184,6 +184,18 @@ export default function RevenueSummaryChart({ data }: RevenueSummaryChartProps) 
           border-radius: var(--radius-lg);
           padding: 1.5rem;
           transition: box-shadow var(--transition-base);
+          animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .chart-container:hover {
@@ -210,6 +222,7 @@ export default function RevenueSummaryChart({ data }: RevenueSummaryChartProps) 
 
         @media (prefers-reduced-motion: reduce) {
           .chart-container {
+            animation: none;
             transition-duration: 0.01ms !important;
           }
         }

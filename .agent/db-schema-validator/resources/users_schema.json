@@ -1,0 +1,143 @@
+{
+    "collection": "users",
+    "description": "User account and profile information",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true,
+            "description": "Document ID (matches Firebase Auth UID)"
+        },
+        "email": {
+            "type": "string",
+            "required": true,
+            "validation": "Valid email format",
+            "indexed": true
+        },
+        "display_name": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100
+        },
+        "profile_image_url": {
+            "type": "string",
+            "required": false,
+            "description": "URL to profile image in Firebase Storage"
+        },
+        "role": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "tenant",
+                "landlord",
+                "admin",
+                "super-admin"
+            ],
+            "default": "tenant"
+        },
+        "preferences": {
+            "type": "map",
+            "required": false,
+            "properties": {
+                "theme": {
+                    "type": "string",
+                    "enum": [
+                        "light",
+                        "dark",
+                        "system"
+                    ]
+                },
+                "notifications_enabled": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "language": {
+                    "type": "string",
+                    "default": "en"
+                }
+            }
+        },
+        "last_login_at": {
+            "type": "timestamp",
+            "required": false
+        },
+        "created_at": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updated_at": {
+            "type": "timestamp",
+            "required": true
+        }
+    },
+    "subcollections": [
+        {
+            "name": "notifications",
+            "description": "User notification history",
+            "fields": {
+                "title": {
+                    "type": "string",
+                    "required": true
+                },
+                "body": {
+                    "type": "string",
+                    "required": true
+                },
+                "read": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "created_at": {
+                    "type": "timestamp",
+                    "required": true
+                }
+            }
+        },
+        {
+            "name": "activity_logs",
+            "description": "User activity tracking",
+            "fields": {
+                "action": {
+                    "type": "string",
+                    "required": true
+                },
+                "metadata": {
+                    "type": "map",
+                    "required": false
+                },
+                "created_at": {
+                    "type": "timestamp",
+                    "required": true
+                }
+            }
+        }
+    ],
+    "indexes": [
+        {
+            "fields": [
+                "role",
+                "created_at"
+            ],
+            "order": [
+                "asc",
+                "desc"
+            ],
+            "description": "Query users by role, sorted by creation date"
+        },
+        {
+            "fields": [
+                "role",
+                "last_login_at"
+            ],
+            "order": [
+                "asc",
+                "desc"
+            ],
+            "description": "Find active users by role"
+        }
+    ],
+    "securityNotes": [
+        "Users can only read/write their own document",
+        "Only admins can modify the 'role' field",
+        "Email field is indexed for unique constraint enforcement via Cloud Functions"
+    ]
+}

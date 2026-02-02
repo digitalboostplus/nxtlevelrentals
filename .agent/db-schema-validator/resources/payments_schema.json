@@ -1,0 +1,91 @@
+{
+    "collection": "payments",
+    "description": "Financial transactions for rent and fees",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true
+        },
+        "lease_id": {
+            "type": "string",
+            "required": true
+        },
+        "tenant_id": {
+            "type": "string",
+            "required": true
+        },
+        "property_id": {
+            "type": "string",
+            "required": true
+        },
+        "amount": {
+            "type": "number",
+            "required": true
+        },
+        "currency": {
+            "type": "string",
+            "default": "USD"
+        },
+        "type": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "rent",
+                "deposit",
+                "fee",
+                "other"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "pending",
+                "processing",
+                "succeeded",
+                "failed",
+                "refunded"
+            ]
+        },
+        "due_date": {
+            "type": "timestamp",
+            "required": true
+        },
+        "paid_at": {
+            "type": "timestamp",
+            "required": false
+        },
+        "description": {
+            "type": "string"
+        },
+        "stripe_payment_intent_id": {
+            "type": "string"
+        },
+        "payment_method_id": {
+            "type": "string",
+            "description": "Link to recorded user payment method"
+        },
+        "created_at": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updated_at": {
+            "type": "timestamp",
+            "required": true
+        }
+    },
+    "indexes": [
+        {
+            "fields": [
+                "tenant_id",
+                "status",
+                "due_date"
+            ],
+            "order": [
+                "asc",
+                "asc",
+                "desc"
+            ]
+        }
+    ]
+}

@@ -81,26 +81,30 @@ export default function PaymentMethodDistribution({ data }: PaymentMethodDistrib
   };
 
   return (
-    <div className="chart-container" role="img" aria-label={ariaLabel}>
+    <div className="chart-container">
       <div className="chart-header">
         <h3 className="chart-title">Payment Methods</h3>
-        <div className="sort-controls">
+        <div className="sort-controls" role="group" aria-label="Sort payment methods">
           <button
             className={`sort-btn ${sortBy === 'count' ? 'active' : ''}`}
             onClick={() => setSortBy('count')}
+            aria-pressed={sortBy === 'count'}
+            aria-label="Sort by transaction count"
           >
             By Count
           </button>
           <button
             className={`sort-btn ${sortBy === 'amount' ? 'active' : ''}`}
             onClick={() => setSortBy('amount')}
+            aria-pressed={sortBy === 'amount'}
+            aria-label="Sort by total amount"
           >
             By Amount
           </button>
         </div>
       </div>
 
-      <div className="chart-wrapper">
+      <div className="chart-wrapper" role="img" aria-label={ariaLabel}>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart
             data={sortedData}
@@ -144,6 +148,18 @@ export default function PaymentMethodDistribution({ data }: PaymentMethodDistrib
           border-radius: var(--radius-lg);
           padding: 1.5rem;
           transition: box-shadow var(--transition-base);
+          animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .chart-container:hover {
@@ -187,6 +203,11 @@ export default function PaymentMethodDistribution({ data }: PaymentMethodDistrib
           border-color: var(--color-primary);
         }
 
+        .sort-btn:focus-visible {
+          outline: 2px solid var(--color-primary);
+          outline-offset: 2px;
+        }
+
         .sort-btn.active {
           background: var(--color-primary);
           color: white;
@@ -212,6 +233,7 @@ export default function PaymentMethodDistribution({ data }: PaymentMethodDistrib
         @media (prefers-reduced-motion: reduce) {
           .chart-container,
           .sort-btn {
+            animation: none;
             transition-duration: 0.01ms !important;
           }
         }

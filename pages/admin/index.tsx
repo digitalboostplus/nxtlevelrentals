@@ -68,6 +68,7 @@ const AdminPage: NextPageWithAuth = () => {
 
   return (
     <AdminLayout title="Dashboard">
+      <div className="page-container">
       <AdminHero
         managerName="Alex Jordan"
         portfolioLabel="Next Level Management"
@@ -335,7 +336,29 @@ const AdminPage: NextPageWithAuth = () => {
             transform: none;
           }
         }
+
+        .page-container {
+          animation: pageEnter 0.3s ease-out;
+        }
+
+        @keyframes pageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .page-container {
+            animation: none;
+          }
+        }
       `}</style>
+      </div>
     </AdminLayout>
   );
 };
