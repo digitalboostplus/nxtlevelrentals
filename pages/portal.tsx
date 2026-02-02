@@ -21,7 +21,12 @@ import type { MaintenanceRequest } from '@/types/maintenance';
 
 type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
 
-type MaintenanceFormPayload = Omit<MaintenanceRequest, 'id' | 'submittedOn' | 'status' | 'createdAt' | 'updatedAt' | 'tenantId' | 'propertyId'>;
+type MaintenanceFormData = {
+  title: string;
+  description: string;
+  priority: string;
+  category: string;
+};
 
 const PortalPage: NextPageWithAuth = () => {
   const { user, profile } = useAuth();
@@ -66,7 +71,7 @@ const PortalPage: NextPageWithAuth = () => {
   }] : tenantDashboard.documents;
 
 
-  const handleRequestSubmit = async (payload: MaintenanceFormPayload) => {
+  const handleRequestSubmit = async (payload: MaintenanceFormData) => {
     if (!user || !profile) return;
     setRequestSubmitting(true);
 

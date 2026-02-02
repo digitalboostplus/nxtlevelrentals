@@ -1,8 +1,15 @@
 import { FormEvent, useState } from 'react';
 import { maintenanceCategories, type MaintenanceRequest } from '@/data/portal';
 
+type MaintenanceFormData = {
+  title: string;
+  description: string;
+  priority: string;
+  category: string;
+};
+
 type MaintenanceRequestFormProps = {
-  onSubmit: (request: Omit<MaintenanceRequest, 'id' | 'submittedOn' | 'status'>) => Promise<void> | void;
+  onSubmit: (request: MaintenanceFormData) => Promise<void> | void;
   submitting?: boolean;
 };
 
