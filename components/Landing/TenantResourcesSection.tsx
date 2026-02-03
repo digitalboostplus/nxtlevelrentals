@@ -51,7 +51,7 @@ export default function TenantResourcesSection() {
               <p className="resource-card__description">{resource.description}</p>
               <Link href={resource.href} className="resource-card__link">
                 {resource.linkLabel}
-                <span aria-hidden="true">→</span>
+                <span aria-hidden="true">&gt;</span>
               </Link>
             </article>
           ))}
@@ -60,11 +60,11 @@ export default function TenantResourcesSection() {
       <style jsx>{`
         .tenant-resources {
           padding: clamp(3.5rem, 7vw, 5rem) 1.5rem;
-          background: #eef2ff;
+          background: var(--color-surface-elevated);
         }
 
         .tenant-resources__inner {
-          max-width: 1080px;
+          max-width: var(--max-width);
           margin: 0 auto;
           display: grid;
           gap: clamp(2rem, 6vw, 3rem);
@@ -76,12 +76,12 @@ export default function TenantResourcesSection() {
 
         .tenant-resources__header h2 {
           font-size: clamp(2rem, 4vw, 2.5rem);
-          color: #1e1b4b;
+          color: var(--color-text);
           margin-bottom: 0.75rem;
         }
 
         .tenant-resources__header p {
-          color: rgba(30, 27, 75, 0.72);
+          color: var(--color-muted);
           line-height: 1.7;
         }
 
@@ -92,12 +92,12 @@ export default function TenantResourcesSection() {
         }
 
         .resource-card {
-          background: white;
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
           padding: 1.75rem;
           display: grid;
           gap: 1rem;
-          border: 1px solid rgba(129, 140, 248, 0.2);
+          border: 1px solid rgba(15, 118, 110, 0.12);
           box-shadow: var(--shadow-sm);
         }
 
@@ -106,16 +106,16 @@ export default function TenantResourcesSection() {
           text-transform: uppercase;
           letter-spacing: 0.18em;
           font-weight: 700;
-          color: rgba(76, 29, 149, 0.6);
+          color: rgba(15, 118, 110, 0.65);
         }
 
         .resource-card h3 {
           font-size: 1.2rem;
-          color: #1e1b4b;
+          color: var(--color-text);
         }
 
         .resource-card__description {
-          color: rgba(30, 41, 59, 0.68);
+          color: var(--color-muted);
           line-height: 1.6;
         }
 

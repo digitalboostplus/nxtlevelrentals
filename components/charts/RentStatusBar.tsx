@@ -14,10 +14,10 @@ interface RentStatusBarProps {
 }
 
 const STATUS_COLORS = {
-  paid: 'var(--color-success, #22c55e)',
+  paid: 'var(--color-success)',
   pending: 'var(--color-text-secondary)',
-  partial: 'var(--color-warning, #eab308)',
-  overdue: 'var(--color-error, #ef4444)'
+  partial: 'var(--color-warning)',
+  overdue: 'var(--color-error)'
 };
 
 const STATUS_LABELS = {
@@ -69,7 +69,7 @@ export default function RentStatusBar({ data }: RentStatusBarProps) {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'var(--color-bg)',
+                backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
                 borderRadius: '8px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
@@ -78,7 +78,7 @@ export default function RentStatusBar({ data }: RentStatusBarProps) {
                 const numValue = typeof value === 'number' ? value : 0;
                 return [`${numValue} units`, ''];
               }}
-              cursor={{ fill: 'var(--color-bg-secondary)' }}
+              cursor={{ fill: 'var(--color-surface-elevated)' }}
             />
             <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20} {...RECHARTS_ANIMATION}>
               {chartData.map((entry, index) => (
@@ -102,7 +102,7 @@ export default function RentStatusBar({ data }: RentStatusBarProps) {
 
       <style jsx>{`
         .status-container {
-          background: var(--color-bg);
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           border-radius: 12px;
           padding: 20px;

@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { leaseUtils } from '@/lib/leases';
 import { paymentUtils, maintenanceUtils, propertyUtils } from '@/lib/firebase-utils';
-import type { Lease, Payment, Property } from '@/types/schema';
-import type { MaintenanceRequest } from '@/types/maintenance';
+import type { Lease, Payment, Property, MaintenanceRequest } from '@/types/schema';
 
 export interface PortalData {
     lease: Lease | null;
@@ -44,7 +43,7 @@ export function usePortalData(): PortalData {
 
             // 1. Fetch Leases to find the active one
             const leases = await leaseUtils.getLeasesByTenant(user.uid);
-            const activeLease = leases.find(l => l.isActive && l.status === 'active') || leases[0] || null;
+            const activeLease = (leases.find(l => l.isActive && l.status === 'active') || leases[0] || null) as unknown as Lease;
 
             // 2. Fetch Property Details if we have a lease
             let property: Property | null = null;
@@ -73,7 +72,7 @@ export function usePortalData(): PortalData {
 
             if (activeLease) {
                 const now = new Date();
-                const dueDay = activeLease.paymentDueDay;
+                const dueDay = activeLease.paymentDueDay || 1;
                 let nextDue = new Date(now.getFullYear(), now.getMonth(), dueDay);
                 if (nextDue < now) {
                     nextDue = new Date(now.getFullYear(), now.getMonth() + 1, dueDay);
@@ -102,8 +101,10 @@ export function usePortalData(): PortalData {
     }, [user, profile]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (user && profile) {
+            fetchData();
+        }
+    }, [user, profile, fetchData]);
 
     return { ...data, refresh: fetchData };
 }

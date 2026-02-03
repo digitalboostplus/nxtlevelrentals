@@ -12,28 +12,23 @@ import SupportContacts from '@/components/Portal/SupportContacts';
 import MaintenanceRequestForm from '@/components/Portal/MaintenanceRequestForm';
 import ResidentResources from '@/components/Portal/ResidentResources';
 import PayRentModal from '@/components/Portal/PayRentModal';
-import { tenantDashboard } from '@/data/portal';
+import { SkeletonCard, SkeletonStats, SkeletonTable } from '@/components/common/Skeleton';
+import { tenantDashboard, type MaintenanceRequest as UiMaintenanceRequest } from '@/data/portal';
 import { createMaintenanceRequest } from '@/lib/maintenance';
 import { useAuth } from '@/context/AuthContext';
 import { usePortalData } from '@/hooks/usePortalData';
 import type { NextPageWithAuth } from './_app';
-import type { MaintenanceRequest } from '@/types/maintenance';
 
 type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
 
-type MaintenanceFormData = {
-  title: string;
-  description: string;
-  priority: string;
-  category: string;
-};
+type MaintenanceFormPayload = Omit<UiMaintenanceRequest, 'id' | 'submittedOn' | 'status'>;
 
 const PortalPage: NextPageWithAuth = () => {
   const { user, profile } = useAuth();
 
-  // Use our new hook for data
   const {
     lease,
+    property,
     payments,
     maintenanceRequests,
     metrics: realMetrics,
@@ -45,33 +40,52 @@ const PortalPage: NextPageWithAuth = () => {
   const [requestSubmitting, setRequestSubmitting] = useState(false);
   const [isPayRentModalOpen, setIsPayRentModalOpen] = useState(false);
 
-  // Combine real metrics with static fallbacks where needed
   const metrics = useMemo(
     () => ({
       ...tenantDashboard.metrics,
       currentBalance: realMetrics.currentBalance,
-      dueDate: realMetrics.nextDueDate?.toISOString() || tenantDashboard.metrics.dueDate, // Fallback if null
-      leaseRenewalDate: lease?.endDate ? (lease.endDate as any).toDate().toISOString() : tenantDashboard.metrics.leaseRenewalDate,
-      // Dynamic Maintenance Count is now calculated in the hook? No, hook provides raw list.
-      // But DashboardHighlights expects a `DashboardMetrics` object.
-      // We are essentially patching the `tenantDashboard.metrics` object with real values.
+      dueDate: realMetrics.nextDueDate?.toISOString() || tenantDashboard.metrics.dueDate,
+      leaseRenewalDate: lease?.endDate
+        ? lease.endDate instanceof Date
+          ? lease.endDate.toISOString()
+          : (lease.endDate as any).toDate?.().toISOString() || lease.endDate.toString()
+        : tenantDashboard.metrics.leaseRenewalDate,
       maintenanceOpen: maintenanceRequests.filter((request) => request.status !== 'completed' && request.status !== 'cancelled').length,
-      lastPaymentDate: payments[0]?.paidAt ? (payments[0].paidAt as Date).toISOString() : tenantDashboard.metrics.lastPaymentDate,
+      lastPaymentDate: payments[0]?.paidAt
+        ? payments[0].paidAt instanceof Date
+          ? payments[0].paidAt.toISOString()
+          : (payments[0].paidAt as any).toDate?.().toISOString() || (payments[0].paidAt as any).toString()
+        : tenantDashboard.metrics.lastPaymentDate,
       lastPaymentAmount: payments[0]?.amount || tenantDashboard.metrics.lastPaymentAmount
     }),
     [realMetrics, lease, maintenanceRequests, payments]
   );
 
-  // Transform lease doc for UI - currently mock structure
-  const documents = lease?.documents ? [{
-    id: 'lease-doc',
-    title: 'Lease Agreement',
-    updatedOn: (lease.updatedAt as any)?.toDate?.().toISOString() || new Date().toISOString(),
-    downloadUrl: '#'
-  }] : tenantDashboard.documents;
+  const documents = lease?.documents
+    ? [
+      {
+        id: 'lease-doc',
+        title: 'Lease Agreement',
+        updatedOn: (lease.updatedAt as any)?.toDate?.().toISOString() || new Date().toISOString(),
+        downloadUrl: '#'
+      }
+    ]
+    : tenantDashboard.documents;
 
+  const quickActions = tenantDashboard.quickActions.map((action) => {
+    switch (action.id) {
+      case 'qa-pay-rent':
+        return { ...action, onClick: () => setIsPayRentModalOpen(true) };
+      case 'qa-maintenance':
+        return { ...action, onClick: () => document.getElementById('maintenance')?.scrollIntoView({ behavior: 'smooth' }) };
+      case 'qa-documents':
+        return { ...action, onClick: () => document.getElementById('documents')?.scrollIntoView({ behavior: 'smooth' }) };
+      default:
+        return action;
+    }
+  });
 
-  const handleRequestSubmit = async (payload: MaintenanceFormData) => {
+  const handleRequestSubmit = async (payload: MaintenanceFormPayload) => {
     if (!user || !profile) return;
     setRequestSubmitting(true);
 
@@ -79,27 +93,19 @@ const PortalPage: NextPageWithAuth = () => {
       await createMaintenanceRequest({
         ...payload,
         priority: payload.priority.toLowerCase() as any,
-        category: (payload.category?.toLowerCase() || 'other') as any, // Safety check
+        category: (payload.category?.toLowerCase() || 'other') as any,
         tenantId: user.uid,
-        propertyId: profile.propertyIds?.[0] || 'unassigned',
-        // unitId: profile.unit 
+        propertyId: profile.propertyIds?.[0] || 'unassigned'
       });
 
-      // Refresh data to show new request
       await refresh();
       setMaintenanceFilter('All');
-
-      // Scroll to requests list is handled by UI likely, or we can add it here if needed.
-
     } catch (err) {
       console.error('Failed to create request', err);
     } finally {
       setRequestSubmitting(false);
     }
   };
-
-  // if (loading) return <SiteLayout><div className="loading">Loading Portal...</div></SiteLayout>; 
-  // Better to show skeleton or just let it pop in, keeping it simple for now as per instructions.
 
   return (
     <SiteLayout>
@@ -110,28 +116,70 @@ const PortalPage: NextPageWithAuth = () => {
           content="Access rent payments, maintenance tracking, communications, and lease documents in the Next Level Rentals tenant portal."
         />
       </Head>
+
       <PortalHero
         residentName={profile?.displayName || tenantDashboard.residentName}
-        propertyName={tenantDashboard.propertyName} // TODO: Fetch Property Name
+        propertyName={property?.name || tenantDashboard.propertyName}
         unit={profile?.unit || tenantDashboard.unit}
         nextDueDate={metrics.dueDate}
       />
-      <DashboardHighlights metrics={metrics} />
-      <QuickActions
-        actions={tenantDashboard.quickActions.map((action) => {
-          switch (action.id) {
-            case 'qa-pay-rent':
-              return { ...action, onClick: () => setIsPayRentModalOpen(true) };
-            case 'qa-maintenance':
-              return { ...action, onClick: () => document.getElementById('maintenance-form')?.scrollIntoView({ behavior: 'smooth' }) };
-            case 'qa-documents':
-              return { ...action, onClick: () => document.getElementById('lease-documents')?.scrollIntoView({ behavior: 'smooth' }) };
-            default:
-              return action;
-          }
-        })}
+
+      {loading ? (
+        <section className="section">
+          <div className="section__inner">
+            <SkeletonStats />
+          </div>
+        </section>
+      ) : (
+        <DashboardHighlights metrics={metrics} />
+      )}
+
+      <QuickActions actions={quickActions} />
+
+      {loading ? (
+        <section className="section section--muted">
+          <div className="section__inner">
+            <div className="card__header" style={{ marginBottom: '1.5rem' }}>
+              <h2 className="card__title">Maintenance requests</h2>
+              <span className="tag tag--info">Loading</span>
+            </div>
+            <div className="maintenance-grid">
+              {[0, 1, 2].map((item) => (
+                <SkeletonCard key={item} />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <MaintenanceRequests
+          requests={maintenanceRequests}
+          activeStatus={maintenanceFilter}
+          onStatusChange={setMaintenanceFilter}
+        />
+      )}
+
+      <MaintenanceRequestForm onSubmit={handleRequestSubmit} submitting={requestSubmitting} />
+
+      {loading ? (
+        <section className="section" id="payments">
+          <div className="section__inner">
+            <SkeletonTable rows={4} />
+          </div>
+        </section>
+      ) : (
+        <PaymentHistory payments={payments} />
+      )}
+
+      <CommunicationHub
+        announcements={tenantDashboard.announcements}
+        messages={tenantDashboard.messages}
       />
-      <PaymentHistory payments={payments} />
+
+      <LeaseDocuments documents={documents} />
+
+      <ResidentResources resources={tenantDashboard.residentResources} />
+
+      <SupportContacts contacts={tenantDashboard.supportContacts} />
 
       <PayRentModal
         isOpen={isPayRentModalOpen}
@@ -139,19 +187,6 @@ const PortalPage: NextPageWithAuth = () => {
         currentBalance={metrics.currentBalance}
         propertyId={profile?.propertyIds?.[0] || ''}
       />
-      <MaintenanceRequestForm onSubmit={handleRequestSubmit} submitting={requestSubmitting} />
-      <MaintenanceRequests
-        requests={maintenanceRequests}
-        activeStatus={maintenanceFilter}
-        onStatusChange={setMaintenanceFilter}
-      />
-      <CommunicationHub
-        announcements={tenantDashboard.announcements}
-        messages={tenantDashboard.messages}
-      />
-      <LeaseDocuments documents={documents} />
-      <ResidentResources resources={tenantDashboard.residentResources} />
-      <SupportContacts contacts={tenantDashboard.supportContacts} />
     </SiteLayout>
   );
 };

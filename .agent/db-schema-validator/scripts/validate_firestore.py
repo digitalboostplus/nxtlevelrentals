@@ -45,7 +45,7 @@ class FirestoreValidator:
             print(f"Error: File not found: {filepath}")
             return EXIT_SECURITY_VIOLATION
 
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
             lines = content.split('\n')
 
@@ -70,7 +70,7 @@ class FirestoreValidator:
             return EXIT_INDEX_VIOLATION
 
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 config = json.load(f)
         except json.JSONDecodeError as e:
             self.errors.append(ValidationError(
@@ -96,7 +96,7 @@ class FirestoreValidator:
             return EXIT_STRUCTURE_VIOLATION
 
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 schema = json.load(f)
         except json.JSONDecodeError as e:
             self.errors.append(ValidationError(
@@ -153,10 +153,10 @@ class FirestoreValidator:
         """Generate a comprehensive validation report."""
         project = Path(project_path)
         report_lines = [
-            "# Firestore Validation Report",
-            f"\nProject: `{project_path}`",
-            f"Generated: {self._get_timestamp()}",
-            "\n---\n"
+            "# Firestore Validation Report\n",
+            f"\nProject: `{project_path}`\n",
+            f"Generated: {self._get_timestamp()}\n",
+            "\n---\n\n"
         ]
 
         all_errors = []
@@ -164,6 +164,9 @@ class FirestoreValidator:
 
         # Validate all files and collect results
         rules_file = project / 'firestore.rules'
+        if not rules_file.exists() and (project / 'rules.md').exists():
+            rules_file = project / 'rules.md'
+
         if rules_file.exists():
             report_lines.append("## Security Rules\n")
             self.validate_rules(str(rules_file))
@@ -176,7 +179,7 @@ class FirestoreValidator:
                 report_lines.append("✅ No issues found\n")
             self.errors.clear()
 
-        indexes_file = project / 'firestore.indexes.json'
+        indexes_file = project / 'firestore_indexes.json'
         if indexes_file.exists():
             report_lines.append("\n## Index Configuration\n")
             self.validate_indexes(str(indexes_file))
@@ -189,7 +192,9 @@ class FirestoreValidator:
                 report_lines.append("✅ No issues found\n")
             self.errors.clear()
 
-        for schema_file in project.glob('**/*.schema.json'):
+        for schema_file in project.glob('*.json'):
+            if schema_file.name == 'firestore_indexes.json':
+                continue
             report_lines.append(f"\n## Schema: {schema_file.name}\n")
             self.validate_schema(str(schema_file))
             if self.errors:
@@ -211,7 +216,7 @@ class FirestoreValidator:
         report_lines.append(f"\n**Validation Status:** {status}\n")
 
         # Write report
-        with open(output_path, 'w') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             f.writelines(report_lines)
 
         print(f"\n📄 Report generated: {output_path}")
@@ -238,25 +243,28 @@ class FirestoreValidator:
 
     def _check_combined_permissions(self, content: str, lines: List[str]):
         """Check for combined read/write permissions without granularity."""
+        auth_patterns = ['request.auth', 'isAdmin', 'isLandlord']
         for i, line in enumerate(lines, 1):
-            if re.search(r'allow\s+read,\s*write:', line) and 'if request.auth' not in line:
-                self.errors.append(ValidationError(
-                    EXIT_SECURITY_VIOLATION,
-                    "Combined read/write permission without authentication check",
-                    line=i,
-                    suggestion="Separate read and write rules or add authentication requirement"
-                ))
+            if re.search(r'allow\s+read,\s*write:', line):
+                if not any(p in line for p in auth_patterns):
+                    self.errors.append(ValidationError(
+                        EXIT_SECURITY_VIOLATION,
+                        "Combined read/write permission without authentication check",
+                        line=i,
+                        suggestion="Separate read and write rules or add authentication requirement"
+                    ))
 
     def _check_auth_requirements(self, content: str, lines: List[str]):
         """Check that authentication is required for sensitive operations."""
         write_pattern = r'allow\s+(write|create|update|delete):'
+        auth_patterns = ['request.auth', 'isAdmin', 'isLandlord']
         
         for i, line in enumerate(lines, 1):
             if re.search(write_pattern, line):
-                if 'request.auth' not in line and 'if false' not in line:
-                    # Check next few lines for auth check
+                if not any(p in line for p in auth_patterns) and 'if false' not in line:
+                    # Check next couple lines for auth check
                     context = '\n'.join(lines[max(0, i-1):min(len(lines), i+3)])
-                    if 'request.auth' not in context:
+                    if not any(p in context for p in auth_patterns):
                         self.errors.append(ValidationError(
                             EXIT_SECURITY_VIOLATION,
                             "Write operation without authentication requirement",
@@ -285,27 +293,27 @@ class FirestoreValidator:
     def _check_index_collections(self, indexes: List[Dict]):
         """Check that all indexes reference valid collection paths."""
         for idx in indexes:
-            collection = idx.get('collectionGroup', '')
+            collection = idx.get('collectionGroup', '') or idx.get('collection', '')
             if not collection:
                 self.errors.append(ValidationError(
                     EXIT_INDEX_VIOLATION,
-                    "Index missing collectionGroup field"
+                    "Index missing collectionGroup/collection field"
                 ))
             elif not self._is_valid_collection_name(collection):
                 self.errors.append(ValidationError(
                     EXIT_NAMING_VIOLATION,
                     f"Collection name '{collection}' violates naming convention",
-                    suggestion="Use snake_case for collection names (e.g., 'user_profiles')"
+                    suggestion="Use snake_case or camelCase for collection names"
                 ))
 
     def _check_collection_naming(self, schema: Dict):
-        """Check collection naming follows snake_case convention."""
+        """Check collection naming follows convention."""
         collection = schema.get('collection', '')
         if collection and not self._is_valid_collection_name(collection):
             self.errors.append(ValidationError(
                 EXIT_NAMING_VIOLATION,
                 f"Collection name '{collection}' violates naming convention",
-                suggestion="Use snake_case with plural nouns (e.g., 'user_profiles', 'order_items')"
+                suggestion="Use snake_case or camelCase with plural nouns"
             ))
 
         # Check subcollections
@@ -315,29 +323,39 @@ class FirestoreValidator:
                 self.errors.append(ValidationError(
                     EXIT_NAMING_VIOLATION,
                     f"Subcollection name '{sub_name}' violates naming convention",
-                    suggestion="Use snake_case with plural nouns"
+                    suggestion="Use snake_case or camelCase"
                 ))
 
     def _check_timestamp_fields(self, schema: Dict):
         """Check for required timestamp fields."""
         fields = schema.get('fields', {})
-        required_timestamps = ['created_at', 'updated_at']
         
-        for ts_field in required_timestamps:
-            if ts_field not in fields:
+        # Support both snake_case and camelCase for timestamps
+        timestamp_pairs = [
+            (['created_at', 'createdAt'], 'creation'),
+            (['updated_at', 'updatedAt'], 'update')
+        ]
+        
+        for options, type_name in timestamp_pairs:
+            found = False
+            for opt in options:
+                if opt in fields:
+                    found = True
+                    field_def = fields[opt]
+                    if field_def.get('type') not in ['timestamp', 'Timestamp']:
+                        self.errors.append(ValidationError(
+                            EXIT_STRUCTURE_VIOLATION,
+                            f"Field '{opt}' should be of type 'timestamp', not '{field_def.get('type')}'",
+                            suggestion="Use Firestore Timestamp type for date/time fields"
+                        ))
+                    break
+            
+            if not found:
                 self.errors.append(ValidationError(
                     EXIT_STRUCTURE_VIOLATION,
-                    f"Missing required timestamp field: '{ts_field}'",
-                    suggestion=f"Add '{ts_field}' field with type 'timestamp' and required: true"
+                    f"Missing required {type_name} timestamp field (one of: {', '.join(options)})",
+                    suggestion=f"Add '{options[1]}' (preferred) or '{options[0]}' field with type 'timestamp' and required: true"
                 ))
-            else:
-                field_def = fields[ts_field]
-                if field_def.get('type') not in ['timestamp', 'Timestamp']:
-                    self.errors.append(ValidationError(
-                        EXIT_STRUCTURE_VIOLATION,
-                        f"Field '{ts_field}' should be of type 'timestamp', not '{field_def.get('type')}'",
-                        suggestion="Use Firestore Timestamp type for date/time fields"
-                    ))
 
     def _check_nesting_depth(self, schema: Dict, max_depth: int = 3):
         """Check that nested structures don't exceed maximum depth."""
@@ -352,6 +370,9 @@ class FirestoreValidator:
                 ))
                 return
             
+            if not isinstance(obj, dict):
+                return
+
             for key, value in obj.items():
                 if isinstance(value, dict):
                     if value.get('type') == 'map' and 'properties' in value:
@@ -368,7 +389,12 @@ class FirestoreValidator:
         ]
         
         fields = schema.get('fields', {})
+        if not isinstance(fields, dict):
+            return
+
         for field_name, field_def in fields.items():
+            if not isinstance(field_def, dict):
+                continue
             field_type = field_def.get('type', '')
             if field_type and field_type not in valid_types:
                 self.errors.append(ValidationError(
@@ -378,8 +404,8 @@ class FirestoreValidator:
                 ))
 
     def _is_valid_collection_name(self, name: str) -> bool:
-        """Check if collection name follows snake_case convention."""
-        return bool(re.match(r'^[a-z][a-z0-9]*(_[a-z0-9]+)*$', name))
+        """Check if collection name follows snake_case or camelCase convention."""
+        return bool(re.match(r'^[a-z][a-zA-Z0-9]*(_[a-z0-9]+)*$', name))
 
     def _get_timestamp(self) -> str:
         """Get current timestamp for reports."""

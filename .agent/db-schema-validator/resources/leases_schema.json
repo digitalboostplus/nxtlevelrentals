@@ -1,35 +1,35 @@
 {
     "collection": "leases",
-    "description": "Rental agreements between landlords and tenants",
+    "description": "Legal rental agreements between landlords and tenants",
     "fields": {
         "id": {
             "type": "string",
             "required": true
         },
-        "property_id": {
+        "propertyId": {
             "type": "string",
             "required": true,
-            "description": "Reference to properties collection"
+            "indexed": true
         },
-        "tenant_id": {
+        "tenantId": {
             "type": "string",
             "required": true,
-            "description": "Reference to users collection (tenant)"
+            "indexed": true
         },
-        "landlord_id": {
+        "landlordId": {
             "type": "string",
             "required": true,
-            "description": "Reference to users collection (landlord)"
+            "indexed": true
         },
-        "start_date": {
+        "startDate": {
             "type": "timestamp",
             "required": true
         },
-        "end_date": {
+        "endDate": {
             "type": "timestamp",
             "required": true
         },
-        "monthly_rent": {
+        "monthlyRent": {
             "type": "number",
             "required": true
         },
@@ -37,41 +37,41 @@
             "type": "string",
             "default": "USD"
         },
-        "security_deposit": {
+        "securityDeposit": {
             "type": "number",
             "required": true
         },
-        "payment_due_day": {
+        "paymentDueDay": {
             "type": "number",
             "required": true,
-            "min": 1,
-            "max": 31
+            "description": "Day of individual month rent is due (1-28)"
         },
         "status": {
             "type": "string",
             "required": true,
             "enum": [
-                "pending",
                 "active",
-                "ended",
-                "terminated"
+                "pending",
+                "expired",
+                "terminated",
+                "ended"
             ],
             "default": "pending"
         },
-        "is_active": {
+        "isActive": {
             "type": "boolean",
             "required": true,
-            "description": "Flag for current active lease"
+            "default": true
         },
         "documents": {
             "type": "array",
-            "description": "List of URLs to lease-related PDFs"
+            "description": "URLs to signed PDF documents"
         },
-        "created_at": {
+        "createdAt": {
             "type": "timestamp",
             "required": true
         },
-        "updated_at": {
+        "updatedAt": {
             "type": "timestamp",
             "required": true
         }
@@ -79,23 +79,29 @@
     "indexes": [
         {
             "fields": [
-                "tenant_id",
-                "is_active"
+                "tenantId",
+                "isActive"
             ],
             "order": [
                 "asc",
                 "asc"
-            ]
+            ],
+            "description": "Find active lease for a tenant"
         },
         {
             "fields": [
-                "property_id",
-                "is_active"
+                "propertyId",
+                "status"
             ],
             "order": [
                 "asc",
                 "asc"
-            ]
+            ],
+            "description": "Check lease history for a property"
         }
+    ],
+    "securityNotes": [
+        "Read access for Admin, Landlord, and Tenant",
+        "Write access restricted to Admin and Landlord"
     ]
 }

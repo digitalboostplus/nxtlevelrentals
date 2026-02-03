@@ -103,13 +103,13 @@ const AdminPage: NextPageWithAuth = () => {
           className="secondary-button"
           onClick={() => setIsRecordPaymentModalOpen(true)}
         >
-          💵 Record Payment
+          Record Payment
         </button>
         <button
           className="primary-button"
           onClick={() => setIsAddModalOpen(true)}
         >
-          ➕ Add Tenant
+          Add Tenant
         </button>
       </div>
 
@@ -267,15 +267,15 @@ const AdminPage: NextPageWithAuth = () => {
         }
 
         .stat-value.rate {
-          color: rgba(251, 191, 36, 1);
+          color: var(--color-warning);
         }
 
         .stat-value.overdue {
-          color: rgba(252, 165, 165, 1);
+          color: var(--color-error);
         }
 
         .stat-value.collected {
-          color: rgba(134, 239, 172, 1);
+          color: var(--color-success);
         }
 
         .analytics-grid {

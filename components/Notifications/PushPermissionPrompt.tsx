@@ -145,13 +145,13 @@ export default function PushPermissionPrompt() {
         .prompt-text h3 {
           margin: 0 0 0.5rem;
           font-size: 1.125rem;
-          color: #1e293b;
+          color: var(--color-text-secondary);
         }
 
         .prompt-text p {
           margin: 0;
           font-size: 0.938rem;
-          color: #64748b;
+          color: var(--color-muted);
           line-height: 1.5;
         }
 
@@ -173,24 +173,24 @@ export default function PushPermissionPrompt() {
         }
 
         .enable-button {
-          background-color: var(--color-primary, #6c5ce7);
+          background-color: var(--color-primary);
           color: white;
         }
 
         .enable-button:hover:not(:disabled) {
-          background-color: var(--color-primary-dark, #5b4bc9);
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
         }
 
         .dismiss-button {
-          background: white;
-          color: #64748b;
-          border: 1px solid #cbd5e1;
+          background: var(--color-surface);
+          color: var(--color-muted);
+          border: 1px solid var(--color-border);
         }
 
         .dismiss-button:hover:not(:disabled) {
-          border-color: #94a3b8;
-          background-color: #f8fafc;
+          border-color: rgba(15, 118, 110, 0.3);
+          background-color: var(--color-surface-elevated);
         }
 
         .enable-button:disabled,

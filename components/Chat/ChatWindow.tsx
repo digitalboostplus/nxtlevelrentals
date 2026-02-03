@@ -139,7 +139,7 @@ export default function ChatWindow() {
           max-width: calc(100vw - 48px);
           height: 520px;
           max-height: calc(100vh - 120px);
-          background: var(--color-bg);
+          background: var(--color-surface);
           border-radius: 16px;
           box-shadow:
             0 25px 50px -12px rgba(0, 0, 0, 0.25),
@@ -155,7 +155,7 @@ export default function ChatWindow() {
           align-items: center;
           justify-content: space-between;
           padding: 12px 16px;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, #2563eb));
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
         }
 
@@ -178,7 +178,7 @@ export default function ChatWindow() {
         }
 
         .chat-window__avatar-icon {
-          background: linear-gradient(135deg, #fbbf24, #f59e0b);
+          background: linear-gradient(135deg, var(--color-secondary), var(--color-accent));
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -251,7 +251,7 @@ export default function ChatWindow() {
           width: 64px;
           height: 64px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, #2563eb));
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
           display: flex;
           align-items: center;
@@ -259,7 +259,7 @@ export default function ChatWindow() {
           font-size: 1.75rem;
           font-weight: 600;
           margin-bottom: 16px;
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+          box-shadow: 0 4px 12px rgba(15, 118, 110, 0.28);
         }
 
         .chat-window__welcome-title {
@@ -285,7 +285,7 @@ export default function ChatWindow() {
 
         .chat-window__suggestion {
           padding: 10px 16px;
-          background: var(--color-bg-secondary);
+          background: var(--color-surface-elevated);
           border: 1px solid var(--color-border);
           border-radius: 8px;
           font-size: 0.875rem;

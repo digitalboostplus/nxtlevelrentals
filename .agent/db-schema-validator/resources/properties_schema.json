@@ -7,7 +7,7 @@
             "required": true,
             "description": "Auto-generated document ID"
         },
-        "landlord_id": {
+        "landlordId": {
             "type": "string",
             "required": true,
             "description": "Reference to the landlord (user UID)"
@@ -19,30 +19,9 @@
             "description": "Internal name or unit identifier (e.g., 'Apt 4B')"
         },
         "address": {
-            "type": "map",
+            "type": "string",
             "required": true,
-            "properties": {
-                "street": {
-                    "type": "string",
-                    "required": true
-                },
-                "city": {
-                    "type": "string",
-                    "required": true
-                },
-                "state": {
-                    "type": "string",
-                    "required": true
-                },
-                "zip_code": {
-                    "type": "string",
-                    "required": true
-                },
-                "country": {
-                    "type": "string",
-                    "default": "USA"
-                }
-            }
+            "description": "Full address string"
         },
         "description": {
             "type": "string",
@@ -59,42 +38,50 @@
             ],
             "default": "vacant"
         },
-        "default_rent_amount": {
+        "rent": {
             "type": "number",
             "required": true,
-            "description": "Market/standard rent for this unit"
-        },
-        "currency": {
-            "type": "string",
-            "default": "USD"
+            "description": "Monthly rent amount"
         },
         "images": {
             "type": "array",
             "description": "List of URLs for property photos"
         },
-        "features": {
+        "amenities": {
             "type": "array",
             "description": "List of amenities (e.g., 'AC', 'Parking')"
         },
-        "metadata": {
-            "type": "map",
-            "properties": {
-                "square_feet": {
-                    "type": "number"
-                },
-                "bedrooms": {
-                    "type": "number"
-                },
-                "bathrooms": {
-                    "type": "number"
-                }
-            }
+        "bedrooms": {
+            "type": "number"
         },
-        "created_at": {
+        "bathrooms": {
+            "type": "number"
+        },
+        "squareFeet": {
+            "type": "number"
+        },
+        "available": {
+            "type": "boolean",
+            "default": true
+        },
+        "landlordName": {
+            "type": "string",
+            "description": "Denormalized landlord name for display"
+        },
+        "managementStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "inactive",
+                "pending"
+            ],
+            "default": "active"
+        },
+        "createdAt": {
             "type": "timestamp",
             "required": true
         },
-        "updated_at": {
+        "updatedAt": {
             "type": "timestamp",
             "required": true
         }
@@ -102,7 +89,7 @@
     "indexes": [
         {
             "fields": [
-                "landlord_id",
+                "landlordId",
                 "status"
             ],
             "order": [

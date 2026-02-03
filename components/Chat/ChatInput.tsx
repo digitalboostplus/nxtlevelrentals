@@ -74,14 +74,14 @@ export default function ChatInput() {
         .chat-input {
           padding: 12px 16px;
           border-top: 1px solid var(--color-border);
-          background: var(--color-bg);
+          background: var(--color-surface);
         }
 
         .chat-input__container {
           display: flex;
           align-items: flex-end;
           gap: 8px;
-          background: var(--color-bg-secondary);
+          background: var(--color-surface-elevated);
           border: 1px solid var(--color-border);
           border-radius: 12px;
           padding: 8px 8px 8px 16px;
@@ -120,7 +120,7 @@ export default function ChatInput() {
           height: 36px;
           border: none;
           border-radius: 10px;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, #2563eb));
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
           cursor: pointer;
           display: flex;

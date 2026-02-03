@@ -192,7 +192,7 @@ export default function PaymentFilters({
         .select-input:focus,
         .search-input:focus {
           outline: none;
-          border-color: var(--color-primary, #6c5ce7);
+          border-color: var(--color-primary);
           box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
         }
 
@@ -249,9 +249,9 @@ export default function PaymentFilters({
         }
 
         .toggle-btn.active {
-          background: var(--color-primary, #6c5ce7);
+          background: var(--color-primary);
           color: white;
-          border-color: var(--color-primary, #6c5ce7);
+          border-color: var(--color-primary);
         }
 
         @media (max-width: 1024px) {
@@ -278,3 +278,4 @@ export default function PaymentFilters({
         </div>
     );
 }
+

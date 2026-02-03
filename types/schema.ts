@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 
-export type UserRole = 'admin' | 'landlord' | 'tenant';
+export type UserRole = 'admin' | 'landlord' | 'tenant' | 'super-admin';
 
 export interface UserProfile {
     uid: string;
@@ -10,6 +10,8 @@ export interface UserProfile {
     phoneNumber?: string;
     photoURL?: string;
     stripeCustomerId?: string; // For tenants
+    propertyIds?: string[]; // Properties tenant lives in or landlord owns
+    unit?: string; // For tenants
     onboardingCompleted?: boolean;
     createdAt: Timestamp | Date;
     updatedAt?: Timestamp | Date;
@@ -56,7 +58,7 @@ export interface Lease {
     updatedAt: Timestamp | Date;
 }
 
-export type PaymentStatus = 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded';
+export type PaymentStatus = 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded' | 'paid' | 'overdue' | 'cancelled';
 export type PaymentType = 'rent' | 'deposit' | 'fee' | 'other';
 
 export interface Payment {
@@ -77,6 +79,49 @@ export interface Payment {
     stripeInvoiceId?: string;
     metadata?: Record<string, any>;
     createdAt: Timestamp | Date;
+    updatedAt?: Timestamp | Date;
+}
+
+export interface MaintenanceRequest {
+    id: string;
+    tenantId: string;
+    propertyId: string;
+    title: string;
+    description: string;
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    status: 'submitted' | 'in_progress' | 'completed' | 'cancelled';
+    category?: string;
+    adminNotes?: string;
+    attachments?: string[];
+    createdAt: Timestamp | Date;
+    updatedAt: Timestamp | Date;
+}
+
+export interface LandlordExpense {
+    id: string;
+    landlordId: string;
+    propertyId: string;
+    expenseType: 'maintenance' | 'repair' | 'utility' | 'insurance' | 'tax' | 'capital_improvement' | 'other';
+    category: string;
+    amount: number;
+    vendor: string;
+    date: Timestamp | Date;
+    status: 'pending' | 'approved' | 'paid' | 'reimbursed' | 'rejected';
+    receiptUrls?: string[];
+    createdAt: Timestamp | Date;
+    updatedAt: Timestamp | Date;
+}
+
+export interface Payout {
+    id: string;
+    landlordId: string;
+    amount: number;
+    netAmount: number;
+    status: 'scheduled' | 'processing' | 'completed' | 'failed' | 'cancelled';
+    scheduledDate: Timestamp | Date;
+    processedDate?: Timestamp | Date;
+    createdAt: Timestamp | Date;
+    updatedAt: Timestamp | Date;
 }
 
 export interface SavedPaymentMethod {
@@ -88,5 +133,7 @@ export interface SavedPaymentMethod {
     expiryMonth?: number; // for cards
     expiryYear?: number; // for cards
     isDefault: boolean;
+    stripePaymentMethodId?: string;
     createdAt: Timestamp | Date;
+    updatedAt?: Timestamp | Date;
 }

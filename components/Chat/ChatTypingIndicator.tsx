@@ -19,7 +19,7 @@ export default function ChatTypingIndicator() {
           width: 28px;
           height: 28px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, #2563eb));
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
           display: flex;
           align-items: center;
@@ -34,7 +34,7 @@ export default function ChatTypingIndicator() {
           align-items: center;
           gap: 4px;
           padding: 12px 16px;
-          background: var(--color-bg-secondary);
+          background: var(--color-surface-elevated);
           border: 1px solid var(--color-border);
           border-radius: 16px;
           border-bottom-left-radius: 4px;

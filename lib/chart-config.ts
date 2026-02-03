@@ -77,7 +77,7 @@ export const DEFAULT_TOOLTIP_STYLE = {
     marginBottom: '4px',
   },
   cursor: {
-    fill: 'rgba(108, 92, 231, 0.1)',
+    fill: 'var(--color-primary-light)',
   },
 };
 
@@ -108,34 +108,34 @@ export const getResponsiveHeight = (width: number): number => {
 export const CHART_GRADIENTS = {
   primary: {
     id: 'colorPrimary',
-    color: '#6c5ce7',
+    color: 'var(--color-primary)',
     stops: [
-      { offset: '0%', stopColor: '#6c5ce7', stopOpacity: 0.2 },
-      { offset: '100%', stopColor: '#6c5ce7', stopOpacity: 0.05 },
+      { offset: '0%', stopColor: 'var(--color-primary)', stopOpacity: 0.2 },
+      { offset: '100%', stopColor: 'var(--color-primary)', stopOpacity: 0.05 },
     ],
   },
   success: {
     id: 'colorSuccess',
-    color: '#10b981',
+    color: 'var(--color-success)',
     stops: [
-      { offset: '0%', stopColor: '#10b981', stopOpacity: 0.2 },
-      { offset: '100%', stopColor: '#10b981', stopOpacity: 0.05 },
+      { offset: '0%', stopColor: 'var(--color-success)', stopOpacity: 0.2 },
+      { offset: '100%', stopColor: 'var(--color-success)', stopOpacity: 0.05 },
     ],
   },
   secondary: {
     id: 'colorSecondary',
-    color: '#00b894',
+    color: 'var(--color-secondary)',
     stops: [
-      { offset: '0%', stopColor: '#00b894', stopOpacity: 0.2 },
-      { offset: '100%', stopColor: '#00b894', stopOpacity: 0.05 },
+      { offset: '0%', stopColor: 'var(--color-secondary)', stopOpacity: 0.2 },
+      { offset: '100%', stopColor: 'var(--color-secondary)', stopOpacity: 0.05 },
     ],
   },
   info: {
     id: 'colorInfo',
-    color: '#3b82f6',
+    color: 'var(--color-info)',
     stops: [
-      { offset: '0%', stopColor: '#3b82f6', stopOpacity: 0.2 },
-      { offset: '100%', stopColor: '#3b82f6', stopOpacity: 0.05 },
+      { offset: '0%', stopColor: 'var(--color-info)', stopOpacity: 0.2 },
+      { offset: '100%', stopColor: 'var(--color-info)', stopOpacity: 0.05 },
     ],
   },
 };

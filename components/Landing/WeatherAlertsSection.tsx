@@ -1,15 +1,15 @@
 const weatherAlerts = [
   {
     type: 'Heat Advisory',
-    window: 'July 14 · 12:00 PM – 8:00 PM',
-    summary: 'Temperatures expected to reach 98°F with high humidity. Portable AC units available from the leasing office.',
+    window: 'July 14 - 12:00 PM - 8:00 PM',
+    summary: 'Temperatures expected to reach 98 F with high humidity. Portable AC units available from the leasing office.',
     actions: ['Pick up cooling kits in the lobby by 11 AM', 'Limit balcony grilling between noon and 7 PM', 'Hydration stations open all day']
   },
   {
     type: 'Afternoon Thunderstorms',
-    window: 'July 18 · 3:00 PM – 7:00 PM',
+    window: 'July 18 - 3:00 PM - 7:00 PM',
     summary: 'Scattered severe storms with wind gusts up to 45 mph. Maintenance will secure outdoor furniture the evening prior.',
-    actions: ['Move planters and décor indoors', 'Close windows before leaving for work', 'Expect garage entry delays around 4 PM']
+    actions: ['Move planters and decor indoors', 'Close windows before leaving for work', 'Expect garage entry delays around 4 PM']
   }
 ];
 
@@ -46,12 +46,12 @@ export default function WeatherAlertsSection() {
       <style jsx>{`
         .weather-alerts {
           padding: clamp(3.5rem, 7vw, 5.5rem) 1.5rem;
-          background: linear-gradient(160deg, #0f172a, #312e81);
+          background: linear-gradient(160deg, rgba(15, 118, 110, 0.95), rgba(3, 105, 161, 0.9));
           color: white;
         }
 
         .weather-alerts__inner {
-          max-width: 1080px;
+          max-width: var(--max-width);
           margin: 0 auto;
           display: grid;
           gap: clamp(2rem, 5vw, 3rem);
@@ -61,13 +61,17 @@ export default function WeatherAlertsSection() {
           max-width: 640px;
         }
 
+        .section-eyebrow {
+          color: rgba(226, 232, 240, 0.85);
+        }
+
         .weather-alerts__header h2 {
           font-size: clamp(2rem, 4vw, 2.6rem);
           margin-bottom: 0.75rem;
         }
 
         .weather-alerts__header p {
-          color: rgba(226, 232, 240, 0.82);
+          color: rgba(226, 232, 240, 0.9);
           line-height: 1.7;
         }
 
@@ -78,12 +82,12 @@ export default function WeatherAlertsSection() {
         }
 
         .weather-card {
-          background: rgba(15, 23, 42, 0.55);
+          background: rgba(15, 23, 42, 0.45);
           border-radius: var(--radius-lg);
           padding: 1.85rem;
           display: grid;
           gap: 1.25rem;
-          border: 1px solid rgba(148, 163, 184, 0.3);
+          border: 1px solid rgba(226, 232, 240, 0.2);
           backdrop-filter: blur(8px);
           box-shadow: var(--shadow-md);
         }
@@ -93,7 +97,7 @@ export default function WeatherAlertsSection() {
           align-items: center;
           padding: 0.45rem 0.9rem;
           border-radius: 999px;
-          background: rgba(248, 250, 252, 0.12);
+          background: rgba(248, 250, 252, 0.16);
           font-weight: 600;
           letter-spacing: 0.1em;
           text-transform: uppercase;
@@ -102,13 +106,13 @@ export default function WeatherAlertsSection() {
 
         .weather-card__window {
           margin-top: 0.5rem;
-          color: rgba(226, 232, 240, 0.7);
+          color: rgba(226, 232, 240, 0.75);
           font-weight: 500;
         }
 
         .weather-card__summary {
           line-height: 1.6;
-          color: rgba(226, 232, 240, 0.88);
+          color: rgba(226, 232, 240, 0.9);
         }
 
         .weather-card__actions {
@@ -122,7 +126,7 @@ export default function WeatherAlertsSection() {
         .weather-card__actions li {
           position: relative;
           padding-left: 1.4rem;
-          color: rgba(226, 232, 240, 0.82);
+          color: rgba(226, 232, 240, 0.85);
           line-height: 1.6;
         }
 
@@ -134,12 +138,12 @@ export default function WeatherAlertsSection() {
           width: 0.5rem;
           height: 0.5rem;
           border-radius: 999px;
-          background: rgba(96, 165, 250, 0.8);
+          background: rgba(191, 219, 254, 0.9);
         }
 
         .weather-card__footer {
           font-size: 0.9rem;
-          color: rgba(191, 219, 254, 0.88);
+          color: rgba(226, 232, 240, 0.85);
         }
       `}</style>
     </section>

@@ -27,7 +27,7 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
             width: 24px;
             height: 24px;
             border: 3px solid #e2e8f0;
-            border-top-color: var(--color-primary, #6c5ce7);
+            border-top-color: var(--color-primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
           }
@@ -176,7 +176,7 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 1.5rem;
           padding-top: 2rem;
-          border-top: 2px solid #e2e8f0;
+          border-top: 2px solid var(--color-border);
         }
 
         .revenue-item {
@@ -186,7 +186,7 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
         }
 
         .revenue-item.highlight {
-          background: linear-gradient(135deg, #6c5ce7 0%, #5b4bc9 100%);
+          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
           padding: 1.25rem;
           border-radius: var(--radius-md);
         }
@@ -198,7 +198,7 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
 
         .revenue-label {
           font-size: 0.875rem;
-          color: #64748b;
+          color: var(--color-muted);
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.05em;
@@ -207,11 +207,11 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
         .revenue-value {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-secondary);
         }
 
         .revenue-value.collected {
-          color: #10b981;
+          color: var(--color-success);
         }
 
         .revenue-value.rate {
@@ -240,3 +240,4 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
         </div>
     );
 }
+

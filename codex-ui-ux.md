@@ -18,7 +18,7 @@ Use this as the recommended north-star. It does not require immediate adoption, 
 - Style: Glassmorphism (subtle, with strong contrast and clear borders)
 - Colors: Primary #0F766E, Secondary #14B8A6, CTA #0369A1, Background #F0FDFA, Text #134E4A
 - Typography: Poppins (headings) + Open Sans (body)
-- Avoid: Excessive animation, dark mode by default
+- Avoid: Excessive animation; dark mode not supported
 
 ## Priority Enhancements
 
@@ -49,9 +49,6 @@ Use this as the recommended north-star. It does not require immediate adoption, 
 - Tighten color usage:
   - Replace hard-coded colors in component styles with CSS variables.
   - Normalize muted text to meet 4.5:1 contrast minimum in light mode.
-- Expand dark mode coverage:
-  - Many component-level styles use fixed light colors; add dark-mode variants or
-    use CSS variables to inherit theme.
 - Form UX:
   - Add on-blur validation and field-level error hints for maintenance requests.
   - Provide helper text and required indicators for complex fields.
@@ -80,7 +77,7 @@ Use this as the recommended north-star. It does not require immediate adoption, 
 - Ensure all interactive cards show hover and focus states and use `cursor: pointer`.
 - Preserve semantic headings (h1 then h2 then h3).
 - Respect `prefers-reduced-motion` (already present, keep coverage complete).
-- Ensure focus states are visible for all buttons and links (not just `.theme-toggle`).
+- Ensure focus states are visible for all buttons and links.
 
 ## Suggested Next Steps
 - Triage P0 items and fix text encoding and icons first.

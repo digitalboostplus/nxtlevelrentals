@@ -222,18 +222,18 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
       <style jsx>{`
         .page-header {
           padding: 2rem;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid var(--color-border);
         }
 
         .page-header h1 {
           margin: 0 0 0.5rem;
           font-size: 2rem;
-          color: #1e293b;
+          color: var(--color-text-secondary);
         }
 
         .page-header p {
           margin: 0;
-          color: #64748b;
+          color: var(--color-muted);
           font-size: 1rem;
         }
 
@@ -241,7 +241,7 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
           display: flex;
           gap: 0.5rem;
           padding: 1rem 2rem;
-          border-bottom: 2px solid #e2e8f0;
+          border-bottom: 2px solid var(--color-border);
           overflow-x: auto;
         }
 
@@ -251,7 +251,7 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
           border: none;
           font-size: 0.938rem;
           font-weight: 500;
-          color: #64748b;
+          color: var(--color-muted);
           cursor: pointer;
           border-bottom: 2px solid transparent;
           margin-bottom: -2px;
@@ -260,12 +260,12 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         }
 
         .filter-tab:hover {
-          color: #334155;
+          color: var(--color-text);
         }
 
         .filter-tab.active {
-          color: var(--color-primary, #6c5ce7);
-          border-bottom-color: var(--color-primary, #6c5ce7);
+          color: var(--color-primary);
+          border-bottom-color: var(--color-primary);
         }
 
         .requests-content {
@@ -286,8 +286,8 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         .spinner {
           width: 48px;
           height: 48px;
-          border: 4px solid #e2e8f0;
-          border-top-color: var(--color-primary, #6c5ce7);
+          border: 4px solid var(--color-border);
+          border-top-color: var(--color-primary);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
           margin-bottom: 1rem;
@@ -307,13 +307,13 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
 
         .empty-state h3 {
           margin: 0 0 0.5rem;
-          color: #475569;
+          color: var(--color-text-secondary);
           font-size: 1.25rem;
         }
 
         .empty-state p {
           margin: 0;
-          color: #94a3b8;
+          color: var(--color-muted);
         }
 
         .requests-table {
@@ -323,14 +323,14 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         table {
           width: 100%;
           border-collapse: collapse;
-          background: white;
+          background: var(--color-surface);
           border-radius: 12px;
           overflow: hidden;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         thead {
-          background-color: #f8fafc;
+          background-color: var(--color-surface-elevated);
         }
 
         th {
@@ -338,16 +338,16 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
           padding: 1rem;
           font-size: 0.813rem;
           font-weight: 600;
-          color: #64748b;
+          color: var(--color-muted);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
 
         td {
           padding: 1rem;
-          border-top: 1px solid #e2e8f0;
+          border-top: 1px solid var(--color-border);
           font-size: 0.938rem;
-          color: #475569;
+          color: var(--color-text-secondary);
         }
 
         .request-info {
@@ -357,12 +357,12 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         }
 
         .request-info strong {
-          color: #1e293b;
+          color: var(--color-text-secondary);
         }
 
         .request-id {
           font-size: 0.813rem;
-          color: #94a3b8;
+          color: var(--color-muted);
         }
 
         .status-badge,
@@ -376,48 +376,48 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         }
 
         .status-submitted {
-          background-color: #dbeafe;
-          color: #1e40af;
+          background-color: rgba(2, 132, 199, 0.12);
+          color: var(--color-info);
         }
 
         .status-in-progress {
-          background-color: #fef3c7;
-          color: #92400e;
+          background-color: rgba(245, 158, 11, 0.16);
+          color: var(--color-warning);
         }
 
         .status-completed {
-          background-color: #d1fae5;
-          color: #065f46;
+          background-color: rgba(16, 185, 129, 0.12);
+          color: var(--color-success);
         }
 
         .status-cancelled {
-          background-color: #fee2e2;
-          color: #991b1b;
+          background-color: rgba(239, 68, 68, 0.12);
+          color: var(--color-error);
         }
 
         .priority-emergency {
-          background-color: #fee2e2;
-          color: #991b1b;
+          background-color: rgba(239, 68, 68, 0.12);
+          color: var(--color-error);
         }
 
         .priority-high {
-          background-color: #fef3c7;
-          color: #92400e;
+          background-color: rgba(245, 158, 11, 0.16);
+          color: var(--color-warning);
         }
 
         .priority-medium {
-          background-color: #dbeafe;
-          color: #1e40af;
+          background-color: rgba(2, 132, 199, 0.12);
+          color: var(--color-info);
         }
 
         .priority-low {
-          background-color: #d1fae5;
-          color: #065f46;
+          background-color: rgba(16, 185, 129, 0.12);
+          color: var(--color-success);
         }
 
         .action-button {
           padding: 0.5rem 1rem;
-          background-color: var(--color-primary, #6c5ce7);
+          background-color: var(--color-primary);
           color: white;
           border: none;
           border-radius: 6px;
@@ -428,7 +428,7 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         }
 
         .action-button:hover {
-          background-color: var(--color-primary-dark, #5b4bc9);
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
         }
 

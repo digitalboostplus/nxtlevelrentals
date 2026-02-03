@@ -13,12 +13,12 @@
             "validation": "Valid email format",
             "indexed": true
         },
-        "display_name": {
+        "displayName": {
             "type": "string",
             "required": true,
             "maxLength": 100
         },
-        "profile_image_url": {
+        "photoURL": {
             "type": "string",
             "required": false,
             "description": "URL to profile image in Firebase Storage"
@@ -46,7 +46,7 @@
                         "system"
                     ]
                 },
-                "notifications_enabled": {
+                "notificationsEnabled": {
                     "type": "boolean",
                     "default": true
                 },
@@ -56,15 +56,15 @@
                 }
             }
         },
-        "last_login_at": {
+        "lastLoginAt": {
             "type": "timestamp",
             "required": false
         },
-        "created_at": {
+        "createdAt": {
             "type": "timestamp",
             "required": true
         },
-        "updated_at": {
+        "updatedAt": {
             "type": "timestamp",
             "required": true
         }
@@ -86,14 +86,14 @@
                     "type": "boolean",
                     "default": false
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "timestamp",
                     "required": true
                 }
             }
         },
         {
-            "name": "activity_logs",
+            "name": "activityLogs",
             "description": "User activity tracking",
             "fields": {
                 "action": {
@@ -104,7 +104,7 @@
                     "type": "map",
                     "required": false
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "timestamp",
                     "required": true
                 }
@@ -115,7 +115,7 @@
         {
             "fields": [
                 "role",
-                "created_at"
+                "createdAt"
             ],
             "order": [
                 "asc",
@@ -126,7 +126,7 @@
         {
             "fields": [
                 "role",
-                "last_login_at"
+                "lastLoginAt"
             ],
             "order": [
                 "asc",

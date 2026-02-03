@@ -11,20 +11,26 @@ type PortalHeroProps = {
 
 export default function PortalHero({ residentName, propertyName, unit, nextDueDate }: PortalHeroProps) {
   return (
-    <section className="portal-hero">
+    <section className="portal-hero" id="overview">
       <div className="portal-hero__inner">
         <div>
-          <p className="hero__eyebrow" style={{ color: 'rgba(255,255,255,0.75)' }}>
+          <p className="portal-hero__eyebrow">
             Tenant Portal
           </p>
           <h1 className="portal-hero__title">Welcome back, {residentName}</h1>
           <p className="portal-hero__subtitle">
-            Access everything you need in one place—rent payments, maintenance updates, important documents, and community
+            Access everything you need in one place - rent payments, maintenance updates, important documents, and community
             announcements.
           </p>
           <Link href="/" className="ghost-button">
             View Landing Page
           </Link>
+          <nav className="portal-hero__nav" aria-label="Portal sections">
+            <a href="#overview">Overview</a>
+            <a href="#payments">Payments</a>
+            <a href="#maintenance">Maintenance</a>
+            <a href="#documents">Documents</a>
+          </nav>
         </div>
         <div className="portal-hero__details">
           <div>

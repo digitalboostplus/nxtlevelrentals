@@ -1,7 +1,6 @@
 import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import { AuthProvider, type UserRole } from '@/context/AuthContext';
-import { ThemeProvider } from '@/context/ThemeContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { ChatProvider } from '@/components/Chat/ChatProvider';
 import AuthGuard from '@/components/Auth/AuthGuard';
@@ -28,16 +27,14 @@ export default function App({ Component, pageProps }: AppPropsWithAuth) {
   );
 
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <ChatProvider>
-            {content}
-            <ChatWidget />
-            <ToastContainer />
-          </ChatProvider>
-        </AuthProvider>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <ChatProvider>
+          {content}
+          <ChatWidget />
+          <ToastContainer />
+        </ChatProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }

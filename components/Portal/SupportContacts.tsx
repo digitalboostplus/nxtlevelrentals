@@ -15,34 +15,44 @@ export default function SupportContacts({ contacts }: SupportContactsProps) {
           </p>
         </div>
         <div className="contacts-grid">
-          {contacts.map((contact) => (
-            <article key={contact.id} className="contact-card">
-              <span className="tag tag--info">{contact.department}</span>
-              <h3>{contact.contactName}</h3>
-              <dl>
-                <div>
-                  <dt>Email</dt>
-                  <dd>
-                    <a href={`mailto:${contact.email}`}>{contact.email}</a>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Phone</dt>
-                  <dd>
-                    <a href={`tel:${contact.phone}`}>{contact.phone}</a>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Hours</dt>
-                  <dd>{contact.hours}</dd>
-                </div>
-                <div>
-                  <dt>Preferred channel</dt>
-                  <dd>{contact.preferredChannel}</dd>
-                </div>
-              </dl>
-            </article>
-          ))}
+          {contacts.length === 0 ? (
+            <div className="contact-empty">
+              <h3>No support contacts listed</h3>
+              <p>Email us and we will connect you with the right team.</p>
+              <a className="outline-button" href="mailto:support@nxtlevelrentals.com">
+                Contact support
+              </a>
+            </div>
+          ) : (
+            contacts.map((contact) => (
+              <article key={contact.id} className="contact-card">
+                <span className="tag tag--info">{contact.department}</span>
+                <h3>{contact.contactName}</h3>
+                <dl>
+                  <div>
+                    <dt>Email</dt>
+                    <dd>
+                      <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Phone</dt>
+                    <dd>
+                      <a href={`tel:${contact.phone}`}>{contact.phone}</a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Hours</dt>
+                    <dd>{contact.hours}</dd>
+                  </div>
+                  <div>
+                    <dt>Preferred channel</dt>
+                    <dd>{contact.preferredChannel}</dd>
+                  </div>
+                </dl>
+              </article>
+            ))
+          )}
         </div>
       </div>
       <style jsx>{`
@@ -56,7 +66,7 @@ export default function SupportContacts({ contacts }: SupportContactsProps) {
           padding: 1.75rem;
           border-radius: var(--radius-md);
           background: var(--color-surface);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid rgba(15, 118, 110, 0.12);
           box-shadow: var(--shadow-sm);
           display: grid;
           gap: 1rem;
@@ -64,7 +74,7 @@ export default function SupportContacts({ contacts }: SupportContactsProps) {
 
         .contact-card h3 {
           margin: 0;
-          color: #111827;
+          color: var(--color-text);
         }
 
         dl {
@@ -83,11 +93,31 @@ export default function SupportContacts({ contacts }: SupportContactsProps) {
         dd {
           margin: 0.15rem 0 0;
           font-weight: 600;
-          color: #111827;
+          color: var(--color-text);
         }
 
         a {
           color: var(--color-primary);
+        }
+
+        .contact-empty {
+          grid-column: 1 / -1;
+          background: var(--color-surface);
+          border-radius: var(--radius-md);
+          border: 1px dashed var(--color-border);
+          padding: 2rem;
+          display: grid;
+          gap: 0.75rem;
+          color: var(--color-muted);
+        }
+
+        .contact-empty h3 {
+          margin: 0;
+          color: var(--color-text);
+        }
+
+        .contact-empty .outline-button {
+          justify-self: flex-start;
         }
       `}</style>
     </section>

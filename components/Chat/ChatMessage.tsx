@@ -49,7 +49,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           width: 28px;
           height: 28px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, #2563eb));
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
           display: flex;
           align-items: center;
@@ -76,13 +76,13 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         }
 
         .chat-message--user .chat-message__bubble {
-          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, #2563eb));
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
           border-bottom-right-radius: 4px;
         }
 
         .chat-message--assistant .chat-message__bubble {
-          background: var(--color-bg-secondary);
+          background: var(--color-surface-elevated);
           color: var(--color-text);
           border: 1px solid var(--color-border);
           border-bottom-left-radius: 4px;

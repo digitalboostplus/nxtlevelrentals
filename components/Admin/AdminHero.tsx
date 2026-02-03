@@ -31,7 +31,7 @@ export default function AdminHero({ managerName, portfolioLabel, stats }: AdminH
         .admin-hero__copy h1 {
           font-size: clamp(2.1rem, 4vw, 2.8rem);
           margin: 0.75rem 0;
-          color: #111827;
+          color: var(--color-text-secondary);
         }
 
         .admin-hero__copy p {
@@ -48,7 +48,7 @@ export default function AdminHero({ managerName, portfolioLabel, stats }: AdminH
           background: var(--color-surface);
           padding: 1.5rem;
           border-radius: var(--radius-md);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
         }
 
@@ -67,7 +67,7 @@ export default function AdminHero({ managerName, portfolioLabel, stats }: AdminH
         .admin-stat__value {
           font-size: 1.75rem;
           font-weight: 700;
-          color: #111827;
+          color: var(--color-text-secondary);
         }
       `}</style>
     </section>

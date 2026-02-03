@@ -1,20 +1,26 @@
 {
     "collection": "payments",
-    "description": "Financial transactions for rent and fees",
+    "description": "Financial transactions related to leases",
     "fields": {
         "id": {
             "type": "string",
             "required": true
         },
-        "lease_id": {
+        "leaseId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "tenantId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "landlordId": {
             "type": "string",
             "required": true
         },
-        "tenant_id": {
-            "type": "string",
-            "required": true
-        },
-        "property_id": {
+        "propertyId": {
             "type": "string",
             "required": true
         },
@@ -26,6 +32,20 @@
             "type": "string",
             "default": "USD"
         },
+        "status": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "pending",
+                "processing",
+                "succeeded",
+                "failed",
+                "refunded",
+                "paid",
+                "overdue",
+                "cancelled"
+            ]
+        },
         "type": {
             "type": "string",
             "required": true,
@@ -36,40 +56,35 @@
                 "other"
             ]
         },
-        "status": {
-            "type": "string",
-            "required": true,
-            "enum": [
-                "pending",
-                "processing",
-                "succeeded",
-                "failed",
-                "refunded"
-            ]
-        },
-        "due_date": {
+        "dueDate": {
             "type": "timestamp",
             "required": true
         },
-        "paid_at": {
+        "paidAt": {
             "type": "timestamp",
             "required": false
         },
         "description": {
             "type": "string"
         },
-        "stripe_payment_intent_id": {
+        "paymentMethodId": {
+            "type": "string",
+            "description": "Reference to savedPaymentMethods document"
+        },
+        "stripePaymentIntentId": {
             "type": "string"
         },
-        "payment_method_id": {
-            "type": "string",
-            "description": "Link to recorded user payment method"
+        "stripeInvoiceId": {
+            "type": "string"
         },
-        "created_at": {
+        "metadata": {
+            "type": "map"
+        },
+        "createdAt": {
             "type": "timestamp",
             "required": true
         },
-        "updated_at": {
+        "updatedAt": {
             "type": "timestamp",
             "required": true
         }
@@ -77,15 +92,29 @@
     "indexes": [
         {
             "fields": [
-                "tenant_id",
-                "status",
-                "due_date"
+                "tenantId",
+                "dueDate"
             ],
             "order": [
                 "asc",
-                "asc",
                 "desc"
-            ]
+            ],
+            "description": "History of payments for a tenant, latest first"
+        },
+        {
+            "fields": [
+                "status",
+                "dueDate"
+            ],
+            "order": [
+                "asc",
+                "asc"
+            ],
+            "description": "Find overdue or pending payments"
         }
+    ],
+    "securityNotes": [
+        "Read access for Tenant (own), Landlord, and Admin",
+        "Write access restricted to System/Service Account or Admin"
     ]
 }

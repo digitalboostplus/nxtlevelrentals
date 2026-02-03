@@ -48,7 +48,7 @@ export default function MaintenanceDistribution({ data }: MaintenanceDistributio
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'var(--color-bg)',
+                  backgroundColor: 'var(--color-surface)',
                   border: '1px solid var(--color-border)',
                   borderRadius: '8px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
@@ -84,7 +84,7 @@ export default function MaintenanceDistribution({ data }: MaintenanceDistributio
 
       <style jsx>{`
         .donut-container {
-          background: var(--color-bg);
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           border-radius: 12px;
           padding: 20px;

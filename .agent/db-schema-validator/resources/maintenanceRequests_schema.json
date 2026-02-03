@@ -1,0 +1,99 @@
+{
+    "collection": "maintenanceRequests",
+    "description": "Tenant-submitted repair and service requests",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true
+        },
+        "tenantId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "propertyId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "title": {
+            "type": "string",
+            "required": true,
+            "maxLength": 200
+        },
+        "description": {
+            "type": "string",
+            "required": true
+        },
+        "priority": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "low",
+                "medium",
+                "high",
+                "urgent"
+            ],
+            "default": "medium"
+        },
+        "status": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "submitted",
+                "in_progress",
+                "completed",
+                "cancelled",
+                "resolved"
+            ],
+            "default": "submitted"
+        },
+        "category": {
+            "type": "string",
+            "description": "e.g., 'plumbing', 'electrical'"
+        },
+        "attachments": {
+            "type": "array",
+            "description": "List of image URLs"
+        },
+        "adminNotes": {
+            "type": "string"
+        },
+        "createdAt": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updatedAt": {
+            "type": "timestamp",
+            "required": true
+        }
+    },
+    "indexes": [
+        {
+            "fields": [
+                "propertyId",
+                "status"
+            ],
+            "order": [
+                "asc",
+                "asc"
+            ],
+            "description": "View requests per property by status"
+        },
+        {
+            "fields": [
+                "status",
+                "priority"
+            ],
+            "order": [
+                "asc",
+                "desc"
+            ],
+            "description": "Prioritize open requests for admins"
+        }
+    ],
+    "securityNotes": [
+        "Tenant can create and read their own",
+        "Property Managers and Admins can update status and notes"
+    ]
+}

@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
@@ -8,6 +8,71 @@ import Footer from '@/components/Layout/Footer';
 interface AdminLayoutProps {
   children: ReactNode;
   title?: string;
+}
+
+function DashboardIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M3 3h8v8H3V3zm10 0h8v5h-8V3zm0 7h8v11h-8V10zM3 13h8v8H3v-8z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function PropertiesIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 20V4h16v16M8 8h2M8 12h2M8 16h2M14 8h2M14 12h2M14 16h2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function TenantsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm8 2a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 20c0-3 2-5 5-5m6 5c0-3 2-5 5-5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function PaymentsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3 10h18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function MaintenanceIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M14 5l5 5-9 9H5v-5l9-9zm-3 3l5 5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export default function AdminLayout({ children, title }: AdminLayoutProps) {
@@ -32,13 +97,32 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
   }, [mobileMenuOpen]);
 
   const navItems = [
-    { label: 'Dashboard', path: '/admin', icon: '📊' },
-    { label: 'Properties', path: '/admin/properties', icon: '🏠' },
-    { label: 'Tenants', path: '/admin/tenants', icon: '👥' },
-    { label: 'Rent Payments', path: '/admin/rent-payments', icon: '💰' },
-    { label: 'Maintenance', path: '/admin/maintenance', icon: '🔧' },
-    // { label: 'Invoices', path: '/admin/invoices', icon: '📄' },
+    { label: 'Dashboard', path: '/admin', icon: <DashboardIcon /> },
+    { label: 'Properties', path: '/admin/properties', icon: <PropertiesIcon /> },
+    { label: 'Tenants', path: '/admin/tenants', icon: <TenantsIcon /> },
+    { label: 'Rent Payments', path: '/admin/rent-payments', icon: <PaymentsIcon /> },
+    { label: 'Maintenance', path: '/admin/maintenance', icon: <MaintenanceIcon /> }
   ];
+
+  const pathSegments = router.asPath.split('?')[0].split('/').filter(Boolean);
+  const breadcrumbLabels: Record<string, string> = {
+    admin: 'Admin',
+    properties: 'Properties',
+    tenants: 'Tenants',
+    maintenance: 'Maintenance',
+    'rent-payments': 'Rent Payments',
+    ledger: 'Ledger'
+  };
+
+  const breadcrumbs = pathSegments.map((segment, index) => {
+    const label = breadcrumbLabels[segment]
+      ?? (segment.length > 10 ? `Record ${segment.slice(0, 6).toUpperCase()}` : segment.replace(/-/g, ' '));
+    return {
+      label: label.charAt(0).toUpperCase() + label.slice(1),
+      href: `/${pathSegments.slice(0, index + 1).join('/')}`
+    };
+  });
+  const showBreadcrumbs = breadcrumbs.length > 2;
 
   const activeTitle = title ? `${title} | Admin Portal` : 'Admin Portal - Next Level Rentals';
 
@@ -101,6 +185,20 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         </aside>
 
         <main className="admin-content">
+          {showBreadcrumbs ? (
+            <nav className="admin-breadcrumbs" aria-label="Breadcrumb">
+              {breadcrumbs.map((crumb, index) => (
+                <span key={crumb.href} className="admin-breadcrumbs__item">
+                  {index > 0 ? <span className="admin-breadcrumbs__separator">/</span> : null}
+                  {index === breadcrumbs.length - 1 ? (
+                    <span aria-current="page">{crumb.label}</span>
+                  ) : (
+                    <Link href={crumb.href}>{crumb.label}</Link>
+                  )}
+                </span>
+              ))}
+            </nav>
+          ) : null}
           {children}
         </main>
       </div>
@@ -134,12 +232,12 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         }
 
         .mobile-menu-button:hover {
-          transform: scale(1.05);
+          transform: translateY(-2px);
           box-shadow: var(--shadow-xl);
         }
 
         .mobile-menu-button:active {
-          transform: scale(0.95);
+          transform: translateY(0);
         }
 
         .backdrop {
@@ -162,6 +260,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         .admin-body {
           flex: 1;
           display: flex;
+          padding-top: var(--header-height);
         }
 
         .admin-sidebar {
@@ -223,7 +322,9 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         }
 
         .icon {
-          font-size: 1.25rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
         }
 
@@ -234,6 +335,31 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         .admin-content {
           flex: 1;
           background: var(--color-background);
+          padding-top: 0;
+        }
+
+        .admin-breadcrumbs {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.35rem;
+          padding: 1.5rem 2rem 0;
+          font-size: 0.85rem;
+          color: var(--color-muted);
+        }
+
+        .admin-breadcrumbs__item {
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .admin-breadcrumbs__separator {
+          margin: 0 0.5rem;
+          color: var(--color-muted);
+        }
+
+        .admin-breadcrumbs a {
+          color: var(--color-primary);
+          font-weight: 600;
         }
 
         @media (max-width: 768px) {

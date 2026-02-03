@@ -62,7 +62,7 @@ export default function ChatWidget() {
           width: 56px;
           height: 56px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, #2563eb));
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
           border: none;
           cursor: pointer;
@@ -70,8 +70,8 @@ export default function ChatWidget() {
           align-items: center;
           justify-content: center;
           box-shadow:
-            0 4px 12px rgba(59, 130, 246, 0.4),
-            0 0 0 0 rgba(59, 130, 246, 0.4);
+            0 4px 12px rgba(15, 118, 110, 0.35),
+            0 0 0 0 rgba(15, 118, 110, 0.35);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 1000;
         }
@@ -79,8 +79,8 @@ export default function ChatWidget() {
         .chat-fab:hover {
           transform: scale(1.05);
           box-shadow:
-            0 6px 20px rgba(59, 130, 246, 0.5),
-            0 0 0 0 rgba(59, 130, 246, 0.4);
+            0 6px 20px rgba(15, 118, 110, 0.45),
+            0 0 0 0 rgba(15, 118, 110, 0.35);
         }
 
         .chat-fab:active {

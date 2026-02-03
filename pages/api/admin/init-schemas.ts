@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const collections = ['users', 'properties', 'leases', 'payments', 'maintenance_requests'];
+        const collections = ['users', 'properties', 'leases', 'payments', 'maintenanceRequests', 'ledger', 'landlordExpenses', 'savedPaymentMethods'];
 
         for (const coll of collections) {
             // Firestore doesn't require explicit creation, but adding/deleting a dummy doc ensures it's "realized" 
@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const docRef = adminDb.collection('metadata').doc('schema_versions');
             await docRef.set({
                 [coll]: '1.0.0',
-                last_updated: new Date().toISOString()
+                lastUpdated: new Date().toISOString()
             }, { merge: true });
         }
 

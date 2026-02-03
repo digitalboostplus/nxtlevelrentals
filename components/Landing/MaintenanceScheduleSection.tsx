@@ -1,20 +1,20 @@
 const maintenanceItems = [
   {
     title: 'HVAC filter replacements',
-    window: 'Building-wide · July 22 – July 24',
+    window: 'Building-wide - July 22-24',
     description: 'Technicians will replace air filters in all units. Please leave the mechanical closet accessible between 9 AM and 4 PM.',
     preparation: ['Secure pets in a separate room', 'Clear a 3 ft. path to the HVAC closet', 'Note thermostat issues in the portal']
   },
   {
     title: 'Quarterly property review',
-    window: 'Scheduled by appointment · July 29 – August 2',
+    window: 'Scheduled by appointment - July 29-August 2',
     description:
       'A quick walk-through with your resident experience team to ensure appliances, safety devices, and fixtures are in peak condition.',
     preparation: ['Choose a preferred time slot in the portal', 'List any minor repairs you would like addressed', 'Expect visit to last 20 minutes']
   },
   {
     title: 'Community amenity refresh',
-    window: 'Pool & fitness center · August 5 – August 7',
+    window: 'Pool & fitness center - August 5-7',
     description:
       'Seasonal deep cleaning, equipment tune-ups, and fresh towels. Amenities will reopen daily at 4 PM with updated capacity limits.',
     preparation: ['Check temporary schedules posted in the lobby', 'Access alternate workout passes provided to residents', 'Contact support for ADA accommodations']
@@ -57,7 +57,7 @@ export default function MaintenanceScheduleSection() {
         }
 
         .maintenance__inner {
-          max-width: 1080px;
+          max-width: var(--max-width);
           margin: 0 auto;
           display: grid;
           gap: clamp(2rem, 6vw, 3rem);
@@ -69,12 +69,12 @@ export default function MaintenanceScheduleSection() {
 
         .maintenance__header h2 {
           font-size: clamp(2rem, 4vw, 2.5rem);
-          color: #0f172a;
+          color: var(--color-text);
           margin-bottom: 0.75rem;
         }
 
         .maintenance__header p {
-          color: rgba(15, 23, 42, 0.68);
+          color: var(--color-muted);
           line-height: 1.7;
         }
 
@@ -94,7 +94,7 @@ export default function MaintenanceScheduleSection() {
           top: 0.5rem;
           bottom: 0.5rem;
           width: 2px;
-          background: rgba(99, 102, 241, 0.25);
+          background: rgba(15, 118, 110, 0.25);
         }
 
         .maintenance__item {
@@ -111,7 +111,7 @@ export default function MaintenanceScheduleSection() {
           height: 16px;
           border-radius: 999px;
           background: var(--color-primary);
-          box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.18);
+          box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.18);
         }
 
         .maintenance__item-header {
@@ -123,17 +123,17 @@ export default function MaintenanceScheduleSection() {
 
         .maintenance__item-header h3 {
           font-size: 1.2rem;
-          color: #1e293b;
+          color: var(--color-text);
         }
 
         .maintenance__item-header span {
           font-weight: 600;
-          color: rgba(79, 70, 229, 0.9);
+          color: var(--color-primary);
         }
 
         .maintenance__item-description {
           margin: 0.75rem 0 1rem;
-          color: rgba(15, 23, 42, 0.7);
+          color: var(--color-muted);
           line-height: 1.6;
         }
 
@@ -142,7 +142,7 @@ export default function MaintenanceScheduleSection() {
           padding-left: 1.2rem;
           display: grid;
           gap: 0.5rem;
-          color: rgba(15, 23, 42, 0.68);
+          color: var(--color-muted);
         }
 
         .maintenance__prep-list li {

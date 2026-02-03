@@ -8,11 +8,19 @@ type PayRentModalProps = {
   propertyId: string;
 };
 
+function CloseIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function PayRentModal({
   isOpen,
   onClose,
   currentBalance,
-  propertyId,
+  propertyId
 }: PayRentModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,8 +34,7 @@ export default function PayRentModal({
     setError(null);
 
     try {
-      const amount =
-        selectedAmount === 'full' ? currentBalance : parseFloat(customAmount);
+      const amount = selectedAmount === 'full' ? currentBalance : parseFloat(customAmount);
 
       if (!amount || amount <= 0) {
         throw new Error('Please enter a valid amount');
@@ -37,22 +44,20 @@ export default function PayRentModal({
         throw new Error('Payment amount seems unusually high. Please verify.');
       }
 
-      // Get auth token
       const token = await getAuthToken();
 
-      // Create Checkout Session
       const response = await fetch('/api/payments/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           amount,
           description: 'Rent Payment',
           propertyId,
-          savePaymentMethod: true,
-        }),
+          savePaymentMethod: true
+        })
       });
 
       const data = await response.json();
@@ -61,14 +66,13 @@ export default function PayRentModal({
         throw new Error(data.message || 'Failed to create checkout session');
       }
 
-      // Redirect to Stripe Checkout
       const stripe = await getStripe();
       if (!stripe) {
         throw new Error('Failed to load Stripe');
       }
 
       const { error: stripeError } = await (stripe as any).redirectToCheckout({
-        sessionId: data.sessionId,
+        sessionId: data.sessionId
       });
 
       if (stripeError) {
@@ -85,8 +89,8 @@ export default function PayRentModal({
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <header className="modal__header">
           <h2>Pay Rent</h2>
-          <button className="close-button" onClick={onClose} type="button">
-            ×
+          <button className="close-button" onClick={onClose} type="button" aria-label="Close">
+            <CloseIcon />
           </button>
         </header>
 
@@ -134,9 +138,9 @@ export default function PayRentModal({
           <div className="payment-methods-notice">
             <p>Accepted payment methods:</p>
             <ul>
-              <li>💳 Credit/Debit Cards</li>
-              <li>🏦 Bank Transfer (ACH)</li>
-              <li>📱 Apple Pay / Google Pay</li>
+              <li>Credit/Debit Cards</li>
+              <li>Bank Transfer (ACH)</li>
+              <li>Apple Pay / Google Pay</li>
             </ul>
           </div>
 
@@ -147,12 +151,7 @@ export default function PayRentModal({
           <button type="button" className="outline-button" onClick={onClose}>
             Cancel
           </button>
-          <button
-            type="button"
-            className="primary-button"
-            onClick={handlePayment}
-            disabled={loading}
-          >
+          <button type="button" className="primary-button" onClick={handlePayment} disabled={loading}>
             {loading ? 'Processing...' : 'Continue to Payment'}
           </button>
         </div>
@@ -165,7 +164,7 @@ export default function PayRentModal({
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
+          background: rgba(15, 23, 42, 0.55);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -173,12 +172,12 @@ export default function PayRentModal({
         }
 
         .modal {
-          background: white;
+          background: var(--color-surface);
           padding: 2rem;
           border-radius: 12px;
           width: 100%;
           max-width: 500px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          box-shadow: var(--shadow-lg);
         }
 
         .modal__header {
@@ -191,12 +190,12 @@ export default function PayRentModal({
         .modal__header h2 {
           margin: 0;
           font-size: 1.5rem;
+          color: var(--color-text);
         }
 
         .close-button {
           background: none;
           border: none;
-          font-size: 1.5rem;
           cursor: pointer;
           color: var(--color-muted);
           padding: 0;
@@ -214,12 +213,9 @@ export default function PayRentModal({
         .balance-display {
           text-align: center;
           padding: 1.5rem;
-          background: linear-gradient(
-            135deg,
-            rgba(108, 92, 231, 0.1),
-            rgba(0, 184, 148, 0.1)
-          );
+          background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(3, 105, 161, 0.1));
           border-radius: var(--radius-md);
+          border: 1px solid rgba(15, 118, 110, 0.12);
         }
 
         .balance-label {
@@ -245,6 +241,7 @@ export default function PayRentModal({
           gap: 0.5rem;
           font-weight: 500;
           cursor: pointer;
+          color: var(--color-text);
         }
 
         .form-group input[type='radio'] {
@@ -258,19 +255,22 @@ export default function PayRentModal({
           border-radius: 6px;
           font-size: 1rem;
           width: 100%;
+          color: var(--color-text);
+          background: var(--color-surface);
         }
 
         .custom-amount-input:focus {
           outline: none;
           border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+          box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
         }
 
         .payment-methods-notice {
-          background: #f8f9fa;
+          background: var(--color-surface-elevated);
           padding: 1rem;
           border-radius: var(--radius-sm);
           font-size: 0.9rem;
+          border: 1px solid var(--color-border);
         }
 
         .payment-methods-notice p {

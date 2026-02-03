@@ -72,7 +72,7 @@ export default function LoginPage() {
   return (
     <SiteLayout>
       <Head>
-        <title>Sign in · Next Level Rentals Tenant Portal</title>
+        <title>Sign in - Next Level Rentals Tenant Portal</title>
         <meta
           name="description"
           content="Access your Next Level Rentals tenant portal to view documents, submit maintenance requests, and stay informed about community updates."
@@ -138,7 +138,7 @@ export default function LoginPage() {
             {formError ? <p className="auth-form__error" role="alert">{formError}</p> : null}
 
             <button type="submit" className="primary-button auth-form__submit" disabled={submitting || loading}>
-              {submitting ? 'Signing in…' : 'Sign in'}
+              {submitting ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
           <footer className="auth-card__footer">
@@ -158,7 +158,8 @@ export default function LoginPage() {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
           min-height: calc(100vh - 120px);
-          background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 55%), #f8fafc;
+          background: radial-gradient(circle at top right, rgba(15, 118, 110, 0.18), transparent 55%),
+            var(--color-surface-elevated);
         }
 
         .auth__welcome {
@@ -178,11 +179,11 @@ export default function LoginPage() {
           letter-spacing: 0.28em;
           font-weight: 700;
           font-size: 0.85rem;
-          color: rgba(15, 23, 42, 0.6);
+          color: rgba(15, 118, 110, 0.7);
         }
 
         .auth__intro {
-          color: rgba(15, 23, 42, 0.72);
+          color: var(--color-muted);
           line-height: 1.7;
         }
 
@@ -195,22 +196,22 @@ export default function LoginPage() {
         }
 
         .auth__highlights li {
-          background: white;
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
           padding: 1.25rem 1.5rem;
           box-shadow: var(--shadow-sm);
-          border: 1px solid rgba(148, 163, 184, 0.18);
+          border: 1px solid rgba(15, 118, 110, 0.12);
         }
 
         .auth__highlights strong {
           display: block;
           font-size: 1rem;
-          color: #1e293b;
+          color: var(--color-text);
           margin-bottom: 0.35rem;
         }
 
         .auth__highlights p {
-          color: rgba(15, 23, 42, 0.65);
+          color: var(--color-muted);
           line-height: 1.6;
         }
 
@@ -219,7 +220,7 @@ export default function LoginPage() {
           flex-wrap: wrap;
           gap: 0.5rem 1.5rem;
           font-size: 0.95rem;
-          color: rgba(15, 23, 42, 0.65);
+          color: var(--color-muted);
         }
 
         .auth__support a {
@@ -228,7 +229,7 @@ export default function LoginPage() {
         }
 
         .auth-card {
-          background: white;
+          background: var(--color-surface);
           padding: clamp(3rem, 5vw, 4rem);
           display: grid;
           gap: 2rem;
@@ -238,11 +239,11 @@ export default function LoginPage() {
 
         .auth-card__header h2 {
           font-size: 2rem;
-          color: #0f172a;
+          color: var(--color-text);
         }
 
         .auth-card__header p {
-          color: rgba(15, 23, 42, 0.6);
+          color: var(--color-muted);
         }
 
         .auth-form {
@@ -252,7 +253,7 @@ export default function LoginPage() {
 
         .auth-form__label {
           font-weight: 600;
-          color: #111827;
+          color: var(--color-text);
         }
 
         .auth-form input {
@@ -261,13 +262,14 @@ export default function LoginPage() {
           padding: 0.9rem 1rem;
           font-size: 1rem;
           transition: border 0.2s ease, box-shadow 0.2s ease;
-          background: #f8fafc;
+          background: var(--color-surface-elevated);
+          color: var(--color-text);
         }
 
         .auth-form input:focus {
           outline: none;
-          border-color: rgba(108, 92, 231, 0.45);
-          box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.12);
+          border-color: rgba(15, 118, 110, 0.45);
+          box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
         }
 
         .auth-form input:disabled {
@@ -288,7 +290,7 @@ export default function LoginPage() {
           display: grid;
           gap: 1rem;
           font-size: 0.95rem;
-          color: rgba(15, 23, 42, 0.6);
+          color: var(--color-muted);
         }
 
         .auth-card__footer a {

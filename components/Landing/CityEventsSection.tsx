@@ -1,19 +1,19 @@
 const cityEvents = [
   {
     title: 'Summer Night Market',
-    date: 'July 12 · 5:00 – 9:30 PM',
+    date: 'July 12 - 5:00-9:30 PM',
     location: 'Riverfront Commons',
     description: 'Local artisans, live music, and food trucks. Tenants receive early-bird entry at the Next Level booth.'
   },
   {
     title: 'Outdoor Movie in the Park',
-    date: 'July 20 · 8:30 PM',
+    date: 'July 20 - 8:30 PM',
     location: 'Greenline Park',
     description: 'Bring a blanket and enjoy a community screening of a family-friendly classic with complimentary popcorn.'
   },
   {
     title: 'City Wellness Day',
-    date: 'August 3 · 9:00 AM – 2:00 PM',
+    date: 'August 3 - 9:00 AM - 2:00 PM',
     location: 'Civic Center Plaza',
     description: 'Free yoga, bike tune-ups, and hydration stations hosted by local partners to keep residents active.'
   }
@@ -52,11 +52,11 @@ export default function CityEventsSection() {
       <style jsx>{`
         .city-events {
           padding: clamp(3.5rem, 7vw, 5rem) 1.5rem;
-          background: #f8fafc;
+          background: var(--color-surface-elevated);
         }
 
         .city-events__inner {
-          max-width: 1080px;
+          max-width: var(--max-width);
           margin: 0 auto;
           display: grid;
           gap: clamp(2rem, 6vw, 3rem);
@@ -71,18 +71,18 @@ export default function CityEventsSection() {
           font-size: 0.8rem;
           letter-spacing: 0.28em;
           font-weight: 700;
-          color: rgba(15, 23, 42, 0.55);
+          color: rgba(15, 118, 110, 0.7);
           margin-bottom: 0.75rem;
         }
 
         .city-events__header h2 {
           font-size: clamp(2rem, 4vw, 2.6rem);
-          color: #0f172a;
+          color: var(--color-text);
           margin-bottom: 0.75rem;
         }
 
         .city-events__header p {
-          color: rgba(15, 23, 42, 0.68);
+          color: var(--color-muted);
           line-height: 1.7;
         }
 
@@ -93,28 +93,28 @@ export default function CityEventsSection() {
         }
 
         .event-card {
-          background: white;
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
           padding: 1.75rem;
           display: grid;
           gap: 1rem;
-          border: 1px solid rgba(148, 163, 184, 0.15);
+          border: 1px solid rgba(15, 118, 110, 0.12);
           box-shadow: var(--shadow-sm);
         }
 
         .event-card h3 {
           font-size: 1.25rem;
-          color: #1e293b;
+          color: var(--color-text);
           margin-bottom: 0.35rem;
         }
 
         .event-card__meta {
-          color: rgba(79, 70, 229, 0.85);
+          color: var(--color-primary);
           font-weight: 600;
         }
 
         .event-card__body p {
-          color: rgba(15, 23, 42, 0.7);
+          color: var(--color-muted);
           line-height: 1.6;
         }
 
@@ -127,7 +127,7 @@ export default function CityEventsSection() {
         }
 
         .event-card__location {
-          color: rgba(15, 23, 42, 0.55);
+          color: var(--color-muted);
         }
 
         .event-card__cta {

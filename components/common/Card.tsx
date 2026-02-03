@@ -115,10 +115,6 @@ export default function Card({
           backdrop-filter: blur(4px);
         }
 
-        [data-theme='dark'] .card-loading-overlay {
-          background: rgba(30, 41, 59, 0.9);
-        }
-
         .spinner {
           width: 40px;
           height: 40px;

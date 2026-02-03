@@ -258,12 +258,12 @@ export default function NotificationCenter() {
         .center-header h1 {
           margin: 0;
           font-size: 2rem;
-          color: #1e293b;
+          color: var(--color-text-secondary);
         }
 
         .mark-all-button {
           padding: 0.625rem 1.25rem;
-          background-color: var(--color-primary, #6c5ce7);
+          background-color: var(--color-primary);
           color: white;
           border: none;
           border-radius: 8px;
@@ -274,7 +274,7 @@ export default function NotificationCenter() {
         }
 
         .mark-all-button:hover:not(:disabled) {
-          background-color: var(--color-primary-dark, #5b4bc9);
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
         }
 
@@ -287,7 +287,7 @@ export default function NotificationCenter() {
           display: flex;
           gap: 0.5rem;
           margin-bottom: 1.5rem;
-          border-bottom: 2px solid #e2e8f0;
+          border-bottom: 2px solid var(--color-border);
         }
 
         .filter-tab {
@@ -296,7 +296,7 @@ export default function NotificationCenter() {
           border: none;
           font-size: 0.938rem;
           font-weight: 500;
-          color: #64748b;
+          color: var(--color-muted);
           cursor: pointer;
           border-bottom: 2px solid transparent;
           margin-bottom: -2px;
@@ -304,12 +304,12 @@ export default function NotificationCenter() {
         }
 
         .filter-tab:hover {
-          color: #334155;
+          color: var(--color-text);
         }
 
         .filter-tab.active {
-          color: var(--color-primary, #6c5ce7);
-          border-bottom-color: var(--color-primary, #6c5ce7);
+          color: var(--color-primary);
+          border-bottom-color: var(--color-primary);
         }
 
         .notifications-content {
@@ -329,8 +329,8 @@ export default function NotificationCenter() {
         .spinner {
           width: 48px;
           height: 48px;
-          border: 4px solid #e2e8f0;
-          border-top-color: var(--color-primary, #6c5ce7);
+          border: 4px solid var(--color-border);
+          border-top-color: var(--color-primary);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
           margin-bottom: 1rem;
@@ -350,13 +350,13 @@ export default function NotificationCenter() {
 
         .empty-state h3 {
           margin: 0 0 0.5rem;
-          color: #475569;
+          color: var(--color-text-secondary);
           font-size: 1.25rem;
         }
 
         .empty-state p {
           margin: 0;
-          color: #94a3b8;
+          color: var(--color-muted);
         }
 
         .notification-list {
@@ -369,21 +369,21 @@ export default function NotificationCenter() {
         }
 
         .notification-card {
-          background: white;
+          background: var(--color-surface);
           border-radius: 12px;
           padding: 1.5rem;
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--color-border);
           transition: all 0.2s;
         }
 
         .notification-card:hover {
-          border-color: #cbd5e1;
+          border-color: rgba(15, 118, 110, 0.2);
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .notification-card.unread {
-          background-color: #f0f4ff;
-          border-color: #c7d2fe;
+          background-color: var(--color-primary-light);
+          border-color: rgba(15, 118, 110, 0.3);
         }
 
         .card-header {
@@ -407,17 +407,17 @@ export default function NotificationCenter() {
           margin: 0 0 0.25rem;
           font-size: 1.063rem;
           font-weight: 600;
-          color: #1e293b;
+          color: var(--color-text-secondary);
         }
 
         .card-time {
           font-size: 0.813rem;
-          color: #94a3b8;
+          color: var(--color-muted);
         }
 
         .mark-read-button {
           padding: 0.375rem 0.75rem;
-          background: var(--color-primary, #6c5ce7);
+          background: var(--color-primary);
           color: white;
           border: none;
           border-radius: 6px;
@@ -429,20 +429,20 @@ export default function NotificationCenter() {
         }
 
         .mark-read-button:hover {
-          background-color: var(--color-primary-dark, #5b4bc9);
+          background-color: var(--color-primary-dark);
           transform: scale(1.1);
         }
 
         .card-message {
           margin: 0 0 1rem 0;
-          color: #475569;
+          color: var(--color-muted);
           line-height: 1.6;
           margin-left: 3.75rem;
         }
 
         .view-request-link {
           display: inline-block;
-          color: var(--color-primary, #6c5ce7);
+          color: var(--color-primary);
           font-size: 0.875rem;
           font-weight: 600;
           text-decoration: none;

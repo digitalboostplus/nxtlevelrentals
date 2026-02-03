@@ -10,24 +10,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, type DocumentData } from 'firebase/firestore';
 import { getFirebaseAuth, getFirestoreClient } from '@/lib/firebase';
-
-export type UserRole = 'admin' | 'tenant' | 'super-admin' | 'landlord';
-
-export type UserProfile = {
-  id: string;
-  email: string;
-  displayName: string;
-  role: UserRole;
-  propertyIds?: string[];
-  managedProperties?: string[];
-  landlordId?: string; // Reference to landlords/{id} for landlord users
-  unit?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  monthlyRent?: number;
-};
+import type { UserProfile, UserRole } from '@/types/schema';
 
 type AuthContextValue = {
   user: FirebaseUser | null;
@@ -46,20 +29,19 @@ const parseProfile = (user: FirebaseUser, data: DocumentData | undefined): UserP
   const role = (data?.role as UserRole | undefined) ?? 'tenant';
 
   return {
-    id: user.uid,
+    uid: user.uid,
     email: data?.email ?? user.email ?? '',
     displayName: data?.displayName ?? data?.fullName ?? user.displayName ?? 'Resident',
     role,
     propertyIds: data?.propertyIds,
-    managedProperties: data?.managedProperties,
-    landlordId: data?.landlordId,
     unit: data?.unit,
-    address: data?.address,
-    city: data?.city,
-    state: data?.state,
-    zip: data?.zip,
-    monthlyRent: data?.monthlyRent ? Number(data.monthlyRent) : undefined
-  } satisfies UserProfile;
+    phoneNumber: data?.phoneNumber,
+    photoURL: data?.photoURL,
+    stripeCustomerId: data?.stripeCustomerId,
+    onboardingCompleted: data?.onboardingCompleted ?? false,
+    createdAt: data?.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : data.createdAt) : new Date(),
+    updatedAt: data?.updatedAt ? (data.updatedAt.toDate ? data.updatedAt.toDate() : data.updatedAt) : new Date(),
+  } as UserProfile;
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {

@@ -1,0 +1,109 @@
+{
+    "collection": "ledger",
+    "description": "General ledger for all accounting transactions per tenant/property",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true
+        },
+        "tenantId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "propertyId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "landlordId": {
+            "type": "string",
+            "required": true
+        },
+        "date": {
+            "type": "timestamp",
+            "required": true
+        },
+        "amount": {
+            "type": "number",
+            "required": true,
+            "description": "Positive for charges, negative for payments/credits"
+        },
+        "type": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "charge",
+                "payment",
+                "credit",
+                "refund",
+                "adjustment"
+            ]
+        },
+        "category": {
+            "type": "string",
+            "enum": [
+                "rent",
+                "deposit",
+                "late_fee",
+                "utility",
+                "repair",
+                "other"
+            ]
+        },
+        "description": {
+            "type": "string",
+            "required": true
+        },
+        "referenceId": {
+            "type": "string",
+            "description": "Optional link to payment doc or lease doc"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "completed",
+                "failed",
+                "void"
+            ],
+            "default": "completed"
+        },
+        "createdAt": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updatedAt": {
+            "type": "timestamp",
+            "required": true
+        }
+    },
+    "indexes": [
+        {
+            "fields": [
+                "tenantId",
+                "date"
+            ],
+            "order": [
+                "asc",
+                "desc"
+            ],
+            "description": "Tenant transaction history"
+        },
+        {
+            "fields": [
+                "propertyId",
+                "date"
+            ],
+            "order": [
+                "asc",
+                "desc"
+            ],
+            "description": "Property financial history"
+        }
+    ],
+    "securityNotes": [
+        "Read-only for Tenants (own)",
+        "Read/Write for Admins and Landlords"
+    ]
+}
