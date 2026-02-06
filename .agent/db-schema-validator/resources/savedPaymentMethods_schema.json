@@ -1,0 +1,72 @@
+{
+    "collection": "savedPaymentMethods",
+    "description": "Stored payment methods for tenants to pay rent",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true
+        },
+        "tenantId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "type": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "card",
+                "bank_account"
+            ]
+        },
+        "last4": {
+            "type": "string",
+            "required": true
+        },
+        "brand": {
+            "type": "string",
+            "required": true,
+            "description": "e.g., 'visa', 'mastercard', 'chase'"
+        },
+        "expiryMonth": {
+            "type": "number",
+            "description": "For cards"
+        },
+        "expiryYear": {
+            "type": "number",
+            "description": "For cards"
+        },
+        "isDefault": {
+            "type": "boolean",
+            "default": false
+        },
+        "stripePaymentMethodId": {
+            "type": "string",
+            "description": "ID from Stripe"
+        },
+        "createdAt": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updatedAt": {
+            "type": "timestamp"
+        }
+    },
+    "indexes": [
+        {
+            "fields": [
+                "tenantId",
+                "isDefault"
+            ],
+            "order": [
+                "asc",
+                "desc"
+            ]
+        }
+    ],
+    "securityNotes": [
+        "Read access for Tenant (own) and system",
+        "Delete access for Tenant",
+        "Creation via Stripe onboarding/checkout only"
+    ]
+}

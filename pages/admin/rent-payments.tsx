@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Head from 'next/head';
 import AdminLayout from '@/components/Admin/AdminLayout';
+import PageHeader from '@/components/common/PageHeader';
+import LoadingState from '@/components/common/LoadingState';
+import EmptyState from '@/components/common/EmptyState';
 import PaymentSummaryStats from '@/components/Admin/RentTracking/PaymentSummaryStats';
 import PaymentFilters from '@/components/Admin/RentTracking/PaymentFilters';
 import MonthlyPaymentGrid from '@/components/Admin/RentTracking/MonthlyPaymentGrid';
@@ -112,12 +115,11 @@ const RentPaymentsPage: NextPageWithAuth = () => {
                 <title>Rent Payments - Admin - Next Level Rentals</title>
             </Head>
 
-            <div className="page-header">
-                <div>
-                    <h1>Rent Payment Tracking</h1>
-                    <p>Monitor rent payments across all properties</p>
-                </div>
-                <div className="header-actions">
+            <div className="page-container">
+            <PageHeader
+                title="Rent Payment Tracking"
+                subtitle="Monitor rent payments across all properties"
+                actions={
                     <button
                         className="refresh-btn"
                         onClick={fetchData}
@@ -125,8 +127,8 @@ const RentPaymentsPage: NextPageWithAuth = () => {
                     >
                         🔄 Refresh
                     </button>
-                </div>
-            </div>
+                }
+            />
 
             {summary && <PaymentSummaryStats summary={summary} loading={loading} />}
 
@@ -141,20 +143,17 @@ const RentPaymentsPage: NextPageWithAuth = () => {
 
             <div className="content-section">
                 {loading ? (
-                    <div className="loading-state">
-                        <div className="spinner"></div>
-                        <p>Loading payment data...</p>
-                    </div>
+                    <LoadingState message="Loading payment data..." />
                 ) : filteredProperties.length === 0 ? (
-                    <div className="empty-state">
-                        <span className="empty-icon">🏘️</span>
-                        <h3>No properties found</h3>
-                        <p>
-                            {filters.status !== 'all' || filters.searchQuery
+                    <EmptyState
+                        icon="🏘️"
+                        title="No properties found"
+                        description={
+                            filters.status !== 'all' || filters.searchQuery
                                 ? 'Try adjusting your filters'
-                                : 'No properties available for this month'}
-                        </p>
-                    </div>
+                                : 'No properties available for this month'
+                        }
+                    />
                 ) : viewMode === 'table' ? (
                     <MonthlyPaymentGrid
                         properties={filteredProperties}
@@ -183,46 +182,22 @@ const RentPaymentsPage: NextPageWithAuth = () => {
             />
 
             <style jsx>{`
-        .page-header {
-          padding: 2rem;
-          border-bottom: 1px solid #e2e8f0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .page-header h1 {
-          margin: 0 0 0.5rem;
-          font-size: 2rem;
-          color: #1e293b;
-        }
-
-        .page-header p {
-          margin: 0;
-          color: #64748b;
-          font-size: 1rem;
-        }
-
-        .header-actions {
-          display: flex;
-          gap: 1rem;
-        }
-
         .refresh-btn {
           padding: 0.75rem 1.5rem;
-          background: white;
-          border: 1px solid #e2e8f0;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-md);
           font-size: 0.938rem;
           font-weight: 600;
-          color: #475569;
+          color: var(--color-text-secondary);
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all var(--transition-fast);
         }
 
         .refresh-btn:hover:not(:disabled) {
-          background: #f8fafc;
-          border-color: #cbd5e1;
+          background: var(--color-background);
+          border-color: var(--color-primary);
+          color: var(--color-text);
         }
 
         .refresh-btn:disabled {
@@ -234,57 +209,6 @@ const RentPaymentsPage: NextPageWithAuth = () => {
           padding: 0 2rem 2rem;
         }
 
-        .loading-state,
-        .empty-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 4rem 2rem;
-          text-align: center;
-          background: white;
-          border-radius: var(--radius-lg);
-          border: 1px solid #e2e8f0;
-        }
-
-        .spinner {
-          width: 48px;
-          height: 48px;
-          border: 4px solid #e2e8f0;
-          border-top-color: var(--color-primary, #6c5ce7);
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-          margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .loading-state p {
-          color: #64748b;
-          font-size: 1rem;
-        }
-
-        .empty-icon {
-          font-size: 4rem;
-          margin-bottom: 1rem;
-          opacity: 0.3;
-        }
-
-        .empty-state h3 {
-          margin: 0 0 0.5rem;
-          color: #475569;
-          font-size: 1.25rem;
-        }
-
-        .empty-state p {
-          margin: 0;
-          color: #94a3b8;
-        }
-
         .properties-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -292,12 +216,6 @@ const RentPaymentsPage: NextPageWithAuth = () => {
         }
 
         @media (max-width: 768px) {
-          .page-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-          }
-
           .properties-grid {
             grid-template-columns: 1fr;
           }
@@ -306,7 +224,35 @@ const RentPaymentsPage: NextPageWithAuth = () => {
             padding: 0 1rem 1rem;
           }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          .refresh-btn {
+            transition-duration: 0.01ms !important;
+          }
+        }
+
+        .page-container {
+          animation: pageEnter 0.3s ease-out;
+        }
+
+        @keyframes pageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .page-container {
+            animation: none;
+          }
+        }
       `}</style>
+      </div>
         </AdminLayout>
     );
 };

@@ -8,6 +8,7 @@ import WorkOrderTable from '@/components/Admin/WorkOrderTable';
 import DocumentQueue from '@/components/Admin/DocumentQueue';
 import AddTenantModal from '@/components/Admin/AddTenantModal';
 import RecordPaymentModal from '@/components/Admin/RecordPaymentModal';
+import LoadingState from '@/components/common/LoadingState';
 import CollectionGauge from '@/components/charts/CollectionGauge';
 import RentStatusBar from '@/components/charts/RentStatusBar';
 import PaymentTrendChart from '@/components/charts/PaymentTrendChart';
@@ -67,6 +68,7 @@ const AdminPage: NextPageWithAuth = () => {
 
   return (
     <AdminLayout title="Dashboard">
+      <div className="page-container">
       <AdminHero
         managerName="Alex Jordan"
         portfolioLabel="Next Level Management"
@@ -101,19 +103,23 @@ const AdminPage: NextPageWithAuth = () => {
           className="secondary-button"
           onClick={() => setIsRecordPaymentModalOpen(true)}
         >
-          💵 Record Payment
+          Record Payment
         </button>
         <button
           className="primary-button"
           onClick={() => setIsAddModalOpen(true)}
         >
-          ➕ Add Tenant
+          Add Tenant
         </button>
       </div>
 
       <PortfolioSummary metrics={dynamicMetrics as any} />
 
-      {rentSummary && (
+      {loading ? (
+        <div className="content-section">
+          <LoadingState message="Loading payment data..." />
+        </div>
+      ) : rentSummary ? (
         <>
           <div className="rent-quick-link">
             <div className="quick-link-card">
@@ -157,7 +163,7 @@ const AdminPage: NextPageWithAuth = () => {
             />
           </div>
         </>
-      )}
+      ) : null}
 
       <div className="admin-sections">
         <WorkOrderTable workOrders={highPriorityWorkOrders} />
@@ -170,6 +176,11 @@ const AdminPage: NextPageWithAuth = () => {
           display: flex;
           gap: 1rem;
           justify-content: flex-end;
+        }
+
+        .content-section {
+          padding: 2rem;
+          min-height: 200px;
         }
 
         .admin-sections {
@@ -189,10 +200,17 @@ const AdminPage: NextPageWithAuth = () => {
         }
 
         .quick-link-card {
-          background: linear-gradient(135deg, #6c5ce7 0%, #5b4bc9 100%);
+          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
           border-radius: var(--radius-lg);
           padding: 2rem;
           color: white;
+          box-shadow: var(--shadow-glow);
+          transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .quick-link-card:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-lg), var(--shadow-glow);
         }
 
         .card-header {
@@ -205,6 +223,7 @@ const AdminPage: NextPageWithAuth = () => {
         .card-header h3 {
           margin: 0;
           font-size: 1.5rem;
+          font-weight: 700;
         }
 
         .view-all-link {
@@ -212,11 +231,13 @@ const AdminPage: NextPageWithAuth = () => {
           text-decoration: none;
           font-weight: 600;
           opacity: 0.9;
-          transition: opacity 0.2s;
+          transition: opacity var(--transition-fast);
+          font-size: 0.938rem;
         }
 
         .view-all-link:hover {
           opacity: 1;
+          text-decoration: underline;
         }
 
         .card-stats {
@@ -236,23 +257,25 @@ const AdminPage: NextPageWithAuth = () => {
           opacity: 0.9;
           text-transform: uppercase;
           letter-spacing: 0.05em;
+          font-weight: 500;
         }
 
         .stat-value {
           font-size: 2rem;
           font-weight: 700;
+          line-height: 1;
         }
 
         .stat-value.rate {
-          color: #fbbf24;
+          color: var(--color-warning);
         }
 
         .stat-value.overdue {
-          color: #fca5a5;
+          color: var(--color-error);
         }
 
         .stat-value.collected {
-          color: #86efac;
+          color: var(--color-success);
         }
 
         .analytics-grid {
@@ -268,12 +291,74 @@ const AdminPage: NextPageWithAuth = () => {
           }
         }
 
-        @media (min-width: 1200px) {
+        @media (min-width: 1024px) {
           .analytics-grid {
             grid-template-columns: repeat(3, 1fr);
           }
         }
+
+        @media (max-width: 768px) {
+          .admin-actions {
+            padding: 0 1rem 1rem;
+            flex-direction: column;
+          }
+
+          .admin-actions button {
+            width: 100%;
+          }
+
+          .rent-quick-link,
+          .analytics-grid,
+          .admin-sections {
+            padding: 0 1rem 1rem;
+          }
+
+          .quick-link-card {
+            padding: 1.5rem;
+          }
+
+          .card-header h3 {
+            font-size: 1.25rem;
+          }
+
+          .stat-value {
+            font-size: 1.75rem;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .quick-link-card,
+          .view-all-link {
+            transition-duration: 0.01ms !important;
+          }
+
+          .quick-link-card:hover {
+            transform: none;
+          }
+        }
+
+        .page-container {
+          animation: pageEnter 0.3s ease-out;
+        }
+
+        @keyframes pageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .page-container {
+            animation: none;
+          }
+        }
       `}</style>
+      </div>
     </AdminLayout>
   );
 };

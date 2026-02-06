@@ -1,0 +1,107 @@
+{
+    "collection": "leases",
+    "description": "Legal rental agreements between landlords and tenants",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true
+        },
+        "propertyId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "tenantId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "landlordId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "startDate": {
+            "type": "timestamp",
+            "required": true
+        },
+        "endDate": {
+            "type": "timestamp",
+            "required": true
+        },
+        "monthlyRent": {
+            "type": "number",
+            "required": true
+        },
+        "currency": {
+            "type": "string",
+            "default": "USD"
+        },
+        "securityDeposit": {
+            "type": "number",
+            "required": true
+        },
+        "paymentDueDay": {
+            "type": "number",
+            "required": true,
+            "description": "Day of individual month rent is due (1-28)"
+        },
+        "status": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "active",
+                "pending",
+                "expired",
+                "terminated",
+                "ended"
+            ],
+            "default": "pending"
+        },
+        "isActive": {
+            "type": "boolean",
+            "required": true,
+            "default": true
+        },
+        "documents": {
+            "type": "array",
+            "description": "URLs to signed PDF documents"
+        },
+        "createdAt": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updatedAt": {
+            "type": "timestamp",
+            "required": true
+        }
+    },
+    "indexes": [
+        {
+            "fields": [
+                "tenantId",
+                "isActive"
+            ],
+            "order": [
+                "asc",
+                "asc"
+            ],
+            "description": "Find active lease for a tenant"
+        },
+        {
+            "fields": [
+                "propertyId",
+                "status"
+            ],
+            "order": [
+                "asc",
+                "asc"
+            ],
+            "description": "Check lease history for a property"
+        }
+    ],
+    "securityNotes": [
+        "Read access for Admin, Landlord, and Tenant",
+        "Write access restricted to Admin and Landlord"
+    ]
+}

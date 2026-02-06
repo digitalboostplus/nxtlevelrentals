@@ -40,8 +40,8 @@ const TenantsPage: NextPageWithAuth = () => {
                 {loading ? (
                     <div className="loading-state">Loading tenants...</div>
                 ) : (
-                    <div className="table-card">
-                        <table className="admin-table">
+                    <div className="table-wrapper" role="region" aria-label="Tenant list">
+                        <table className="table">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -80,7 +80,7 @@ const TenantsPage: NextPageWithAuth = () => {
             <style jsx>{`
         .admin-container {
           padding: 2rem;
-          max-width: 1200px;
+          max-width: var(--max-width);
           margin: 0 auto;
         }
 
@@ -94,53 +94,18 @@ const TenantsPage: NextPageWithAuth = () => {
         h1 {
           font-size: 2rem;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-secondary);
           margin: 0;
         }
 
         p {
-          color: #64748b;
+          color: var(--color-muted);
           margin: 0.5rem 0 0;
-        }
-
-        .table-card {
-          background: white;
-          border-radius: var(--radius-lg);
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: var(--shadow-sm);
-          overflow: hidden;
-        }
-
-        .admin-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        th, td {
-          padding: 1.25rem 1.5rem;
-          text-align: left;
-        }
-
-        thead {
-          background: #f8fafc;
-          border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #64748b;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        tbody tr {
-          border-bottom: 1px solid #f1f5f9;
         }
 
         .tenant-name {
           font-weight: 600;
-          color: #1e293b;
+          color: var(--color-text-secondary);
         }
 
         .view-link {
@@ -156,19 +121,7 @@ const TenantsPage: NextPageWithAuth = () => {
         .loading-state {
           text-align: center;
           padding: 4rem;
-          color: #64748b;
-        }
-
-        .tag {
-          padding: 0.25rem 0.75rem;
-          border-radius: 9999px;
-          font-size: 0.75rem;
-          font-weight: 500;
-        }
-
-        .tag--success {
-          background: #dcfce7;
-          color: #166534;
+          color: var(--color-muted);
         }
       `}</style>
         </SiteLayout>

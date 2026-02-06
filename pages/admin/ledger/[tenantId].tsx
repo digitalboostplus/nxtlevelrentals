@@ -1,7 +1,10 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import SiteLayout from '@/components/Layout/SiteLayout';
+import AdminLayout from '@/components/Admin/AdminLayout';
+import PageHeader from '@/components/common/PageHeader';
+import LoadingState from '@/components/common/LoadingState';
+import Card from '@/components/common/Card';
 import LedgerTable from '@/components/Admin/LedgerTable';
 import PaymentPlanCard from '@/components/Admin/PaymentPlanCard';
 import { paymentUtils, adminUtils, userUtils } from '@/lib/firebase-utils';
@@ -44,146 +47,213 @@ const TenantLedgerPage: NextPageWithAuth = () => {
         fetchData();
     }, [tenantId]);
 
-    if (loading) return <SiteLayout><div className="loading">Loading ledger...</div></SiteLayout>;
-
     return (
-        <SiteLayout>
+        <AdminLayout title="Tenant Ledger">
             <Head>
                 <title>Tenant Ledger - {tenant?.displayName || 'Loading'}</title>
             </Head>
 
-            <div className="ledger-page">
-                <header className="page-header">
-                    <button onClick={() => router.push('/admin/tenants')} className="back-button">← Back to Tenants</button>
-                    <h1>{tenant?.displayName}</h1>
-                    <p>Resident Ledger & Financial History</p>
-                </header>
-
-                <div className="ledger-grid">
-                    <section className="ledger-section main-ledger">
-                        <h2>Financial Ledger</h2>
-                        <LedgerTable entries={ledger} />
-                    </section>
-
-                    <aside className="ledger-sidebar">
-                        <section className="ledger-section">
-                            <h2>Payment Plans</h2>
-                            {plans.length > 0 ? (
-                                plans.map(plan => <PaymentPlanCard key={plan.id} plan={plan} />)
-                            ) : (
-                                <p className="empty-msg">No active payment plans.</p>
-                            )}
-                        </section>
-
-                        <section className="ledger-section">
-                            <h2>Lease Documents</h2>
-                            {docs.length > 0 ? (
-                                <ul className="doc-list">
-                                    {docs.map(doc => (
-                                        <li key={doc.id}>
-                                            <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer">
-                                                {doc.fileName}
-                                            </a>
-                                            <span>{doc.documentType}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="empty-msg">No documents found.</p>
-                            )}
-                        </section>
-                    </aside>
+            <div className="page-container">
+            {loading ? (
+                <div className="content-section">
+                    <LoadingState message="Loading tenant ledger..." />
                 </div>
-            </div>
+            ) : (
+                <>
+                    <PageHeader
+                        title={tenant?.displayName || 'Tenant Ledger'}
+                        subtitle="Financial History & Payment Records"
+                        breadcrumbs={[
+                            { label: 'Admin', href: '/admin' },
+                            { label: 'Tenants', href: '/admin/tenants' },
+                            { label: tenant?.displayName || 'Loading' },
+                        ]}
+                    />
+
+                    <div className="ledger-page">
+                        <div className="ledger-grid">
+                            <div className="main-content">
+                                <Card title="Financial Ledger">
+                                    <LedgerTable entries={ledger} />
+                                </Card>
+                            </div>
+
+                            <aside className="sidebar">
+                                <Card title="Payment Plans">
+                                    {plans.length > 0 ? (
+                                        <div className="plans-list">
+                                            {plans.map(plan => <PaymentPlanCard key={plan.id} plan={plan} />)}
+                                        </div>
+                                    ) : (
+                                        <p className="empty-msg">No active payment plans.</p>
+                                    )}
+                                </Card>
+
+                                <Card title="Lease Documents" className="documents-card">
+                                    {docs.length > 0 ? (
+                                        <ul className="doc-list">
+                                            {docs.map(doc => (
+                                                <li key={doc.id}>
+                                                    <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer">
+                                                        📄 {doc.fileName}
+                                                    </a>
+                                                    <span className="doc-type">{doc.documentType}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="empty-msg">No documents found.</p>
+                                    )}
+                                </Card>
+                            </aside>
+                        </div>
+                    </div>
+                </>
+            )}
 
             <style jsx>{`
-        .ledger-page {
+        .content-section {
           padding: 2rem;
-          max-width: 1400px;
-          margin: 0 auto;
+          min-height: 300px;
         }
 
-        .page-header {
-          margin-bottom: 2rem;
+        .ledger-page {
+          padding: 0 2rem 2rem;
         }
-
-        .back-button {
-          background: none;
-          border: none;
-          color: var(--color-primary);
-          padding: 0;
-          margin-bottom: 1rem;
-          cursor: pointer;
-          font-weight: 500;
-        }
-
-        h1 { margin: 0; font-size: 2.25rem; color: #1e293b; }
-        h2 { font-size: 1.25rem; color: #1e293b; margin-bottom: 1rem; }
 
         .ledger-grid {
           display: grid;
-          grid-template-columns: 1fr 350px;
+          grid-template-columns: 1fr 380px;
           gap: 2rem;
+          align-items: start;
         }
 
-        .ledger-section {
-          margin-bottom: 2rem;
+        .main-content {
+          min-width: 0;
+        }
+
+        .sidebar {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .sidebar :global(.documents-card) {
+          margin-top: 0;
+        }
+
+        .plans-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
         }
 
         .empty-msg {
-          color: #64748b;
+          color: var(--color-text-secondary);
           font-style: italic;
-          background: #f8fafc;
-          padding: 1rem;
+          background: var(--color-background);
+          padding: 1.5rem;
           border-radius: var(--radius-md);
           text-align: center;
+          font-size: 0.938rem;
         }
 
         .doc-list {
           list-style: none;
           padding: 0;
           margin: 0;
-          background: white;
-          border-radius: var(--radius-md);
-          border: 1px solid #e2e8f0;
         }
 
         .doc-list li {
-          padding: 1rem;
-          border-bottom: 1px solid #f1f5f9;
+          padding: 1rem 0;
+          border-bottom: 1px solid var(--color-border);
           display: flex;
           flex-direction: column;
+          gap: 0.375rem;
         }
 
-        .doc-list li:last-child { border-bottom: none; }
+        .doc-list li:first-child {
+          padding-top: 0;
+        }
+
+        .doc-list li:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
+        }
 
         .doc-list a {
           color: var(--color-primary);
           text-decoration: none;
           font-weight: 500;
-          margin-bottom: 0.25rem;
+          font-size: 0.938rem;
+          transition: color var(--transition-fast);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
         }
 
-        .doc-list span {
+        .doc-list a:hover {
+          color: var(--color-primary-dark);
+          text-decoration: underline;
+        }
+
+        .doc-type {
           font-size: 0.75rem;
-          color: #64748b;
+          color: var(--color-text-secondary);
           text-transform: uppercase;
-        }
-
-        .loading {
-          text-align: center;
-          padding: 10rem;
-          font-size: 1.2rem;
-          color: #64748b;
+          letter-spacing: 0.05em;
+          font-weight: 600;
         }
 
         @media (max-width: 1024px) {
           .ledger-grid {
             grid-template-columns: 1fr;
           }
+
+          .sidebar {
+            order: -1;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .ledger-page {
+            padding: 0 1rem 1rem;
+          }
+
+          .content-section {
+            padding: 1rem;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .doc-list a {
+            transition-duration: 0.01ms !important;
+          }
+        }
+
+        .page-container {
+          animation: pageEnter 0.3s ease-out;
+        }
+
+        @keyframes pageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .page-container {
+            animation: none;
+          }
         }
       `}</style>
-        </SiteLayout>
+      </div>
+        </AdminLayout>
     );
 };
 

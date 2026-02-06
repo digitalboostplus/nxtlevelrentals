@@ -110,7 +110,7 @@ const PropertiesPage: NextPageWithAuth = () => {
       <style jsx>{`
         .admin-container {
           padding: 2rem;
-          max-width: 1200px;
+          max-width: var(--max-width);
           margin: 0 auto;
         }
 
@@ -121,8 +121,8 @@ const PropertiesPage: NextPageWithAuth = () => {
           margin-bottom: 2rem;
         }
 
-        h1 { font-size: 2rem; color: #1e293b; margin: 0; }
-        p { color: #64748b; margin: 0.5rem 0 0; }
+        h1 { font-size: 2rem; color: var(--color-text-secondary); margin: 0; }
+        p { color: var(--color-muted); margin: 0.5rem 0 0; }
 
         .property-grid {
           display: grid;
@@ -131,9 +131,9 @@ const PropertiesPage: NextPageWithAuth = () => {
         }
 
         .property-card {
-          background: white;
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
           overflow: hidden;
           transition: transform 0.2s;
@@ -146,7 +146,7 @@ const PropertiesPage: NextPageWithAuth = () => {
         .property-image {
           height: 200px;
           position: relative;
-          background: #f1f5f9;
+          background: var(--color-surface-elevated);
         }
 
         .property-image img {
@@ -160,7 +160,7 @@ const PropertiesPage: NextPageWithAuth = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #94a3b8;
+          color: var(--color-muted);
         }
 
         .status-tag {
@@ -174,21 +174,21 @@ const PropertiesPage: NextPageWithAuth = () => {
           backdrop-filter: blur(4px);
         }
 
-        .status--available { background: rgba(34, 197, 94, 0.9); color: white; }
-        .status--occupied { background: rgba(59, 130, 246, 0.9); color: white; }
+        .status--available { background: rgba(15, 118, 110, 0.9); color: white; }
+        .status--occupied { background: rgba(3, 105, 161, 0.9); color: white; }
 
         .property-content {
           padding: 1.5rem;
         }
 
-        h3 { margin: 0; font-size: 1.25rem; color: #1e293b; }
-        .address { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 1rem; }
+        h3 { margin: 0; font-size: 1.25rem; color: var(--color-text-secondary); }
+        .address { font-size: 0.875rem; color: var(--color-muted); margin: 0.5rem 0 1rem; }
 
         .property-details {
           display: flex;
           gap: 1rem;
           font-size: 0.875rem;
-          color: #475569;
+          color: var(--color-muted);
           margin-bottom: 1.5rem;
         }
 
@@ -196,36 +196,16 @@ const PropertiesPage: NextPageWithAuth = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1px solid #f1f5f9;
+          border-top: 1px solid var(--color-border);
           padding-top: 1rem;
         }
 
-        .rent { font-weight: 700; color: #1e293b; font-size: 1.1rem; }
+        .rent { font-weight: 700; color: var(--color-text-secondary); font-size: 1.1rem; }
 
         .loading-state {
           text-align: center;
           padding: 4rem;
-          color: #64748b;
-        }
-
-        .primary-button {
-          background: var(--color-primary);
-          color: white;
-          border: none;
-          padding: 0.75rem 1.5rem;
-          border-radius: var(--radius-md);
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        .secondary-button {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          color: #475569;
-          padding: 0.5rem 1rem;
-          border-radius: var(--radius-sm);
-          font-size: 0.875rem;
-          cursor: pointer;
+          color: var(--color-muted);
         }
       `}</style>
     </SiteLayout>

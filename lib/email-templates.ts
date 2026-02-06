@@ -17,7 +17,7 @@ const baseStyles = `
       background-color: #ffffff;
     }
     .header {
-      background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+      background: linear-gradient(135deg, #0f766e 0%, #0369a1 100%);
       color: white;
       padding: 30px 20px;
       text-align: center;
@@ -42,7 +42,7 @@ const baseStyles = `
     }
     .detail-box {
       background-color: #f7fafc;
-      border-left: 4px solid #6c5ce7;
+      border-left: 4px solid #0f766e;
       padding: 15px;
       margin: 20px 0;
       border-radius: 4px;
@@ -53,7 +53,7 @@ const baseStyles = `
     .button {
       display: inline-block;
       padding: 12px 30px;
-      background-color: #6c5ce7;
+      background-color: #0f766e;
       color: white !important;
       text-decoration: none;
       border-radius: 6px;
@@ -61,7 +61,7 @@ const baseStyles = `
       font-weight: 600;
     }
     .button:hover {
-      background-color: #5b4bc9;
+      background-color: #115e59;
     }
     .status-badge {
       display: inline-block;
@@ -72,16 +72,16 @@ const baseStyles = `
       margin: 10px 0;
     }
     .status-submitted {
-      background-color: #dbeafe;
-      color: #1e40af;
+      background-color: #e0f2fe;
+      color: #0369a1;
     }
     .status-in_progress {
       background-color: #fef3c7;
-      color: #92400e;
+      color: #b45309;
     }
     .status-completed {
-      background-color: #d1fae5;
-      color: #065f46;
+      background-color: #dcfce7;
+      color: #0f766e;
     }
     .status-cancelled {
       background-color: #fee2e2;
@@ -96,7 +96,7 @@ const baseStyles = `
       border-top: 1px solid #e2e8f0;
     }
     .footer a {
-      color: #6c5ce7;
+      color: #0f766e;
       text-decoration: none;
     }
   </style>

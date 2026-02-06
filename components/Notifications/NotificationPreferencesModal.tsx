@@ -352,7 +352,7 @@ export default function NotificationPreferencesModal({
             width: 48px;
             height: 48px;
             border: 4px solid #e2e8f0;
-            border-top-color: var(--color-primary, #6c5ce7);
+            border-top-color: var(--color-primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-bottom: 1rem;
@@ -431,7 +431,7 @@ export default function NotificationPreferencesModal({
           }
 
           input:checked + .toggle-slider {
-            background-color: var(--color-primary, #6c5ce7);
+            background-color: var(--color-primary);
           }
 
           input:checked + .toggle-slider:before {
@@ -463,7 +463,7 @@ export default function NotificationPreferencesModal({
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: var(--color-primary, #6c5ce7);
+            accent-color: var(--color-primary);
           }
 
           .checkbox-label span {
@@ -511,13 +511,13 @@ export default function NotificationPreferencesModal({
           }
 
           .primary-button {
-            background-color: var(--color-primary, #6c5ce7);
+            background-color: var(--color-primary);
             color: white;
             border: none;
           }
 
           .primary-button:hover:not(:disabled) {
-            background-color: var(--color-primary-dark, #5b4bc9);
+            background-color: var(--color-primary-dark);
           }
 
           .outline-button:disabled,
@@ -530,3 +530,4 @@ export default function NotificationPreferencesModal({
     </div>
   );
 }
+

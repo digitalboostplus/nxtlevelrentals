@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { landlordUtils, storageUtils } from '@/lib/firebase-utils';
 import { propertyAmenities } from '@/data/amenities';
@@ -217,7 +218,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
       <div className="modal">
         <header className="modal__header">
           <h2>Add New Property</h2>
-          <button className="close-button" onClick={handleClose} type="button" disabled={loading}>×</button>
+          <button className="close-button" onClick={handleClose} type="button" disabled={loading}>X</button>
         </header>
 
         <form onSubmit={handleSubmit} className="modal__form">
@@ -407,14 +408,22 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
               <div className="image-previews">
                 {imagePreviews.map((preview, index) => (
                   <div key={index} className="image-preview">
-                    <img src={preview} alt={`Preview ${index + 1}`} />
+                    <Image
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      fill
+                      sizes="100px"
+                      className="preview-image"
+                      style={{ objectFit: 'cover' }}
+                      unoptimized
+                    />
                     <button
                       type="button"
                       className="remove-image"
                       onClick={() => removeImage(index)}
                       disabled={loading}
                     >
-                      ×
+                      X
                     </button>
                   </div>
                 ))}
@@ -466,7 +475,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
                   .map(amenity => (
                     <span key={amenity} className="custom-amenity-tag">
                       {amenity}
-                      <button type="button" onClick={() => toggleAmenity(amenity)}>×</button>
+                      <button type="button" onClick={() => toggleAmenity(amenity)}>X</button>
                     </span>
                   ))}
               </div>
@@ -635,9 +644,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           border: 1px solid #e5e7eb;
         }
 
-        .image-preview img {
-          width: 100%;
-          height: 100%;
+        :global(.preview-image) {
           object-fit: cover;
         }
 
@@ -821,3 +828,4 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
     </div>
   );
 }
+

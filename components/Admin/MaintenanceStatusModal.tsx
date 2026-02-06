@@ -395,7 +395,7 @@ export default function MaintenanceStatusModal({
           select:focus,
           textarea:focus {
             outline: none;
-            border-color: var(--color-primary, #6c5ce7);
+            border-color: var(--color-primary);
             box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
           }
 
@@ -447,13 +447,13 @@ export default function MaintenanceStatusModal({
           }
 
           .primary-button {
-            background-color: var(--color-primary, #6c5ce7);
+            background-color: var(--color-primary);
             color: white;
             border: none;
           }
 
           .primary-button:hover:not(:disabled) {
-            background-color: var(--color-primary-dark, #5b4bc9);
+            background-color: var(--color-primary-dark);
             transform: translateY(-1px);
           }
 
@@ -474,3 +474,4 @@ export default function MaintenanceStatusModal({
     </div>
   );
 }
+

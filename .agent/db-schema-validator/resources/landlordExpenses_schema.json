@@ -1,0 +1,149 @@
+{
+    "collection": "landlordExpenses",
+    "description": "Operational expenses incurred by landlords for property maintenance",
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true
+        },
+        "landlordId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "propertyId": {
+            "type": "string",
+            "required": true,
+            "indexed": true
+        },
+        "expenseType": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "maintenance",
+                "repair",
+                "utility",
+                "insurance",
+                "tax",
+                "capital_improvement",
+                "other"
+            ]
+        },
+        "category": {
+            "type": "string",
+            "required": true
+        },
+        "amount": {
+            "type": "number",
+            "required": true
+        },
+        "vendor": {
+            "type": "string",
+            "required": true
+        },
+        "vendorContact": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string",
+            "required": true
+        },
+        "date": {
+            "type": "timestamp",
+            "required": true
+        },
+        "paidDate": {
+            "type": "timestamp"
+        },
+        "paymentMethod": {
+            "type": "string",
+            "enum": [
+                "company_card",
+                "company_check",
+                "landlord_paid",
+                "deducted_from_rent"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "required": true,
+            "enum": [
+                "pending",
+                "approved",
+                "paid",
+                "reimbursed",
+                "rejected"
+            ]
+        },
+        "maintenanceRequestId": {
+            "type": "string",
+            "description": "Optional link to the maintenance request that triggered this expense"
+        },
+        "receiptUrls": {
+            "type": "array"
+        },
+        "invoiceNumber": {
+            "type": "string"
+        },
+        "taxDeductible": {
+            "type": "boolean",
+            "default": true
+        },
+        "payoutId": {
+            "type": "string",
+            "description": "ID of the payout this expense was deducted from"
+        },
+        "reimbursementStatus": {
+            "type": "string",
+            "enum": [
+                "not_applicable",
+                "pending",
+                "deducted",
+                "reimbursed"
+            ]
+        },
+        "approvedBy": {
+            "type": "string"
+        },
+        "approvedAt": {
+            "type": "timestamp"
+        },
+        "notes": {
+            "type": "string"
+        },
+        "createdBy": {
+            "type": "string",
+            "required": true
+        },
+        "createdAt": {
+            "type": "timestamp",
+            "required": true
+        },
+        "updatedAt": {
+            "type": "timestamp",
+            "required": true
+        }
+    },
+    "indexes": [
+        {
+            "fields": [
+                "landlordId",
+                "date"
+            ],
+            "order": [
+                "asc",
+                "desc"
+            ]
+        },
+        {
+            "fields": [
+                "propertyId",
+                "date"
+            ],
+            "order": [
+                "asc",
+                "desc"
+            ]
+        }
+    ]
+}

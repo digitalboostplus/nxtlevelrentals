@@ -24,29 +24,29 @@ export default function TenantCTASection() {
       <style jsx>{`
         .tenant-cta {
           padding: clamp(3.5rem, 7vw, 5rem) 1.5rem clamp(4rem, 8vw, 6rem);
-          background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(37, 99, 235, 0.15));
+          background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(3, 105, 161, 0.12));
         }
 
         .tenant-cta__inner {
-          max-width: 960px;
+          max-width: var(--max-width-narrow);
           margin: 0 auto;
-          background: white;
+          background: var(--color-surface);
           border-radius: clamp(1.5rem, 4vw, 2.5rem);
           padding: clamp(2.5rem, 5vw, 3rem);
           box-shadow: var(--shadow-md);
-          border: 1px solid rgba(59, 130, 246, 0.18);
+          border: 1px solid rgba(15, 118, 110, 0.16);
           display: grid;
           gap: clamp(1.5rem, 4vw, 2.5rem);
         }
 
         .tenant-cta__content h2 {
           font-size: clamp(2rem, 4vw, 2.4rem);
-          color: #0f172a;
+          color: var(--color-text);
           margin-bottom: 0.5rem;
         }
 
         .tenant-cta__content p {
-          color: rgba(15, 23, 42, 0.7);
+          color: var(--color-muted);
           line-height: 1.7;
         }
 
@@ -57,11 +57,11 @@ export default function TenantCTASection() {
         }
 
         .tenant-cta__primary {
-          box-shadow: 0 18px 28px rgba(59, 130, 246, 0.25);
+          box-shadow: 0 18px 28px rgba(15, 118, 110, 0.25);
         }
 
         .tenant-cta__outline {
-          border-color: rgba(59, 130, 246, 0.4);
+          border-color: rgba(15, 118, 110, 0.4);
         }
       `}</style>
     </section>

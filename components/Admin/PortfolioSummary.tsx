@@ -24,7 +24,7 @@ export default function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
               <span className="portfolio-metric__label">{metric.label}</span>
               <span className="portfolio-metric__value">{metric.value}</span>
               <span className="portfolio-metric__trend" aria-label={trendLabel[metric.trend]}>
-                {metric.trend === 'up' ? '▲' : metric.trend === 'down' ? '▼' : '■'} {metric.trendValue}
+                {metric.trend === 'up' ? 'Up' : metric.trend === 'down' ? 'Down' : 'Steady'} {metric.trendValue}
               </span>
             </article>
           ))}
@@ -40,7 +40,7 @@ export default function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
         .portfolio-metric {
           padding: 1.75rem;
           border-radius: var(--radius-md);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid var(--color-border);
           background: var(--color-surface);
           box-shadow: var(--shadow-sm);
           display: grid;
@@ -55,7 +55,7 @@ export default function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
         .portfolio-metric__value {
           font-size: 2rem;
           font-weight: 700;
-          color: #111827;
+          color: var(--color-text-secondary);
         }
 
         .portfolio-metric__trend {
@@ -68,7 +68,7 @@ export default function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
         }
 
         .portfolio-metric--down .portfolio-metric__trend {
-          color: #ef4444;
+          color: var(--color-error);
         }
       `}</style>
     </section>

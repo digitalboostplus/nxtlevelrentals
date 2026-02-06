@@ -129,7 +129,7 @@ export default function NotificationBell() {
           cursor: pointer;
           padding: 0.5rem;
           border-radius: 50%;
-          color: var(--color-text, #334155);
+          color: var(--color-text);
           transition: all 0.2s ease;
           display: flex;
           align-items: center;
@@ -138,7 +138,7 @@ export default function NotificationBell() {
 
         .notification-bell:hover {
           background-color: rgba(0, 0, 0, 0.05);
-          color: var(--color-primary, #6c5ce7);
+          color: var(--color-primary);
         }
 
         .notification-bell:active {
@@ -154,7 +154,7 @@ export default function NotificationBell() {
           position: absolute;
           top: 2px;
           right: 2px;
-          background-color: #ef4444;
+          background-color: var(--color-error);
           color: white;
           font-size: 0.65rem;
           font-weight: 700;
@@ -165,7 +165,7 @@ export default function NotificationBell() {
           align-items: center;
           justify-content: center;
           padding: 0 4px;
-          border: 2px solid white;
+          border: 2px solid var(--color-surface);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
       `}</style>

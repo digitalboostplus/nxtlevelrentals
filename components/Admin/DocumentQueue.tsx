@@ -52,7 +52,7 @@ export default function DocumentQueue({ tasks }: DocumentQueueProps) {
 
         .document-queue__item {
           border-radius: var(--radius-md);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid var(--color-border);
           background: var(--color-surface);
           box-shadow: var(--shadow-sm);
           padding: 1.75rem;
@@ -69,7 +69,7 @@ export default function DocumentQueue({ tasks }: DocumentQueueProps) {
 
         h3 {
           margin: 0;
-          color: #111827;
+          color: var(--color-text-secondary);
           font-size: 1.15rem;
         }
 
@@ -89,7 +89,7 @@ export default function DocumentQueue({ tasks }: DocumentQueueProps) {
         dd {
           margin: 0.15rem 0 0;
           font-weight: 600;
-          color: #111827;
+          color: var(--color-text-secondary);
         }
 
         .document-queue__actions {

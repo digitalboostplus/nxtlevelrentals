@@ -49,6 +49,7 @@ export interface UserRole {
   propertyIds?: string[];
   managedProperties?: string[];
   landlordId?: string; // Reference to landlords/{id} for landlord users
+  unit?: string;
 }
 
 export interface MaintenanceRequest {
@@ -63,6 +64,7 @@ export interface MaintenanceRequest {
   updatedAt: any;
   attachments?: string[];
   adminNotes?: string;
+  category?: string;
 }
 
 export interface Property {
@@ -91,12 +93,14 @@ export interface Payment {
   leaseId?: string; // Link to the Lease contract
   tenantId: string;
   propertyId: string;
+  landlordId: string;
   amount: number;
   dueDate: any;
   paidDate?: any;
-  status: 'pending' | 'paid' | 'overdue' | 'cancelled' | 'processing' | 'failed';
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded' | 'paid' | 'overdue' | 'cancelled';
   description: string;
   createdAt: any;
+  updatedAt: any;
   // Stripe-specific fields
   stripePaymentIntentId?: string;
   stripeCheckoutSessionId?: string;
@@ -115,7 +119,6 @@ export interface LedgerEntry {
   includeInPayout?: boolean; // Whether this entry affects landlord payout
   payoutId?: string; // Reference to payout this was included in
   amount: number; // Positive for charges, negative (or just marked as payment) for payments.
-  // Convention: Charge is positive, Payment is negative? Or use 'type'.
   type: 'charge' | 'payment' | 'adjustment';
   category: 'rent' | 'utility' | 'late_fee' | 'deposit' | 'other';
   date: any;
@@ -172,6 +175,7 @@ export interface SavedPaymentMethod {
   accountType?: 'checking' | 'savings'; // For ACH
   isDefault: boolean;
   createdAt: any;
+  updatedAt: any;
 }
 
 export interface StripeCustomer {
@@ -437,6 +441,17 @@ export const maintenanceUtils = {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MaintenanceRequest));
   },
 
+  async getRequestsByProperty(propertyId: string) {
+    const db = getFirestoreClient();
+    const q = query(
+      collection(db, 'maintenanceRequests'),
+      where('propertyId', '==', propertyId),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MaintenanceRequest));
+  },
+
   async getAllRequests() {
     const db = getFirestoreClient();
     const q = query(
@@ -522,6 +537,17 @@ export const paymentUtils = {
     const q = query(
       collection(db, 'payments'),
       where('tenantId', '==', tenantId),
+      orderBy('dueDate', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payment));
+  },
+
+  async getPaymentsByLandlord(landlordId: string) {
+    const db = getFirestoreClient();
+    const q = query(
+      collection(db, 'payments'),
+      where('landlordId', '==', landlordId),
       orderBy('dueDate', 'desc')
     );
     const snapshot = await getDocs(q);
@@ -791,212 +817,47 @@ export const rentTrackingUtils = {
 
 // Storage utilities
 export const storageUtils = {
-  async uploadFile(file: File, path: string, metadata?: any) {
+  async uploadFile(path: string, file: File) {
     const storage = getStorageClient();
     const storageRef = ref(storage, path);
-    const uploadResult = await uploadBytes(storageRef, file, metadata);
-    return await getDownloadURL(uploadResult.ref);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
   },
 
   async deleteFile(path: string) {
     const storage = getStorageClient();
-    const fileRef = ref(storage, path);
-    await deleteObject(fileRef);
+    const storageRef = ref(storage, path);
+    await deleteObject(storageRef);
   }
 };
 
 // Messaging utilities
 export const messagingUtils = {
-  async requestPermission() {
+  async getFCMToken() {
     const messaging = getMessagingClient();
     if (!messaging) return null;
-
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        return await getToken(messaging, {
-          vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
-        });
-      }
-    } catch (error) {
-      console.error('Error requesting notification permission:', error);
-    }
-    return null;
+    return await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY });
   },
 
-  onMessage(callback: (payload: any) => void) {
+  onForegroundMessage(callback: (payload: any) => void) {
     const messaging = getMessagingClient();
     if (!messaging) return () => { };
-
     return onMessage(messaging, callback);
   }
 };
 
 // Analytics utilities
 export const analyticsUtils = {
-  logEvent(eventName: string, parameters?: any) {
+  logEvent(name: string, params?: Record<string, any>) {
     const analytics = getAnalyticsClient();
-    if (!analytics) return;
-
-    logEvent(analytics, eventName, parameters);
-  },
-
-  logLogin(method: string) {
-    this.logEvent('login', { method });
-  },
-
-  logSignUp(method: string) {
-    this.logEvent('sign_up', { method });
-  },
-
-  logMaintenanceRequest(priority: string) {
-    this.logEvent('maintenance_request_created', { priority });
+    if (analytics) {
+      logEvent(analytics, name, params);
+    }
   }
 };
 
 // Landlord utilities
 export const landlordUtils = {
-  // Landlord CRUD operations
-  async createLandlord(landlordData: Omit<Landlord, 'id' | 'createdAt' | 'updatedAt'>) {
-    const db = getFirestoreClient();
-    const docRef = doc(db, 'landlords', landlordData.userId);
-    await setDoc(docRef, {
-      ...landlordData,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-    return landlordData.userId;
-  },
-
-  async getLandlord(landlordId: string): Promise<Landlord | null> {
-    const db = getFirestoreClient();
-    const docRef = doc(db, 'landlords', landlordId);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Landlord : null;
-  },
-
-  async updateLandlord(landlordId: string, updates: Partial<Landlord>) {
-    const db = getFirestoreClient();
-    await updateDoc(doc(db, 'landlords', landlordId), {
-      ...updates,
-      updatedAt: serverTimestamp()
-    });
-  },
-
-  async getAllLandlords(): Promise<Landlord[]> {
-    const db = getFirestoreClient();
-    const q = query(collection(db, 'landlords'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Landlord));
-  },
-
-  async getActiveLandlords(): Promise<Landlord[]> {
-    const db = getFirestoreClient();
-    const q = query(
-      collection(db, 'landlords'),
-      where('accountStatus', '==', 'active'),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Landlord));
-  },
-
-  // Document management
-  async uploadLandlordDocument(
-    landlordId: string,
-    file: File,
-    documentType: LandlordDocument['documentType'],
-    uploadedBy: string,
-    uploadedByRole: LandlordDocument['uploadedByRole'],
-    metadata?: Partial<LandlordDocument>
-  ): Promise<string> {
-    const storage = getStorageClient();
-    const db = getFirestoreClient();
-
-    // Upload file to Storage
-    const storagePath = `landlords/${landlordId}/documents/${Date.now()}_${file.name}`;
-    const storageRef = ref(storage, storagePath);
-    await uploadBytes(storageRef, file);
-    const downloadUrl = await getDownloadURL(storageRef);
-
-    // Create document record
-    const docData: Omit<LandlordDocument, 'id' | 'createdAt' | 'updatedAt'> = {
-      landlordId,
-      documentType,
-      fileName: file.name,
-      storageUrl: downloadUrl,
-      storagePath,
-      fileSize: file.size,
-      mimeType: file.type,
-      uploadedBy,
-      uploadedByRole,
-      status: 'pending',
-      ...metadata
-    };
-
-    const docRef = await addDoc(collection(db, 'landlordDocuments'), {
-      ...docData,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-
-    return docRef.id;
-  },
-
-  async getLandlordDocuments(landlordId: string): Promise<LandlordDocument[]> {
-    const db = getFirestoreClient();
-    const q = query(
-      collection(db, 'landlordDocuments'),
-      where('landlordId', '==', landlordId),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LandlordDocument));
-  },
-
-  async updateDocumentStatus(
-    documentId: string,
-    status: LandlordDocument['status'],
-    reviewedBy?: string,
-    rejectionReason?: string
-  ) {
-    const db = getFirestoreClient();
-    const updates: any = {
-      status,
-      updatedAt: serverTimestamp()
-    };
-    if (reviewedBy) {
-      updates.reviewedBy = reviewedBy;
-      updates.reviewedAt = serverTimestamp();
-    }
-    if (rejectionReason) {
-      updates.rejectionReason = rejectionReason;
-    }
-    await updateDoc(doc(db, 'landlordDocuments', documentId), updates);
-  },
-
-  // Payout management
-  async createPayout(payoutData: Omit<Payout, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-    const db = getFirestoreClient();
-    const docRef = await addDoc(collection(db, 'payouts'), {
-      ...payoutData,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-    return docRef.id;
-  },
-
-  async getLandlordPayouts(landlordId: string): Promise<Payout[]> {
-    const db = getFirestoreClient();
-    const q = query(
-      collection(db, 'payouts'),
-      where('landlordId', '==', landlordId),
-      orderBy('scheduledDate', 'desc')
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payout));
-  },
-
   async updatePayoutStatus(
     payoutId: string,
     status: Payout['status'],

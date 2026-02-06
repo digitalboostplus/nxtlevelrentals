@@ -47,7 +47,7 @@ export default function WorkOrderTable({ workOrders }: WorkOrderTableProps) {
         .table-wrapper {
           overflow-x: auto;
           border-radius: var(--radius-md);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid rgba(15, 118, 110, 0.12);
           background: var(--color-surface);
           box-shadow: var(--shadow-sm);
         }
@@ -55,6 +55,7 @@ export default function WorkOrderTable({ workOrders }: WorkOrderTableProps) {
         .data-table {
           width: 100%;
           border-collapse: collapse;
+          min-width: 640px;
         }
 
         th,
@@ -64,11 +65,22 @@ export default function WorkOrderTable({ workOrders }: WorkOrderTableProps) {
         }
 
         thead tr {
-          border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+          border-bottom: 1px solid rgba(15, 118, 110, 0.12);
+          background: var(--color-surface-elevated);
+        }
+
+        thead th {
+          position: sticky;
+          top: var(--header-height);
+          z-index: 1;
+        }
+
+        tbody tr:nth-child(even) {
+          background: rgba(15, 118, 110, 0.04);
         }
 
         tbody tr + tr {
-          border-top: 1px solid rgba(15, 23, 42, 0.06);
+          border-top: 1px solid rgba(15, 118, 110, 0.08);
         }
 
         th {
@@ -79,7 +91,7 @@ export default function WorkOrderTable({ workOrders }: WorkOrderTableProps) {
         }
 
         tbody th {
-          color: #111827;
+          color: var(--color-text);
           font-size: 1rem;
           text-transform: none;
           letter-spacing: normal;

@@ -33,7 +33,7 @@ export default function DashboardHighlights({ metrics }: DashboardHighlightsProp
         month: 'short',
         day: 'numeric',
         year: 'numeric'
-      })} · ${formatCurrency(metrics.lastPaymentAmount)}`
+      })} - ${formatCurrency(metrics.lastPaymentAmount)}`
     }
   ];
 
@@ -57,3 +57,4 @@ export default function DashboardHighlights({ metrics }: DashboardHighlightsProp
     </section>
   );
 }
+

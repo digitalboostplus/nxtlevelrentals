@@ -295,12 +295,12 @@ export default function PropertyPaymentCard({
         }
 
         .btn-primary {
-          background: var(--color-primary, #6c5ce7);
+          background: var(--color-primary);
           color: white;
         }
 
         .btn-primary:hover {
-          background: var(--color-primary-dark, #5b4bc9);
+          background: var(--color-primary-dark);
           transform: translateY(-1px);
         }
 
@@ -326,3 +326,4 @@ export default function PropertyPaymentCard({
         </div>
     );
 }
+

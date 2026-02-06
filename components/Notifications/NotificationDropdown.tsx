@@ -157,7 +157,7 @@ export default function NotificationDropdown({
           right: 0;
           width: 380px;
           max-width: calc(100vw - 2rem);
-          background: white;
+          background: var(--color-surface);
           border-radius: 12px;
           box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
           z-index: 1000;
@@ -169,18 +169,18 @@ export default function NotificationDropdown({
           justify-content: space-between;
           align-items: center;
           padding: 1rem 1.25rem;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid var(--color-border);
         }
 
         .dropdown-header h3 {
           margin: 0;
           font-size: 1.125rem;
           font-weight: 600;
-          color: #1e293b;
+          color: var(--color-text-secondary);
         }
 
         .view-all-link {
-          color: var(--color-primary, #6c5ce7);
+          color: var(--color-primary);
           font-size: 0.875rem;
           font-weight: 500;
           text-decoration: none;
@@ -203,15 +203,15 @@ export default function NotificationDropdown({
           align-items: center;
           justify-content: center;
           padding: 3rem 2rem;
-          color: #64748b;
+          color: var(--color-muted);
           text-align: center;
         }
 
         .spinner {
           width: 32px;
           height: 32px;
-          border: 3px solid #e2e8f0;
-          border-top-color: var(--color-primary, #6c5ce7);
+          border: 3px solid var(--color-border);
+          border-top-color: var(--color-primary);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
           margin-bottom: 1rem;
@@ -232,12 +232,12 @@ export default function NotificationDropdown({
         .empty-state p {
           margin: 0.5rem 0 0;
           font-weight: 500;
-          color: #475569;
+          color: var(--color-text-secondary);
         }
 
         .empty-subtitle {
           font-size: 0.875rem;
-          color: #94a3b8;
+          color: var(--color-muted);
         }
 
         .notification-list {
@@ -252,13 +252,13 @@ export default function NotificationDropdown({
           gap: 0.75rem;
           padding: 1rem 1.25rem;
           cursor: pointer;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid var(--color-border);
           transition: background-color 0.2s;
           position: relative;
         }
 
         .notification-item:hover {
-          background-color: #f8fafc;
+          background-color: var(--color-surface-elevated);
         }
 
         .notification-item:last-child {
@@ -266,11 +266,11 @@ export default function NotificationDropdown({
         }
 
         .notification-item.unread {
-          background-color: #f0f4ff;
+          background-color: var(--color-primary-light);
         }
 
         .notification-item.unread:hover {
-          background-color: #e5edff;
+          background-color: rgba(15, 118, 110, 0.18);
         }
 
         .notification-icon {
@@ -286,13 +286,13 @@ export default function NotificationDropdown({
         .notification-title {
           font-weight: 600;
           font-size: 0.875rem;
-          color: #1e293b;
+          color: var(--color-text-secondary);
           margin-bottom: 0.25rem;
         }
 
         .notification-message {
           font-size: 0.875rem;
-          color: #64748b;
+          color: var(--color-muted);
           line-height: 1.4;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -303,7 +303,7 @@ export default function NotificationDropdown({
 
         .notification-time {
           font-size: 0.75rem;
-          color: #94a3b8;
+          color: var(--color-muted);
           margin-top: 0.25rem;
         }
 
@@ -314,7 +314,7 @@ export default function NotificationDropdown({
           transform: translateY(-50%);
           width: 8px;
           height: 8px;
-          background-color: var(--color-primary, #6c5ce7);
+          background-color: var(--color-primary);
           border-radius: 50%;
         }
       `}</style>

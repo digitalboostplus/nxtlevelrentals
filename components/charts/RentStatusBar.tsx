@@ -1,4 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { generateChartAriaLabel } from '@/lib/chart-utils';
+import { RECHARTS_ANIMATION } from '@/lib/chart-config';
 
 interface RentStatusData {
   paid: number;
@@ -12,10 +14,10 @@ interface RentStatusBarProps {
 }
 
 const STATUS_COLORS = {
-  paid: 'var(--color-success, #22c55e)',
+  paid: 'var(--color-success)',
   pending: 'var(--color-text-secondary)',
-  partial: 'var(--color-warning, #eab308)',
-  overdue: 'var(--color-error, #ef4444)'
+  partial: 'var(--color-warning)',
+  overdue: 'var(--color-error)'
 };
 
 const STATUS_LABELS = {
@@ -35,10 +37,16 @@ export default function RentStatusBar({ data }: RentStatusBarProps) {
 
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
 
+  const ariaLabel = generateChartAriaLabel(
+    'Rent status distribution',
+    chartData.length,
+    `Total ${total} units: ${data.paid} paid, ${data.pending} pending, ${data.partial} partial, ${data.overdue} overdue`
+  );
+
   return (
     <div className="status-container">
       <h3 className="status-title">Rent Status This Month</h3>
-      <div className="status-chart">
+      <div className="status-chart" role="img" aria-label={ariaLabel}>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart
             data={chartData}
@@ -61,7 +69,7 @@ export default function RentStatusBar({ data }: RentStatusBarProps) {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'var(--color-bg)',
+                backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
                 borderRadius: '8px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
@@ -70,9 +78,9 @@ export default function RentStatusBar({ data }: RentStatusBarProps) {
                 const numValue = typeof value === 'number' ? value : 0;
                 return [`${numValue} units`, ''];
               }}
-              cursor={{ fill: 'var(--color-bg-secondary)' }}
+              cursor={{ fill: 'var(--color-surface-elevated)' }}
             />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+            <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20} {...RECHARTS_ANIMATION}>
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
@@ -94,10 +102,27 @@ export default function RentStatusBar({ data }: RentStatusBarProps) {
 
       <style jsx>{`
         .status-container {
-          background: var(--color-bg);
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           border-radius: 12px;
           padding: 20px;
+          animation: fadeIn 0.4s ease-out;
+          transition: box-shadow var(--transition-base);
+        }
+
+        .status-container:hover {
+          box-shadow: var(--shadow-md);
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .status-title {
@@ -145,6 +170,13 @@ export default function RentStatusBar({ data }: RentStatusBarProps) {
         @media (max-width: 640px) {
           .status-legend {
             grid-template-columns: 1fr;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .status-container {
+            animation: none;
+            transition-duration: 0.01ms !important;
           }
         }
       `}</style>

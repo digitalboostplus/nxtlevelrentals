@@ -6,7 +6,7 @@ type QuickActionsProps = {
 
 export default function QuickActions({ actions }: QuickActionsProps) {
   return (
-    <section className="section">
+    <section className="section" id="quick-actions">
       <div className="section__inner">
         <div className="card__header" style={{ marginBottom: '1.5rem' }}>
           <h2 className="card__title">Quick actions</h2>
@@ -45,7 +45,7 @@ export default function QuickActions({ actions }: QuickActionsProps) {
           padding: 1.75rem;
           border-radius: var(--radius-md);
           background: var(--color-surface);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid rgba(15, 118, 110, 0.12);
           box-shadow: var(--shadow-sm);
           display: grid;
           gap: 0.85rem;
@@ -54,7 +54,7 @@ export default function QuickActions({ actions }: QuickActionsProps) {
         .quick-action h3 {
           margin: 0;
           font-size: 1.1rem;
-          color: #111827;
+          color: var(--color-text);
         }
 
         .quick-action p {
