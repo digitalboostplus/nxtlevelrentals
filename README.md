@@ -112,7 +112,7 @@ The application will be available at `http://localhost:3000`
 ### Environment Variables
 Update your `.env` file with the following keys:
 
-The provided .env.example is prefilled with the rental-app-3ec4a Firebase web configuration. Override these values if you provision a different Firebase project.
+This app targets the `rental-tracker-app-2026` Firebase project. `.env.example` lists the required keys with placeholders — copy the web config from the Firebase console (Project settings > General > Your apps) into your `.env`.
 
 
 - `NEXT_PUBLIC_FIREBASE_API_KEY`: Firebase web API key

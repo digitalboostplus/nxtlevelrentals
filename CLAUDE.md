@@ -173,7 +173,7 @@ Copy `.env.example` to `.env` and configure:
 - `SENDGRID_API_KEY` - Transactional emails
 - `NEXT_PUBLIC_FIREBASE_VAPID_KEY` - Push notifications
 
-**Note**: `.env.example` contains pre-configured Firebase credentials for `rental-app-3ec4a` project. Use these for quick start or replace with your own Firebase project.
+**Note**: This app targets the `rental-tracker-app-2026` Firebase project. `.env.example` lists the required keys with placeholders — copy the web config (apiKey, messagingSenderId, appId, etc.) from the Firebase console into your `.env`. The same project id is set in `.firebaserc` and `public/firebase-messaging-sw.js`.
 
 ## Common Patterns
 

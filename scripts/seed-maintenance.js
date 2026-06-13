@@ -21,7 +21,7 @@ if (serviceAccountArg) {
     if (!admin.apps.length) {
         // If running outside nextjs (script), we might need to load env vars manually or hardcode project ID
         // Check if we can get project ID from env or arg
-        const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'nxtlevel-7986e';
+        const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'rental-tracker-app-2026';
         admin.initializeApp({
             credential: admin.credential.applicationDefault(),
             projectId: projectId

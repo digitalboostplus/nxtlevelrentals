@@ -5,15 +5,19 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// Firebase configuration
-// Note: These values are public and safe to include in client-side code
+// Firebase configuration for the rental-tracker-app-2026 project.
+// These values are public and safe to include in client-side code, but they
+// must match the project. apiKey, messagingSenderId and appId are unique to
+// the project — copy them from Firebase console > Project settings > General >
+// Your apps > SDK setup and configuration. A service worker can't read env
+// vars, so these stay hardcoded here.
 const firebaseConfig = {
-  apiKey: "AIzaSyCf2ZEMjwVbzkZzVAWlX8Bxf5k66Uc3VMs",
-  authDomain: "rental-app-3ec4a.firebaseapp.com",
-  projectId: "rental-app-3ec4a",
-  storageBucket: "rental-app-3ec4a.firebasestorage.app",
-  messagingSenderId: "118318302192",
-  appId: "1:118318302192:web:aa9b75535dcb24c61b5335"
+  apiKey: "REPLACE_WITH_NEW_PROJECT_API_KEY",
+  authDomain: "rental-tracker-app-2026.firebaseapp.com",
+  projectId: "rental-tracker-app-2026",
+  storageBucket: "rental-tracker-app-2026.firebasestorage.app",
+  messagingSenderId: "REPLACE_WITH_NEW_PROJECT_SENDER_ID",
+  appId: "REPLACE_WITH_NEW_PROJECT_APP_ID"
 };
 
 // Initialize Firebase
