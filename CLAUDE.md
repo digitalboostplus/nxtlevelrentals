@@ -168,10 +168,9 @@ Copy `.env.example` to `.env` and configure:
 - `FIREBASE_PRIVATE_KEY` - Service account private key (escape newlines as `\n`)
 
 ### Optional Integrations
-- `GHL_ACCESS_TOKEN` - GoHighLevel API token
-- `LOCATION_ID` - GoHighLevel location ID
-- `STRIPE_PUBLIC_KEY` / `STRIPE_SECRET_KEY` - Payment processing
-- `SENDGRID_API_KEY` - Transactional emails
+- `GHL_API_KEY` - GoHighLevel Private Integration Token (CRM sync + all email/SMS)
+- `GHL_LOCATION_ID` - GoHighLevel location ID
+- `GEMINI_API_KEY` - Google Gemini key for the AI chat assistant
 - `NEXT_PUBLIC_FIREBASE_VAPID_KEY` - Push notifications
 
 **Note**: This app targets the `rental-tracker-app-2026` Firebase project. `.env.example` lists the required keys with placeholders — copy the web config (apiKey, messagingSenderId, appId, etc.) from the Firebase console into your `.env`. The same project id is set in `.firebaserc` and `public/firebase-messaging-sw.js`.

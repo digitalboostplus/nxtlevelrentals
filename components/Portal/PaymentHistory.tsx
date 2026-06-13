@@ -40,7 +40,6 @@ export default function PaymentHistory({ payments }: PaymentHistoryProps) {
         <div className="card">
           <div className="card__header">
             <h2 className="card__title">Rent & payment history</h2>
-            <span className="tag tag--neutral">Stripe secure billing</span>
           </div>
           <div className="table-wrapper" role="region" aria-label="Payment history table">
             <table className="table">

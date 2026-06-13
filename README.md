@@ -20,9 +20,9 @@ Next Level Rentals is a comprehensive property management system that provides t
 - **Secure Authentication**: Firebase Authentication with optional multi-factor support
 - **Dashboard**: Personalized overview of account status and important notifications
 - **Rent Management**:
-  - Online rent payment processing
   - Payment history and receipts
-  - Automatic payment setup
+  - Manual payment recording (cash/check) by admins
+  - Ledger and balance tracking
 - **Maintenance Requests**:
   - Submit and track maintenance requests
   - Photo upload capability via Firebase Storage
@@ -42,10 +42,10 @@ Next Level Rentals is a comprehensive property management system that provides t
 - **Backend**: Firebase Cloud Functions (Node.js runtime)
 - **Database**: Cloud Firestore for real-time data persistence
 - **Authentication**: Firebase Authentication
-- **Payment Processing**: Stripe integration triggered from Cloud Functions
+- **CRM & Communications**: GoHighLevel API (contacts, leases, payments sync, and all email/SMS)
 - **File Storage**: Firebase Storage for documents and images
-- **Email & Notifications**: SendGrid or Firebase Extensions triggered via Cloud Functions
-- **Hosting**: Firebase Hosting with optional Cloud Run for server-side needs
+- **Notifications**: Firebase Cloud Messaging (push) + in-app; email via the GoHighLevel API
+- **Hosting**: Firebase Hosting with Next.js SSR on Cloud Run
 
 ## 📱 Responsive Design
 
@@ -91,7 +91,7 @@ cp .env.example .env
   - Authentication (Email/Password, SSO providers as needed)
   - Cloud Firestore
   - Firebase Storage
-  - Cloud Functions (upgrade project to Blaze plan for external network calls such as Stripe)
+  - Cloud Functions / Cloud Run (Blaze plan required for SSR hosting and outbound API calls such as GoHighLevel)
 
 5. Initialize the database and storage rules (optional but recommended)
 ```bash
@@ -124,9 +124,10 @@ This app targets the `rental-tracker-app-2026` Firebase project. `.env.example` 
 - `FIREBASE_CLIENT_EMAIL`: Service account client email for Firebase Admin SDK
 - `FIREBASE_PRIVATE_KEY`: Service account private key (escape newlines when storing in `.env`)
 - `FIREBASE_DATABASE_URL`: Realtime Database URL (if applicable)
-- `STRIPE_PUBLIC_KEY`: Stripe publishable key for client-side usage
-- `STRIPE_SECRET_KEY`: Stripe secret key for Cloud Functions
-- `SENDGRID_API_KEY`: API key for transactional email (if using SendGrid)
+- `GHL_API_KEY`: GoHighLevel Private Integration Token (CRM sync + email/SMS)
+- `GHL_LOCATION_ID`: GoHighLevel location ID
+- `GEMINI_API_KEY`: Google Gemini key for the AI chat assistant (optional)
+- `NEXT_PUBLIC_FIREBASE_VAPID_KEY`: Web Push certificate key for FCM (optional)
 
 > **Note:** Keep your service account credentials secure. For local development, you can store the Firebase Admin SDK JSON as a base64 string and decode it in your configuration.
 

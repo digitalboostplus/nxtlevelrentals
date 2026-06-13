@@ -22,4 +22,4 @@ Automated tests are not configured yet. Until a Jest/React Testing Library stack
 Write commits in imperative voice with clear scope (e.g., "Add tenant dashboard cards"). Group related changes and avoid formatting-only commits unless intentional. Open PRs with a concise summary, list Firebase or environment changes, link to the relevant issue, and attach UI screenshots or Loom demos for visual updates. Confirm that `npm run build` and `npm run lint` pass locally, and mention any follow-up tasks in the description.
 
 ## Security & Configuration Tips
-Never commit real Firebase or Stripe secrets; use `.env.local` for local overrides. Shared helpers in `lib/firebase.ts` read from `process.env`, so verify every required key exists before deploying. Coordinate config changes with the platform team and rotate keys immediately if credentials are exposed.
+Never commit real Firebase or GoHighLevel secrets; use `.env.local` for local overrides. Shared helpers in `lib/firebase.ts` read from `process.env`, so verify every required key exists before deploying. Coordinate config changes with the platform team and rotate keys immediately if credentials are exposed.
