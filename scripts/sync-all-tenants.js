@@ -11,6 +11,12 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+const GHL_TOKEN = process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN;
+if (!GHL_TOKEN) {
+    console.error('Missing GHL_API_KEY (or GHL_ACCESS_TOKEN) environment variable.');
+    process.exit(1);
+}
+
 // Helper: Fetch by ID (Reliable)
 async function getGHLContactById(id) {
     const url = `https://services.leadconnectorhq.com/contacts/${id}`;
@@ -18,7 +24,7 @@ async function getGHLContactById(id) {
         const res = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${process.env.GHL_ACCESS_TOKEN || 'pit-8eac004c-5c6b-4027-a01f-285398cc05ab'}`,
+                'Authorization': `Bearer ${GHL_TOKEN}`,
                 'Version': '2021-07-28',
                 'Accept': 'application/json'
             }

@@ -8,6 +8,7 @@ import {
   onNotesAdded,
   onTechnicianScheduled
 } from '@/lib/notification-triggers';
+import { pushMaintenanceStatusToGHL } from '@/lib/ghl-sync';
 
 interface UpdateStatusRequest {
   requestId: string;
@@ -139,6 +140,14 @@ export default async function handler(
         adminName
       ).catch(error => {
         console.error('Failed to send status change notification:', error);
+      });
+
+      // Reflect the status change on the tenant's GHL contact
+      await pushMaintenanceStatusToGHL({
+        tenantId: updatedRequest.tenantId,
+        title: updatedRequest.title,
+        status,
+        note: adminNotes,
       });
     }
 

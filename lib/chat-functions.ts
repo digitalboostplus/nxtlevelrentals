@@ -1,5 +1,6 @@
 import { adminDb } from './firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { pushMaintenanceToGHL } from './ghl-sync';
 import type { FunctionCallResult } from '@/types/chat';
 
 // Execute a function call from the AI
@@ -112,6 +113,15 @@ async function submitMaintenanceRequest(
     status: 'submitted',
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp()
+  });
+
+  // Reflect the request on the tenant's GHL contact (non-blocking on failure)
+  await pushMaintenanceToGHL({
+    tenantId: userId,
+    title: String(title),
+    description: String(description),
+    priority: String(priority),
+    status: 'submitted',
   });
 
   return {

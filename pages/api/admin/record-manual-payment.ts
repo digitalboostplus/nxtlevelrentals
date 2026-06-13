@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { pushPaymentToGHL } from '@/lib/ghl-sync';
 
 type ManualPaymentRequest = {
   tenantId: string;
@@ -84,6 +85,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       manualEntry: true,
       recordedBy: adminId,
       createdAt: now,
+    });
+
+    // Reflect the payment on the tenant's GHL contact (non-blocking on failure)
+    await pushPaymentToGHL({
+      tenantId,
+      amount,
+      status: 'paid',
+      date: paymentDate,
+      description,
+      method: paymentMethod,
     });
 
     return res.status(200).json({

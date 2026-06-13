@@ -19,8 +19,13 @@ const db = admin.firestore();
 
 // 2. GHL Fetch Function (Duplicated from lib/ghl.ts approx, but simplified for script)
 async function getGHLContact(email) {
-    const token = process.env.GHL_ACCESS_TOKEN || 'pit-8eac004c-5c6b-4027-a01f-285398cc05ab';
-    const locationId = process.env.LOCATION_ID || 'ewas9FYYHk4acPyw4taq';
+    const token = process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN;
+    const locationId = process.env.GHL_LOCATION_ID || process.env.LOCATION_ID;
+
+    if (!token) {
+        console.error('Missing GHL_API_KEY (or GHL_ACCESS_TOKEN) environment variable.');
+        process.exit(1);
+    }
 
     console.log(`Searching GHL for: ${email}`);
 

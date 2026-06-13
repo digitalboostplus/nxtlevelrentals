@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { buffer } from 'micro';
 import { stripe, toDollars } from '@/lib/stripe-server';
 import { adminDb } from '@/lib/firebase-admin';
+import { pushPaymentToGHL } from '@/lib/ghl-sync';
 import Stripe from 'stripe';
 
 // CRITICAL: Disable Next.js body parsing for webhooks
@@ -171,6 +172,16 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     createdAt: now,
   });
 
+  // Reflect the payment on the tenant's GHL contact (non-blocking on failure)
+  await pushPaymentToGHL({
+    tenantId,
+    amount,
+    status: 'paid',
+    date: now,
+    description: description || 'Rent Payment',
+    method: paymentMethodType,
+  });
+
   console.log(`Payment successful for tenant ${tenantId}: $${amount}`);
 }
 
@@ -209,6 +220,16 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
       description: 'Failed Payment',
       stripePaymentIntentId: paymentIntent.id,
       createdAt: new Date().toISOString(),
+    });
+  }
+
+  if (tenantId) {
+    await pushPaymentToGHL({
+      tenantId,
+      amount: toDollars(paymentIntent.amount),
+      status: 'failed',
+      date: new Date().toISOString(),
+      description: 'Failed Payment',
     });
   }
 

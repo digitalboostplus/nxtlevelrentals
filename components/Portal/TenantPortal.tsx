@@ -11,7 +11,6 @@ import MaintenanceRequestForm from '@/components/Portal/MaintenanceRequestForm';
 import ResidentResources from '@/components/Portal/ResidentResources';
 import PayRentModal from '@/components/Portal/PayRentModal';
 import { tenantDashboard } from '@/data/portal';
-import { createMaintenanceRequest } from '@/lib/maintenance';
 import { useAuth } from '@/context/AuthContext';
 import { usePortalData } from '@/hooks/usePortalData';
 import type { MaintenanceRequest } from '@/types/maintenance';
@@ -67,21 +66,31 @@ export default function TenantPortal() {
         setRequestSubmitting(true);
 
         try {
-            await createMaintenanceRequest({
-                ...payload,
-                priority: payload.priority.toLowerCase() as any,
-                category: (payload.category?.toLowerCase() || 'other') as any, // Safety check
-                tenantId: user.uid,
-                propertyId: profile.propertyIds?.[0] || 'unassigned',
-                // unitId: profile.unit 
+            // Submit via the server route so the request is also pushed to GHL.
+            const token = await user.getIdToken();
+            const res = await fetch('/api/maintenance/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    title: payload.title,
+                    description: payload.description,
+                    priority: payload.priority.toLowerCase(),
+                    category: payload.category?.toLowerCase() || 'other',
+                    propertyId: profile.propertyIds?.[0] || 'unassigned',
+                }),
             });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || 'Failed to create request');
+            }
 
             // Refresh data to show new request
             await refresh();
             setMaintenanceFilter('All');
-
-            // Scroll to requests list is handled by UI likely, or we can add it here if needed.
-
         } catch (err) {
             console.error('Failed to create request', err);
         } finally {
