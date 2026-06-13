@@ -1,14 +1,28 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { firebaseAdmin } from '@/lib/firebase-admin';
-import { getNotificationPreferences } from '@/lib/notifications';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
+import { DEFAULT_PREFERENCES } from '@/lib/notifications';
 import type { NotificationPreferences } from '@/types/notifications';
-import { getFirestoreClient } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+// Read notification preferences via the Admin SDK, seeding defaults if absent.
+async function readPreferences(userId: string): Promise<NotificationPreferences> {
+  const ref = adminDb.collection('notificationPreferences').doc(userId);
+  const snap = await ref.get();
+  if (snap.exists) {
+    return snap.data() as NotificationPreferences;
+  }
+
+  const defaults: NotificationPreferences = {
+    userId,
+    ...DEFAULT_PREFERENCES,
+    createdAt: FieldValue.serverTimestamp() as any,
+    updatedAt: FieldValue.serverTimestamp() as any,
+  };
+  await ref.set(defaults);
+  return defaults;
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'PUT') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -20,12 +34,9 @@ export default async function handler(
       return res.status(401).json({ message: 'Unauthorized: No token provided' });
     }
 
-    const authToken = authHeader.split('Bearer ')[1];
-    const admin = firebaseAdmin;
-
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(authToken);
+      decodedToken = await adminAuth.verifyIdToken(authHeader.split('Bearer ')[1]);
     } catch (error) {
       return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
@@ -34,56 +45,41 @@ export default async function handler(
 
     // Handle GET request - retrieve preferences
     if (req.method === 'GET') {
-      const preferences = await getNotificationPreferences(userId);
-
-      return res.status(200).json({
-        success: true,
-        preferences
-      });
+      const preferences = await readPreferences(userId);
+      return res.status(200).json({ success: true, preferences });
     }
 
     // Handle PUT request - update preferences
-    if (req.method === 'PUT') {
-      const updates = req.body as Partial<NotificationPreferences>;
+    const updates = req.body as Partial<NotificationPreferences>;
 
-      // Validate updates structure
-      if (!updates.email && !updates.push && !updates.inApp) {
-        return res.status(400).json({
-          message: 'At least one preference category (email, push, or inApp) must be provided'
-        });
-      }
-
-      // Get current preferences
-      const currentPreferences = await getNotificationPreferences(userId);
-
-      // Merge updates with current preferences
-      const updatedPreferences: NotificationPreferences = {
-        ...currentPreferences,
-        ...(updates.email && { email: { ...currentPreferences.email, ...updates.email } }),
-        ...(updates.push && { push: { ...currentPreferences.push, ...updates.push } }),
-        ...(updates.inApp && { inApp: { ...currentPreferences.inApp, ...updates.inApp } }),
-        updatedAt: serverTimestamp()
-      };
-
-      // Save to Firestore
-      const db = getFirestoreClient();
-      const prefsRef = doc(db, 'notificationPreferences', userId);
-
-      await setDoc(prefsRef, updatedPreferences);
-
-      console.log(`Notification preferences updated for user ${userId}`);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Preferences updated successfully',
-        preferences: updatedPreferences
+    if (!updates.email && !updates.push && !updates.inApp) {
+      return res.status(400).json({
+        message: 'At least one preference category (email, push, or inApp) must be provided',
       });
     }
+
+    const currentPreferences = await readPreferences(userId);
+
+    const updatedPreferences: NotificationPreferences = {
+      ...currentPreferences,
+      ...(updates.email && { email: { ...currentPreferences.email, ...updates.email } }),
+      ...(updates.push && { push: { ...currentPreferences.push, ...updates.push } }),
+      ...(updates.inApp && { inApp: { ...currentPreferences.inApp, ...updates.inApp } }),
+      updatedAt: FieldValue.serverTimestamp() as any,
+    };
+
+    await adminDb
+      .collection('notificationPreferences')
+      .doc(userId)
+      .set(updatedPreferences, { merge: true });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Preferences updated successfully',
+      preferences: updatedPreferences,
+    });
   } catch (error: any) {
     console.error('Error managing notification preferences:', error);
-    return res.status(500).json({
-      message: 'Internal server error',
-      error: error.message
-    });
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 }

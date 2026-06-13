@@ -12,6 +12,9 @@ import { doc, getDoc, type DocumentData } from 'firebase/firestore';
 import { getFirebaseAuth, getFirestoreClient } from '@/lib/firebase';
 import type { UserProfile, UserRole } from '@/types/schema';
 
+// Re-export so consumers can import the role type alongside the context hooks.
+export type { UserRole } from '@/types/schema';
+
 type AuthContextValue = {
   user: FirebaseUser | null;
   profile: UserProfile | null;
@@ -35,6 +38,7 @@ const parseProfile = (user: FirebaseUser, data: DocumentData | undefined): UserP
     role,
     propertyIds: data?.propertyIds,
     unit: data?.unit,
+    landlordId: data?.landlordId,
     phoneNumber: data?.phoneNumber,
     photoURL: data?.photoURL,
     stripeCustomerId: data?.stripeCustomerId,

@@ -27,7 +27,7 @@ import {
 } from '@/types/notifications';
 
 // Default notification preferences for new users
-const DEFAULT_PREFERENCES: Omit<NotificationPreferences, 'userId' | 'createdAt' | 'updatedAt'> = {
+export const DEFAULT_PREFERENCES: Omit<NotificationPreferences, 'userId' | 'createdAt' | 'updatedAt'> = {
   email: {
     enabled: true,
     statusChanges: true,

@@ -153,7 +153,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           const file = selectedImages[i];
           const timestamp = Date.now();
           const path = `properties/temp-${timestamp}/images/${timestamp}_${file.name}`;
-          const url = await storageUtils.uploadFile(file, path);
+          const url = await storageUtils.uploadFile(path, file);
           imageUrls.push(url);
           setUploadProgress(Math.round(((i + 1) / totalImages) * 50)); // 50% for uploads
         }

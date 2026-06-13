@@ -13,10 +13,15 @@ import PayRentModal from '@/components/Portal/PayRentModal';
 import { tenantDashboard } from '@/data/portal';
 import { useAuth } from '@/context/AuthContext';
 import { usePortalData } from '@/hooks/usePortalData';
-import type { MaintenanceRequest } from '@/types/maintenance';
 
 type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
-type MaintenanceFormPayload = Omit<MaintenanceRequest, 'id' | 'submittedOn' | 'status' | 'createdAt' | 'updatedAt' | 'tenantId' | 'propertyId'>;
+// Matches the shape emitted by MaintenanceRequestForm.onSubmit.
+type MaintenanceFormPayload = {
+    title: string;
+    description: string;
+    priority: 'Low' | 'Medium' | 'High';
+    category?: string;
+};
 
 export default function TenantPortal() {
     const { user, profile } = useAuth();

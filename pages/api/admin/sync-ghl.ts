@@ -60,6 +60,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } catch (err: any) {
         results.push({ uid: t.uid, synced: false, detail: err.message });
       }
+      // Throttle to stay within GHL rate limits when syncing many tenants.
+      if (targets.length > 1) {
+        await new Promise((r) => setTimeout(r, 200));
+      }
     }
 
     const syncedCount = results.filter((r) => r.synced).length;

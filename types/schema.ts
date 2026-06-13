@@ -12,6 +12,7 @@ export interface UserProfile {
     stripeCustomerId?: string; // For tenants
     propertyIds?: string[]; // Properties tenant lives in or landlord owns
     unit?: string; // For tenants
+    landlordId?: string; // Reference to landlords/{id} for landlord users
     onboardingCompleted?: boolean;
     createdAt: Timestamp | Date;
     updatedAt?: Timestamp | Date;

@@ -858,6 +858,17 @@ export const analyticsUtils = {
 
 // Landlord utilities
 export const landlordUtils = {
+  // Return all landlords whose account is active (for property assignment, etc.)
+  async getActiveLandlords(): Promise<Landlord[]> {
+    const db = getFirestoreClient();
+    const q = query(
+      collection(db, 'landlords'),
+      where('accountStatus', '==', 'active')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Landlord));
+  },
+
   async updatePayoutStatus(
     payoutId: string,
     status: Payout['status'],

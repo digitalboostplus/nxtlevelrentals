@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { firebaseAdmin } from '@/lib/firebase-admin';
-import { getFirestoreClient } from '@/lib/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { firebaseAdmin, adminDb } from '@/lib/firebase-admin';
 import type { MaintenanceRequest, MaintenanceStatus } from '@/types/maintenance';
 import {
   onStatusChanged,
@@ -71,11 +69,10 @@ export default async function handler(
     }
 
     // Get existing maintenance request
-    const db = getFirestoreClient();
-    const requestRef = doc(db, 'maintenanceRequests', requestId);
-    const requestSnap = await getDoc(requestRef);
+    const requestRef = adminDb.collection('maintenanceRequests').doc(requestId);
+    const requestSnap = await requestRef.get();
 
-    if (!requestSnap.exists()) {
+    if (!requestSnap.exists) {
       return res.status(404).json({ message: 'Maintenance request not found' });
     }
 
@@ -119,10 +116,10 @@ export default async function handler(
     }
 
     // Apply updates to Firestore
-    await updateDoc(requestRef, updates);
+    await requestRef.update(updates);
 
     // Get updated request
-    const updatedRequestSnap = await getDoc(requestRef);
+    const updatedRequestSnap = await requestRef.get();
     const updatedRequest = {
       id: updatedRequestSnap.id,
       ...updatedRequestSnap.data()

@@ -2,26 +2,57 @@ import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import SiteLayout from '@/components/Layout/SiteLayout';
 import { adminUtils } from '@/lib/firebase-utils';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import type { NextPageWithAuth } from '../_app';
 
 const TenantsPage: NextPageWithAuth = () => {
+    const { user } = useAuth();
     const [tenants, setTenants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [syncing, setSyncing] = useState<string | null>(null); // 'all' or a tenant id
+    const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
+    const fetchTenants = async () => {
+        try {
+            const data = await adminUtils.getAllTenants();
+            setTenants(data);
+        } catch (error) {
+            console.error('Error fetching tenants:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchTenants = async () => {
-            try {
-                const data = await adminUtils.getAllTenants();
-                setTenants(data);
-            } catch (error) {
-                console.error('Error fetching tenants:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchTenants();
     }, []);
+
+    // Pull tenant data from GoHighLevel. Pass a uid to sync one, omit for all.
+    const handleSync = async (uid?: string) => {
+        if (!user) return;
+        setSyncing(uid || 'all');
+        setSyncMessage(null);
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch('/api/admin/sync-ghl', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(uid ? { uid } : { all: true }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Sync failed');
+            setSyncMessage(data.message || 'Sync complete');
+            await fetchTenants();
+        } catch (err: any) {
+            setSyncMessage(err.message || 'Sync failed');
+        } finally {
+            setSyncing(null);
+        }
+    };
 
     return (
         <SiteLayout>
@@ -34,6 +65,16 @@ const TenantsPage: NextPageWithAuth = () => {
                     <div>
                         <h1>Tenants</h1>
                         <p>Manage your residents and view their payment history.</p>
+                    </div>
+                    <div className="header-actions">
+                        {syncMessage && <span className="sync-message">{syncMessage}</span>}
+                        <button
+                            className="sync-button"
+                            onClick={() => handleSync()}
+                            disabled={syncing !== null}
+                        >
+                            {syncing === 'all' ? 'Syncing…' : 'Sync all from GHL'}
+                        </button>
                     </div>
                 </header>
 
@@ -68,6 +109,13 @@ const TenantsPage: NextPageWithAuth = () => {
                                             <Link href={`/admin/ledger/${tenant.id}`} className="view-link">
                                                 View Ledger
                                             </Link>
+                                            <button
+                                                className="sync-link"
+                                                onClick={() => handleSync(tenant.id)}
+                                                disabled={syncing !== null}
+                                            >
+                                                {syncing === tenant.id ? 'Syncing…' : 'Sync GHL'}
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -116,6 +164,52 @@ const TenantsPage: NextPageWithAuth = () => {
 
         .view-link:hover {
           text-decoration: underline;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .sync-message {
+          color: var(--color-muted);
+          font-size: 0.875rem;
+        }
+
+        .sync-button {
+          background-color: var(--color-primary);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 0.625rem 1.25rem;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .sync-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .sync-link {
+          margin-left: 1rem;
+          background: none;
+          border: none;
+          color: var(--color-primary);
+          font-weight: 500;
+          cursor: pointer;
+          padding: 0;
+          font-size: inherit;
+        }
+
+        .sync-link:hover:not(:disabled) {
+          text-decoration: underline;
+        }
+
+        .sync-link:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .loading-state {

@@ -39,8 +39,16 @@ export default function PushPermissionPrompt() {
     setIsEnabling(true);
 
     try {
-      // Request notification permission and get FCM token
-      const token = await messagingUtils.requestPermission();
+      // Request notification permission, then get the FCM token
+      if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          handleDismiss();
+          return;
+        }
+      }
+
+      const token = await messagingUtils.getFCMToken();
 
       if (token) {
         // Register token with backend

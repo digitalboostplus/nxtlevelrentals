@@ -6,6 +6,7 @@
 // app flow (creating a tenant, recording a payment, etc.).
 
 import { adminDb } from './firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import {
   GHL_FIELD_IDS,
   isGHLConfigured,
@@ -79,7 +80,12 @@ export async function pullContactToFirestore(params: {
 
   const now = new Date().toISOString();
 
-  await adminDb.collection('leaseDocuments').doc(`lease-${uid}`).set(
+  // Set createdAt only on first creation so the leaseDocuments `orderBy
+  // createdAt` queries (e.g. the chat assistant) can find this record.
+  const leaseRef = adminDb.collection('leaseDocuments').doc(`lease-${uid}`);
+  const leaseExists = (await leaseRef.get()).exists;
+
+  await leaseRef.set(
     {
       tenantId: uid,
       email,
@@ -91,6 +97,7 @@ export async function pullContactToFirestore(params: {
       monthlyRent: contact.monthlyRent ?? null,
       title: 'Lease Agreement (GHL)',
       lastSyncedAt: now,
+      ...(leaseExists ? {} : { createdAt: FieldValue.serverTimestamp() }),
     },
     { merge: true }
   );
