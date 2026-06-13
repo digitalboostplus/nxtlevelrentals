@@ -12,12 +12,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 // Your apps > SDK setup and configuration. A service worker can't read env
 // vars, so these stay hardcoded here.
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_NEW_PROJECT_API_KEY",
+  apiKey: "AIzaSyB7ejJsSoiVqXfIb7Nj9tT9AfiB5tQl9xQ",
   authDomain: "rental-tracker-app-2026.firebaseapp.com",
   projectId: "rental-tracker-app-2026",
   storageBucket: "rental-tracker-app-2026.firebasestorage.app",
-  messagingSenderId: "REPLACE_WITH_NEW_PROJECT_SENDER_ID",
-  appId: "REPLACE_WITH_NEW_PROJECT_APP_ID"
+  messagingSenderId: "12461206147",
+  appId: "1:12461206147:web:c71e4ff6b0d764425589b6"
 };
 
 // Initialize Firebase
