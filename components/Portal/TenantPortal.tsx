@@ -9,7 +9,6 @@ import QuickActions from '@/components/Portal/QuickActions';
 import SupportContacts from '@/components/Portal/SupportContacts';
 import MaintenanceRequestForm from '@/components/Portal/MaintenanceRequestForm';
 import ResidentResources from '@/components/Portal/ResidentResources';
-import PayRentModal from '@/components/Portal/PayRentModal';
 import { tenantDashboard } from '@/data/portal';
 import { useAuth } from '@/context/AuthContext';
 import { usePortalData } from '@/hooks/usePortalData';
@@ -38,7 +37,6 @@ export default function TenantPortal() {
 
     const [maintenanceFilter, setMaintenanceFilter] = useState<MaintenanceStatusFilter>('All');
     const [requestSubmitting, setRequestSubmitting] = useState(false);
-    const [isPayRentModalOpen, setIsPayRentModalOpen] = useState(false);
 
     // Combine real metrics with static fallbacks where needed
     const metrics = useMemo(
@@ -115,10 +113,10 @@ export default function TenantPortal() {
             />
             <DashboardHighlights metrics={metrics} />
             <QuickActions
-                actions={tenantDashboard.quickActions.map((action) => {
+                actions={tenantDashboard.quickActions
+                    .filter((action) => action.id !== 'qa-pay-rent')
+                    .map((action) => {
                     switch (action.id) {
-                        case 'qa-pay-rent':
-                            return { ...action, onClick: () => setIsPayRentModalOpen(true) };
                         case 'qa-maintenance':
                             return { ...action, onClick: () => document.getElementById('maintenance-form')?.scrollIntoView({ behavior: 'smooth' }) };
                         case 'qa-documents':
@@ -130,12 +128,6 @@ export default function TenantPortal() {
             />
             <PaymentHistory payments={payments} />
 
-            <PayRentModal
-                isOpen={isPayRentModalOpen}
-                onClose={() => setIsPayRentModalOpen(false)}
-                currentBalance={metrics.currentBalance}
-                propertyId={profile?.propertyIds?.[0] || ''}
-            />
             <MaintenanceRequestForm onSubmit={handleRequestSubmit} submitting={requestSubmitting} />
             <MaintenanceRequests
                 requests={maintenanceRequests}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getAuthToken } from '@/lib/stripe-client';
+import { getAuthToken } from '@/lib/auth-client';
 import type { NotificationPreferences } from '@/types/notifications';
 
 interface NotificationPreferencesModalProps {

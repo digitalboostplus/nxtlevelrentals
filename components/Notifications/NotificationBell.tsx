@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getAuthToken } from '@/lib/stripe-client';
+import { getAuthToken } from '@/lib/auth-client';
 import NotificationDropdown from './NotificationDropdown';
 
 export default function NotificationBell() {

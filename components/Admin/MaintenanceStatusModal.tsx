@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAuthToken } from '@/lib/stripe-client';
+import { getAuthToken } from '@/lib/auth-client';
 import type { MaintenanceRequest, MaintenanceStatus } from '@/types/maintenance';
 
 interface MaintenanceStatusModalProps {

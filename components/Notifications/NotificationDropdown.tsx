@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { getAuthToken } from '@/lib/stripe-client';
+import { getAuthToken } from '@/lib/auth-client';
 import type { Notification } from '@/types/notifications';
 
 interface NotificationDropdownProps {

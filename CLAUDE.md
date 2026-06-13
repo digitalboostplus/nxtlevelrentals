@@ -95,9 +95,10 @@ Run with: `node scripts/<script-name>.js [args]`
   - Includes TypeScript interfaces for all data models
 
 - **Other Lib Modules**:
-  - `lib/stripe-client.ts` / `lib/stripe-server.ts` - Stripe payment integration (client & server)
-  - `lib/notifications.ts` / `lib/notification-triggers.ts` - Push notification system
-  - `lib/email-templates.ts` - SendGrid email templates
+  - `lib/auth-client.ts` - `getAuthToken()` helper for authenticated API calls
+  - `lib/ghl.ts` / `lib/ghl-sync.ts` - GoHighLevel CRM client + sync (contacts, leases, payments, maintenance, email)
+  - `lib/notifications.ts` / `lib/notification-triggers.ts` - Push + in-app notifications (email sent via GHL)
+  - `lib/email-templates.ts` - Email HTML templates (delivered through the GHL API)
   - `lib/users.ts` - User management utilities
   - `lib/maintenance.ts` - Maintenance request helpers
   - `lib/date.ts` - Date formatting utilities

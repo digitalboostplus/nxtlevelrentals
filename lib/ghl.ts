@@ -214,3 +214,18 @@ export async function addGHLContactTags(contactId: string, tags: string[]): Prom
     body: { tags },
   });
 }
+
+/**
+ * Send an email to a contact via the GHL Conversations API.
+ * Requires a sending email/domain to be configured in the GHL location.
+ */
+export async function sendGHLEmail(
+  contactId: string,
+  subject: string,
+  html: string
+): Promise<void> {
+  await ghlFetch('/conversations/messages', {
+    method: 'POST',
+    body: { type: 'Email', contactId, subject, html },
+  });
+}

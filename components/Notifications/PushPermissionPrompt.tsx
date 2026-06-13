@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { messagingUtils } from '@/lib/firebase-utils';
-import { getAuthToken } from '@/lib/stripe-client';
+import { getAuthToken } from '@/lib/auth-client';
 
 const COOKIE_NAME = 'notification_prompt_dismissed';
 const COOKIE_EXPIRY_DAYS = 90;

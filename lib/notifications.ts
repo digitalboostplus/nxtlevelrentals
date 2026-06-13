@@ -12,12 +12,7 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
-import sgMail from '@sendgrid/mail';
-
-// Initialize SendGrid
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
+import { isGHLConfigured, getGHLContactByEmail, sendGHLEmail } from './ghl';
 
 // Types
 import {
@@ -150,38 +145,32 @@ export async function sendPushNotification(
 }
 
 /**
- * Send email notification via SendGrid
+ * Send an email notification via the GoHighLevel Conversations API.
+ * Looks up the recipient's GHL contact by email, then sends through GHL.
  */
 export async function sendEmailNotification(
   toEmail: string,
   subject: string,
   htmlContent: string,
-  textContent?: string
+  _textContent?: string
 ): Promise<boolean> {
-  if (!process.env.SENDGRID_API_KEY) {
-    console.warn('SendGrid API key not configured, skipping email notification');
+  if (!isGHLConfigured()) {
+    console.warn('GHL not configured, skipping email notification');
     return false;
   }
 
   try {
-    const msg = {
-      to: toEmail,
-      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@nxtlevelrentals.com',
-      subject,
-      text: textContent || subject,
-      html: htmlContent
-    };
-
-    await sgMail.send(msg);
-    console.log(`Email sent to ${toEmail}`);
-    return true;
-  } catch (error: any) {
-    console.error(`Failed to send email to ${toEmail}:`, error);
-
-    if (error.response) {
-      console.error('SendGrid error:', error.response.body);
+    const contact = await getGHLContactByEmail(toEmail);
+    if (!contact) {
+      console.warn(`No GHL contact found for ${toEmail}, skipping email`);
+      return false;
     }
 
+    await sendGHLEmail(contact.id, subject, htmlContent);
+    console.log(`Email sent to ${toEmail} via GHL`);
+    return true;
+  } catch (error: any) {
+    console.error(`Failed to send email to ${toEmail} via GHL:`, error);
     return false;
   }
 }
