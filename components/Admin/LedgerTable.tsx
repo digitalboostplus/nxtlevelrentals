@@ -144,14 +144,14 @@ export default function LedgerTable({ entries }: LedgerTableProps) {
         .ledger-container {
           background: var(--color-surface);
           border-radius: var(--radius-lg);
-          border: 1px solid rgba(15, 118, 110, 0.12);
+          border: 1px solid var(--color-border);
           overflow: hidden;
         }
 
         .ledger-controls {
           padding: 1rem 1.5rem;
           background: var(--color-surface-elevated);
-          border-bottom: 1px solid rgba(15, 118, 110, 0.12);
+          border-bottom: 1px solid var(--color-border);
           display: flex;
           justify-content: flex-end;
           gap: 1rem;
@@ -195,20 +195,21 @@ export default function LedgerTable({ entries }: LedgerTableProps) {
         thead th {
           position: sticky;
           top: var(--header-height);
-          z-index: 1;
+          z-index: 2;
+          background: var(--color-surface-elevated);
         }
 
         tbody tr {
-          border-bottom: 1px solid rgba(15, 118, 110, 0.08);
+          border-bottom: 1px solid var(--color-border);
           transition: background 0.2s;
         }
 
         tbody tr:nth-child(even) {
-          background: rgba(15, 118, 110, 0.04);
+          background: var(--color-accent-subtle);
         }
 
         tbody tr:hover {
-          background: rgba(15, 118, 110, 0.08);
+          background: var(--color-accent-subtle-strong);
         }
 
         th {
@@ -220,10 +221,10 @@ export default function LedgerTable({ entries }: LedgerTableProps) {
           user-select: none;
         }
 
-        .tag--error { background: #fee2e2; color: #991b1b; }
-        .tag--warning { background: #fef3c7; color: #92400e; }
-        .tag--success { background: #dcfce7; color: #166534; }
-        .tag--muted { background: #f1f5f9; color: #475569; }
+        .tag--error { background: var(--tag-error-bg); color: var(--tag-error-text); }
+        .tag--warning { background: var(--tag-warning-bg); color: var(--tag-warning-text); }
+        .tag--success { background: var(--tag-success-bg); color: var(--tag-success-text); }
+        .tag--muted { background: var(--tag-neutral-bg); color: var(--tag-neutral-text); }
       `}</style>
     </div>
   );

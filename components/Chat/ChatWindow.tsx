@@ -225,7 +225,7 @@ export default function ChatWindow() {
         }
 
         .chat-window__action-btn--close:hover {
-          background: rgba(239, 68, 68, 0.8);
+          background: var(--color-error);
         }
 
         .chat-window__messages {
@@ -259,7 +259,7 @@ export default function ChatWindow() {
           font-size: 1.75rem;
           font-weight: 600;
           margin-bottom: 16px;
-          box-shadow: 0 4px 12px rgba(15, 118, 110, 0.28);
+          box-shadow: 0 4px 12px var(--color-primary-light);
         }
 
         .chat-window__welcome-title {

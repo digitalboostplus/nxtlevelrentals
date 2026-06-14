@@ -198,7 +198,7 @@ export default function MaintenanceRequestForm({ onSubmit, submitting }: Mainten
           background: var(--color-surface);
           border-radius: var(--radius-lg);
           padding: 2.5rem;
-          border: 1px solid rgba(15, 118, 110, 0.12);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-md);
           display: grid;
           gap: 1.5rem;
@@ -235,8 +235,8 @@ export default function MaintenanceRequestForm({ onSubmit, submitting }: Mainten
         select:focus,
         textarea:focus {
           outline: none;
-          border-color: rgba(15, 118, 110, 0.45);
-          box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+          border-color: var(--color-border);
+          box-shadow: 0 0 0 4px var(--color-accent-subtle);
         }
 
         .maintenance-form__grid {
@@ -259,7 +259,7 @@ export default function MaintenanceRequestForm({ onSubmit, submitting }: Mainten
 
         .field-error {
           font-size: 0.85rem;
-          color: #dc2626;
+          color: var(--color-error);
           font-weight: 600;
         }
 
@@ -273,7 +273,7 @@ export default function MaintenanceRequestForm({ onSubmit, submitting }: Mainten
         }
 
         .maintenance-form__error {
-          color: #dc2626;
+          color: var(--color-error);
           font-weight: 600;
         }
 

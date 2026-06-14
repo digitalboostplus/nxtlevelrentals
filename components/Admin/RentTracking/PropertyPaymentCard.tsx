@@ -16,15 +16,15 @@ export default function PropertyPaymentCard({
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'paid':
-                return { bg: '#dcfce7', text: '#166534', border: '#86efac' };
+                return { bg: 'var(--tag-success-bg)', text: 'var(--tag-success-text)', border: 'var(--color-border)' };
             case 'pending':
-                return { bg: '#dbeafe', text: '#1e40af', border: '#93c5fd' };
+                return { bg: 'var(--tag-info-bg)', text: 'var(--tag-info-text)', border: 'var(--color-border)' };
             case 'overdue':
-                return { bg: '#fee2e2', text: '#991b1b', border: '#fca5a5' };
+                return { bg: 'var(--tag-error-bg)', text: 'var(--tag-error-text)', border: 'var(--color-border)' };
             case 'partial':
-                return { bg: '#fef3c7', text: '#92400e', border: '#fcd34d' };
+                return { bg: 'var(--tag-warning-bg)', text: 'var(--tag-warning-text)', border: 'var(--color-border)' };
             default:
-                return { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' };
+                return { bg: 'var(--tag-neutral-bg)', text: 'var(--tag-neutral-text)', border: 'var(--color-border)' };
         }
     };
 
@@ -133,9 +133,9 @@ export default function PropertyPaymentCard({
 
             <style jsx>{`
         .property-card {
-          background: white;
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--color-border);
           overflow: hidden;
           transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -147,7 +147,7 @@ export default function PropertyPaymentCard({
 
         .card-header {
           padding: 1.5rem;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid var(--color-border);
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
@@ -162,19 +162,19 @@ export default function PropertyPaymentCard({
           margin: 0 0 0.5rem;
           font-size: 1.25rem;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text);
         }
 
         .property-address {
           margin: 0 0 0.5rem;
           font-size: 0.875rem;
-          color: #64748b;
+          color: var(--color-muted);
         }
 
         .tenant-name {
           margin: 0;
           font-size: 0.875rem;
-          color: #475569;
+          color: var(--color-text);
           font-weight: 500;
         }
 
@@ -206,27 +206,27 @@ export default function PropertyPaymentCard({
 
         .amount-row .label {
           font-size: 0.875rem;
-          color: #64748b;
+          color: var(--color-muted);
           font-weight: 500;
         }
 
         .amount-row .value {
           font-size: 1.125rem;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text);
         }
 
         .amount-row .value.paid {
-          color: #10b981;
+          color: var(--color-success);
         }
 
         .amount-row .value.remaining {
-          color: #ef4444;
+          color: var(--color-error);
         }
 
         .progress-bar {
           height: 8px;
-          background: #f1f5f9;
+          background: var(--color-surface-elevated);
           border-radius: 9999px;
           overflow: hidden;
           margin: 1rem 0;
@@ -244,7 +244,7 @@ export default function PropertyPaymentCard({
           gap: 0.5rem;
           margin-top: 1rem;
           padding-top: 1rem;
-          border-top: 1px solid #f1f5f9;
+          border-top: 1px solid var(--color-border);
         }
 
         .detail-item {
@@ -254,19 +254,19 @@ export default function PropertyPaymentCard({
         }
 
         .detail-label {
-          color: #64748b;
+          color: var(--color-muted);
           font-weight: 500;
         }
 
         .detail-value {
-          color: #475569;
+          color: var(--color-text);
           font-weight: 600;
         }
 
         .card-footer {
           padding: 1rem 1.5rem;
-          background: #f8fafc;
-          border-top: 1px solid #e2e8f0;
+          background: var(--color-surface-elevated);
+          border-top: 1px solid var(--color-border);
           display: flex;
           gap: 0.75rem;
           justify-content: flex-end;
@@ -284,14 +284,14 @@ export default function PropertyPaymentCard({
         }
 
         .btn-secondary {
-          background: white;
-          color: #475569;
-          border: 1px solid #e2e8f0;
+          background: var(--color-surface);
+          color: var(--color-text);
+          border: 1px solid var(--color-border);
         }
 
         .btn-secondary:hover {
-          background: #f8fafc;
-          border-color: #cbd5e1;
+          background: var(--color-surface-elevated);
+          border-color: var(--color-border);
         }
 
         .btn-primary {

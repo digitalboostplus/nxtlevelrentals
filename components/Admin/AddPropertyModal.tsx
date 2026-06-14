@@ -520,7 +520,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
         }
 
         .modal {
-          background: white;
+          background: var(--color-surface);
           padding: 2rem;
           border-radius: 12px;
           width: 100%;
@@ -537,9 +537,9 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           margin-bottom: 1.5rem;
           position: sticky;
           top: 0;
-          background: white;
+          background: var(--color-surface);
           padding-bottom: 0.5rem;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid var(--color-border);
         }
 
         .modal__header h2 {
@@ -552,11 +552,11 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           border: none;
           font-size: 1.5rem;
           cursor: pointer;
-          color: #6b7280;
+          color: var(--color-muted);
         }
 
         .close-button:hover {
-          color: #111827;
+          color: var(--color-text);
         }
 
         .modal__form {
@@ -568,7 +568,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           display: grid;
           gap: 1rem;
           padding-bottom: 1rem;
-          border-bottom: 1px solid #f3f4f6;
+          border-bottom: 1px solid var(--color-border);
         }
 
         .form-section:last-of-type {
@@ -578,7 +578,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
         .form-section h3 {
           margin: 0;
           font-size: 1.1rem;
-          color: #374151;
+          color: var(--color-text);
         }
 
         .form-group {
@@ -595,12 +595,12 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
         label {
           font-weight: 600;
           font-size: 0.9rem;
-          color: #374151;
+          color: var(--color-text);
         }
 
         input, select, textarea {
           padding: 0.75rem;
-          border: 1px solid #d1d5db;
+          border: 1px solid var(--color-border);
           border-radius: 6px;
           font-size: 1rem;
           font-family: inherit;
@@ -608,12 +608,12 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
 
         input:focus, select:focus, textarea:focus {
           outline: none;
-          border-color: var(--color-primary, #6366f1);
-          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+          border-color: var(--color-primary, #3b9bff);
+          box-shadow: 0 0 0 3px var(--color-primary-light);
         }
 
         input:disabled, select:disabled, textarea:disabled {
-          background: #f9fafb;
+          background: var(--color-surface-elevated);
           cursor: not-allowed;
         }
 
@@ -641,7 +641,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           aspect-ratio: 1;
           border-radius: 8px;
           overflow: hidden;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--color-border);
         }
 
         :global(.preview-image) {
@@ -701,14 +701,14 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
 
         .custom-amenity button {
           padding: 0.5rem 1rem;
-          background: #f3f4f6;
-          border: 1px solid #d1d5db;
+          background: var(--color-surface-elevated);
+          border: 1px solid var(--color-border);
           border-radius: 6px;
           cursor: pointer;
         }
 
         .custom-amenity button:hover:not(:disabled) {
-          background: #e5e7eb;
+          background: var(--color-border);
         }
 
         .custom-amenities-list {
@@ -723,8 +723,8 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           display: inline-flex;
           align-items: center;
           gap: 0.25rem;
-          background: #e0e7ff;
-          color: #3730a3;
+          background: var(--tag-info-bg);
+          color: var(--tag-info-text);
           padding: 0.25rem 0.5rem;
           border-radius: 4px;
           font-size: 0.875rem;
@@ -735,21 +735,21 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           border: none;
           cursor: pointer;
           font-size: 1rem;
-          color: #3730a3;
+          color: var(--tag-info-text);
         }
 
         /* Progress Bar */
         .progress-bar {
           position: relative;
           height: 24px;
-          background: #f3f4f6;
+          background: var(--color-surface-elevated);
           border-radius: 4px;
           overflow: hidden;
         }
 
         .progress-fill {
           height: 100%;
-          background: var(--color-primary, #6366f1);
+          background: var(--color-primary, #3b9bff);
           transition: width 0.3s ease;
         }
 
@@ -759,13 +759,13 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           left: 50%;
           transform: translate(-50%, -50%);
           font-size: 0.75rem;
-          color: #374151;
+          color: var(--color-text);
         }
 
         .error-message {
-          color: #dc2626;
+          color: var(--color-error);
           font-size: 0.9rem;
-          background: #fef2f2;
+          background: var(--tag-error-bg);
           padding: 0.75rem;
           border-radius: 6px;
         }
@@ -776,20 +776,20 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           gap: 1rem;
           margin-top: 0.5rem;
           padding-top: 1rem;
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid var(--color-border);
         }
 
         .outline-button {
           padding: 0.5rem 1rem;
-          background: white;
-          border: 1px solid #d1d5db;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
           border-radius: 6px;
           cursor: pointer;
           font-weight: 500;
         }
 
         .outline-button:hover:not(:disabled) {
-          background: #f9fafb;
+          background: var(--color-surface-elevated);
         }
 
         .ghost-button {
@@ -797,17 +797,17 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
           background: transparent;
           border: none;
           cursor: pointer;
-          color: #6b7280;
+          color: var(--color-muted);
           font-weight: 500;
         }
 
         .ghost-button:hover:not(:disabled) {
-          color: #111827;
+          color: var(--color-text);
         }
 
         .primary-button {
           padding: 0.75rem 1.5rem;
-          background: var(--color-primary, #6366f1);
+          background: var(--color-primary, #3b9bff);
           color: white;
           border: none;
           border-radius: 6px;

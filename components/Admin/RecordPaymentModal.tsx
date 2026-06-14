@@ -226,7 +226,7 @@ export default function RecordPaymentModal({
         }
 
         .modal {
-          background: white;
+          background: var(--color-surface);
           padding: 2rem;
           border-radius: 12px;
           width: 100%;
@@ -289,20 +289,20 @@ export default function RecordPaymentModal({
         select:focus {
           outline: none;
           border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+          box-shadow: 0 0 0 3px var(--color-primary-light);
         }
 
         input:disabled,
         select:disabled {
-          background-color: #f3f4f6;
+          background-color: var(--color-surface-elevated);
           cursor: not-allowed;
         }
 
         .error-message {
-          color: #dc2626;
+          color: var(--color-error);
           font-size: 0.9rem;
           padding: 0.75rem;
-          background: #fee2e2;
+          background: var(--tag-error-bg);
           border-radius: 6px;
           margin: 0;
         }

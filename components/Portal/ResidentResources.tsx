@@ -43,7 +43,7 @@ export default function ResidentResources({ resources }: ResidentResourcesProps)
         .resource-card {
           padding: 1.75rem;
           border-radius: var(--radius-md);
-          border: 1px solid rgba(15, 118, 110, 0.12);
+          border: 1px solid var(--color-border);
           background: var(--color-surface);
           box-shadow: var(--shadow-sm);
           display: grid;

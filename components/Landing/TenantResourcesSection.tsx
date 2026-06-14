@@ -97,7 +97,7 @@ export default function TenantResourcesSection() {
           padding: 1.75rem;
           display: grid;
           gap: 1rem;
-          border: 1px solid rgba(15, 118, 110, 0.12);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
         }
 
@@ -106,7 +106,7 @@ export default function TenantResourcesSection() {
           text-transform: uppercase;
           letter-spacing: 0.18em;
           font-weight: 700;
-          color: rgba(15, 118, 110, 0.65);
+          color: var(--color-primary);
         }
 
         .resource-card h3 {

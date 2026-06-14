@@ -70,8 +70,8 @@ export default function ChatWidget() {
           align-items: center;
           justify-content: center;
           box-shadow:
-            0 4px 12px rgba(15, 118, 110, 0.35),
-            0 0 0 0 rgba(15, 118, 110, 0.35);
+            0 4px 12px var(--color-primary-light),
+            0 0 0 0 var(--color-primary-light);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 1000;
         }
@@ -79,8 +79,8 @@ export default function ChatWidget() {
         .chat-fab:hover {
           transform: scale(1.05);
           box-shadow:
-            0 6px 20px rgba(15, 118, 110, 0.45),
-            0 0 0 0 rgba(15, 118, 110, 0.35);
+            0 6px 20px var(--color-primary-light),
+            0 0 0 0 var(--color-primary-light);
         }
 
         .chat-fab:active {

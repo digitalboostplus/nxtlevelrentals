@@ -94,7 +94,7 @@ export default function MaintenanceScheduleSection() {
           top: 0.5rem;
           bottom: 0.5rem;
           width: 2px;
-          background: rgba(15, 118, 110, 0.25);
+          background: var(--color-border);
         }
 
         .maintenance__item {
@@ -111,7 +111,7 @@ export default function MaintenanceScheduleSection() {
           height: 16px;
           border-radius: 999px;
           background: var(--color-primary);
-          box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.18);
+          box-shadow: 0 0 0 4px var(--color-accent-subtle);
         }
 
         .maintenance__item-header {

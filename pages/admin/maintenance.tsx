@@ -376,42 +376,42 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         }
 
         .status-submitted {
-          background-color: rgba(2, 132, 199, 0.12);
+          background-color: var(--tag-info-bg);
           color: var(--color-info);
         }
 
         .status-in-progress {
-          background-color: rgba(245, 158, 11, 0.16);
+          background-color: var(--tag-warning-bg);
           color: var(--color-warning);
         }
 
         .status-completed {
-          background-color: rgba(16, 185, 129, 0.12);
+          background-color: var(--tag-success-bg);
           color: var(--color-success);
         }
 
         .status-cancelled {
-          background-color: rgba(239, 68, 68, 0.12);
+          background-color: var(--tag-error-bg);
           color: var(--color-error);
         }
 
         .priority-emergency {
-          background-color: rgba(239, 68, 68, 0.12);
+          background-color: var(--tag-error-bg);
           color: var(--color-error);
         }
 
         .priority-high {
-          background-color: rgba(245, 158, 11, 0.16);
+          background-color: var(--tag-warning-bg);
           color: var(--color-warning);
         }
 
         .priority-medium {
-          background-color: rgba(2, 132, 199, 0.12);
+          background-color: var(--tag-info-bg);
           color: var(--color-info);
         }
 
         .priority-low {
-          background-color: rgba(16, 185, 129, 0.12);
+          background-color: var(--tag-success-bg);
           color: var(--color-success);
         }
 

@@ -105,7 +105,7 @@ export default function Card({
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(255, 255, 255, 0.9);
+          background: var(--overlay-background);
           display: flex;
           flex-direction: column;
           align-items: center;

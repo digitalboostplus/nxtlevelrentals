@@ -24,7 +24,7 @@ export default function TenantCTASection() {
       <style jsx>{`
         .tenant-cta {
           padding: clamp(3.5rem, 7vw, 5rem) 1.5rem clamp(4rem, 8vw, 6rem);
-          background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(3, 105, 161, 0.12));
+          background: linear-gradient(135deg, var(--color-accent-subtle), var(--color-accent-subtle));
         }
 
         .tenant-cta__inner {
@@ -34,7 +34,7 @@ export default function TenantCTASection() {
           border-radius: clamp(1.5rem, 4vw, 2.5rem);
           padding: clamp(2.5rem, 5vw, 3rem);
           box-shadow: var(--shadow-md);
-          border: 1px solid rgba(15, 118, 110, 0.16);
+          border: 1px solid var(--color-border);
           display: grid;
           gap: clamp(1.5rem, 4vw, 2.5rem);
         }
@@ -57,11 +57,11 @@ export default function TenantCTASection() {
         }
 
         .tenant-cta__primary {
-          box-shadow: 0 18px 28px rgba(15, 118, 110, 0.25);
+          box-shadow: 0 18px 28px var(--color-accent-subtle);
         }
 
         .tenant-cta__outline {
-          border-color: rgba(15, 118, 110, 0.4);
+          border-color: var(--color-border);
         }
       `}</style>
     </section>

@@ -236,7 +236,7 @@ export default function MaintenanceStatusModal({
           }
 
           .modal {
-            background: white;
+            background: var(--color-surface);
             border-radius: 12px;
             width: 100%;
             max-width: 700px;
@@ -250,13 +250,13 @@ export default function MaintenanceStatusModal({
             justify-content: space-between;
             align-items: center;
             padding: 1.5rem 2rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--color-border);
           }
 
           .modal__header h2 {
             margin: 0;
             font-size: 1.5rem;
-            color: #1e293b;
+            color: var(--color-text);
           }
 
           .close-button {
@@ -264,25 +264,25 @@ export default function MaintenanceStatusModal({
             border: none;
             font-size: 2rem;
             cursor: pointer;
-            color: #94a3b8;
+            color: var(--color-muted);
             padding: 0;
             line-height: 1;
           }
 
           .close-button:hover {
-            color: #64748b;
+            color: var(--color-text);
           }
 
           .modal__details {
             padding: 1.5rem 2rem;
-            background-color: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
+            background-color: var(--color-surface-elevated);
+            border-bottom: 1px solid var(--color-border);
           }
 
           .modal__details h3 {
             margin: 0 0 1rem;
             font-size: 1.25rem;
-            color: #1e293b;
+            color: var(--color-text);
           }
 
           .detail-grid {
@@ -302,13 +302,13 @@ export default function MaintenanceStatusModal({
             font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            color: #64748b;
+            color: var(--color-muted);
             letter-spacing: 0.05em;
           }
 
           .detail-value {
             font-size: 0.938rem;
-            color: #1e293b;
+            color: var(--color-text);
           }
 
           .priority-badge {
@@ -322,23 +322,23 @@ export default function MaintenanceStatusModal({
           }
 
           .priority-emergency {
-            background-color: #fee2e2;
-            color: #991b1b;
+            background-color: var(--tag-error-bg);
+            color: var(--tag-error-text);
           }
 
           .priority-high {
-            background-color: #fef3c7;
-            color: #92400e;
+            background-color: var(--tag-warning-bg);
+            color: var(--tag-warning-text);
           }
 
           .priority-medium {
-            background-color: #dbeafe;
-            color: #1e40af;
+            background-color: var(--tag-info-bg);
+            color: var(--tag-info-text);
           }
 
           .priority-low {
-            background-color: #d1fae5;
-            color: #065f46;
+            background-color: var(--tag-success-bg);
+            color: var(--tag-success-text);
           }
 
           .description-section,
@@ -350,9 +350,9 @@ export default function MaintenanceStatusModal({
           .notes-text {
             margin: 0.5rem 0 0;
             padding: 0.75rem;
-            background: white;
+            background: var(--color-surface);
             border-radius: 6px;
-            color: #475569;
+            color: var(--color-text);
             line-height: 1.6;
             font-size: 0.938rem;
           }
@@ -377,17 +377,17 @@ export default function MaintenanceStatusModal({
           label {
             font-weight: 600;
             font-size: 0.938rem;
-            color: #1e293b;
+            color: var(--color-text);
           }
 
           input,
           select,
           textarea {
             padding: 0.75rem;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--color-border);
             border-radius: 8px;
             font-size: 0.938rem;
-            color: #1e293b;
+            color: var(--color-text);
             font-family: inherit;
           }
 
@@ -396,7 +396,7 @@ export default function MaintenanceStatusModal({
           textarea:focus {
             outline: none;
             border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+            box-shadow: 0 0 0 3px var(--color-primary-light);
           }
 
           textarea {
@@ -405,14 +405,14 @@ export default function MaintenanceStatusModal({
 
           .form-hint {
             font-size: 0.813rem;
-            color: #94a3b8;
+            color: var(--color-muted);
           }
 
           .error-message {
-            color: #dc2626;
+            color: var(--color-error);
             font-size: 0.875rem;
             padding: 0.75rem;
-            background: #fee2e2;
+            background: var(--tag-error-bg);
             border-radius: 6px;
             margin: 0;
           }
@@ -422,7 +422,7 @@ export default function MaintenanceStatusModal({
             justify-content: flex-end;
             gap: 1rem;
             padding-top: 1rem;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid var(--color-border);
           }
 
           .outline-button,
@@ -436,14 +436,14 @@ export default function MaintenanceStatusModal({
           }
 
           .outline-button {
-            background: white;
-            border: 1px solid #cbd5e1;
-            color: #475569;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
           }
 
           .outline-button:hover:not(:disabled) {
-            border-color: #94a3b8;
-            background-color: #f8fafc;
+            border-color: var(--color-muted);
+            background-color: var(--color-surface-elevated);
           }
 
           .primary-button {

@@ -137,7 +137,7 @@ export default function NotificationBell() {
         }
 
         .notification-bell:hover {
-          background-color: rgba(0, 0, 0, 0.05);
+          background-color: var(--color-accent-subtle);
           color: var(--color-primary);
         }
 

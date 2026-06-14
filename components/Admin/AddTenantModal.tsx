@@ -144,7 +144,7 @@ export default function AddTenantModal({ isOpen, onClose, onSuccess }: AddTenant
         }
 
         .modal {
-          background: white;
+          background: var(--color-surface);
           padding: 2rem;
           border-radius: 12px;
           width: 100%;
@@ -188,13 +188,13 @@ export default function AddTenantModal({ isOpen, onClose, onSuccess }: AddTenant
 
         input, select {
           padding: 0.75rem;
-          border: 1px solid #ccc;
+          border: 1px solid var(--color-border);
           border-radius: 6px;
           font-size: 1rem;
         }
 
         .error-message {
-          color: red;
+          color: var(--color-error);
           font-size: 0.9rem;
         }
 

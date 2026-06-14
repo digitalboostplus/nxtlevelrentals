@@ -150,9 +150,9 @@ export default function PaymentFilters({
 
             <style jsx>{`
         .payment-filters {
-          background: white;
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--color-border);
           padding: 1.5rem 2rem;
           margin-bottom: 2rem;
         }
@@ -173,7 +173,7 @@ export default function PaymentFilters({
         .filter-group label {
           font-size: 0.813rem;
           font-weight: 600;
-          color: #64748b;
+          color: var(--color-muted);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
@@ -181,11 +181,11 @@ export default function PaymentFilters({
         .select-input,
         .search-input {
           padding: 0.75rem 1rem;
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-md);
           font-size: 0.938rem;
-          color: #1e293b;
-          background: white;
+          color: var(--color-text);
+          background: var(--color-surface);
           transition: all 0.2s;
         }
 
@@ -193,11 +193,11 @@ export default function PaymentFilters({
         .search-input:focus {
           outline: none;
           border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+          box-shadow: 0 0 0 3px var(--color-primary-light);
         }
 
         .search-input::placeholder {
-          color: #94a3b8;
+          color: var(--color-muted);
         }
 
         .sort-controls {
@@ -211,8 +211,8 @@ export default function PaymentFilters({
 
         .sort-order-btn {
           padding: 0.75rem 1rem;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-md);
           font-size: 1.25rem;
           cursor: pointer;
@@ -221,7 +221,7 @@ export default function PaymentFilters({
         }
 
         .sort-order-btn:hover {
-          background: #e2e8f0;
+          background: var(--color-surface-elevated);
         }
 
         .view-toggle {
@@ -236,8 +236,8 @@ export default function PaymentFilters({
         .toggle-btn {
           flex: 1;
           padding: 0.75rem;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-md);
           font-size: 1.25rem;
           cursor: pointer;
@@ -245,7 +245,7 @@ export default function PaymentFilters({
         }
 
         .toggle-btn:hover {
-          background: #e2e8f0;
+          background: var(--color-surface-elevated);
         }
 
         .toggle-btn.active {

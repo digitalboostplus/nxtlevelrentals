@@ -111,7 +111,7 @@ export default function FeaturedPropertiesSection({ properties }: Props) {
         .property-card {
           background: var(--color-surface-elevated);
           border-radius: var(--radius-lg);
-          border: 1px solid rgba(15, 118, 110, 0.12);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
           overflow: hidden;
           display: flex;
@@ -178,7 +178,7 @@ export default function FeaturedPropertiesSection({ properties }: Props) {
           align-items: center;
           margin-top: auto;
           padding-top: 1rem;
-          border-top: 1px solid rgba(15, 118, 110, 0.12);
+          border-top: 1px solid var(--color-border);
         }
 
         .property-card__rent {

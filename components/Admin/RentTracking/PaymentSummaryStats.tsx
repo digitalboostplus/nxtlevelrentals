@@ -19,14 +19,14 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
             justify-content: center;
             gap: 1rem;
             padding: 3rem;
-            background: white;
+            background: var(--color-surface);
             border-radius: var(--radius-lg);
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--color-border);
           }
           .spinner {
             width: 24px;
             height: 24px;
-            border: 3px solid #e2e8f0;
+            border: 3px solid var(--color-border);
             border-top-color: var(--color-primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -43,35 +43,35 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
         {
             label: 'Total Properties',
             value: summary.totalProperties,
-            color: '#64748b',
+            color: 'var(--color-muted)',
             icon: '🏘️'
         },
         {
             label: 'Paid',
             value: summary.paidCount,
             percentage: summary.totalProperties > 0 ? (summary.paidCount / summary.totalProperties * 100).toFixed(1) : '0',
-            color: '#10b981',
+            color: 'var(--color-success)',
             icon: '✅'
         },
         {
             label: 'Pending',
             value: summary.pendingCount,
             percentage: summary.totalProperties > 0 ? (summary.pendingCount / summary.totalProperties * 100).toFixed(1) : '0',
-            color: '#3b82f6',
+            color: 'var(--color-info)',
             icon: '⏳'
         },
         {
             label: 'Overdue',
             value: summary.overdueCount,
             percentage: summary.totalProperties > 0 ? (summary.overdueCount / summary.totalProperties * 100).toFixed(1) : '0',
-            color: '#ef4444',
+            color: 'var(--color-error)',
             icon: '⚠️'
         },
         {
             label: 'Partial',
             value: summary.partialCount,
             percentage: summary.totalProperties > 0 ? (summary.partialCount / summary.totalProperties * 100).toFixed(1) : '0',
-            color: '#f59e0b',
+            color: 'var(--color-warning)',
             icon: '📊'
         }
     ];
@@ -112,9 +112,9 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
 
             <style jsx>{`
         .summary-stats {
-          background: white;
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--color-border);
           padding: 2rem;
           margin-bottom: 2rem;
         }
@@ -131,7 +131,7 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
           align-items: center;
           gap: 1rem;
           padding: 1rem;
-          background: #f8fafc;
+          background: var(--color-surface-elevated);
           border-radius: var(--radius-md);
           transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -152,7 +152,7 @@ export default function PaymentSummaryStats({ summary, loading }: PaymentSummary
 
         .stat-label {
           font-size: 0.813rem;
-          color: #64748b;
+          color: var(--color-muted);
           text-transform: uppercase;
           letter-spacing: 0.05em;
           font-weight: 600;

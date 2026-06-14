@@ -263,8 +263,8 @@ export default function MonthlyPaymentGrid({ properties, onRecordPayment }: Mont
         }
 
         .export-btn:hover {
-          background: rgba(15, 118, 110, 0.08);
-          border-color: rgba(15, 118, 110, 0.3);
+          background: var(--color-accent-subtle);
+          border-color: var(--color-border);
           transform: translateY(-1px);
         }
 
@@ -293,7 +293,8 @@ export default function MonthlyPaymentGrid({ properties, onRecordPayment }: Mont
           white-space: nowrap;
           position: sticky;
           top: var(--header-height);
-          z-index: 1;
+          z-index: 2;
+          background: var(--color-surface-elevated);
         }
 
         th.sortable {
@@ -303,22 +304,22 @@ export default function MonthlyPaymentGrid({ properties, onRecordPayment }: Mont
         }
 
         th.sortable:hover {
-          background: rgba(15, 118, 110, 0.08);
+          background: var(--color-accent-subtle);
         }
 
         td {
           padding: 1rem 1.5rem;
-          border-top: 1px solid rgba(15, 118, 110, 0.08);
+          border-top: 1px solid var(--color-border);
           font-size: 0.938rem;
           color: var(--color-text);
         }
 
         tbody tr:nth-child(even) {
-          background: rgba(15, 118, 110, 0.04);
+          background: var(--color-accent-subtle);
         }
 
         tbody tr:hover {
-          background: rgba(15, 118, 110, 0.08);
+          background: var(--color-accent-subtle);
         }
 
         .property-cell {
@@ -356,23 +357,23 @@ export default function MonthlyPaymentGrid({ properties, onRecordPayment }: Mont
         }
 
         .status-badge--paid {
-          background: rgba(15, 118, 110, 0.12);
-          color: #0f766e;
+          background: var(--tag-success-bg);
+          color: var(--tag-success-text);
         }
 
         .status-badge--pending {
-          background: rgba(3, 105, 161, 0.12);
-          color: #075985;
+          background: var(--tag-info-bg);
+          color: var(--tag-info-text);
         }
 
         .status-badge--overdue {
-          background: #fee2e2;
-          color: #991b1b;
+          background: var(--tag-error-bg);
+          color: var(--tag-error-text);
         }
 
         .status-badge--partial {
-          background: #fef3c7;
-          color: #92400e;
+          background: var(--tag-warning-bg);
+          color: var(--tag-warning-text);
         }
 
         .action-buttons {
@@ -396,8 +397,8 @@ export default function MonthlyPaymentGrid({ properties, onRecordPayment }: Mont
 
         .btn-view:hover,
         .btn-record:hover {
-          background: rgba(15, 118, 110, 0.08);
-          border-color: rgba(15, 118, 110, 0.3);
+          background: var(--color-accent-subtle);
+          border-color: var(--color-border);
           transform: translateY(-1px);
         }
 

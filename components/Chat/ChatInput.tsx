@@ -90,7 +90,7 @@ export default function ChatInput() {
 
         .chat-input__container:focus-within {
           border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          box-shadow: 0 0 0 3px var(--color-primary-light);
         }
 
         .chat-input__textarea {
@@ -132,7 +132,7 @@ export default function ChatInput() {
 
         .chat-input__send:hover:not(:disabled) {
           transform: scale(1.05);
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+          box-shadow: 0 4px 12px var(--color-primary-light);
         }
 
         .chat-input__send:active:not(:disabled) {
