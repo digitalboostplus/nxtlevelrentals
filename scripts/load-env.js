@@ -38,6 +38,9 @@ function loadEnv(file) {
   }
 }
 
-loadEnv();
+// Load .env.local first (local-only secrets, e.g. GOOGLE_APPLICATION_CREDENTIALS)
+// then .env. Real shell env always wins; earlier loads win over later ones.
+loadEnv('.env.local');
+loadEnv('.env');
 
 module.exports = { loadEnv };
