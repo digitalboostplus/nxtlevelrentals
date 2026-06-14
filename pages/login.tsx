@@ -158,7 +158,7 @@ export default function LoginPage() {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
           min-height: calc(100vh - 120px);
-          background: radial-gradient(circle at top right, rgba(15, 118, 110, 0.18), transparent 55%),
+          background: radial-gradient(circle at top right, rgba(47, 128, 237, 0.18), transparent 55%),
             var(--color-surface-elevated);
         }
 
@@ -179,7 +179,7 @@ export default function LoginPage() {
           letter-spacing: 0.28em;
           font-weight: 700;
           font-size: 0.85rem;
-          color: rgba(15, 118, 110, 0.7);
+          color: var(--color-primary);
         }
 
         .auth__intro {
@@ -200,7 +200,7 @@ export default function LoginPage() {
           border-radius: var(--radius-lg);
           padding: 1.25rem 1.5rem;
           box-shadow: var(--shadow-sm);
-          border: 1px solid rgba(15, 118, 110, 0.12);
+          border: 1px solid var(--color-border);
         }
 
         .auth__highlights strong {
@@ -268,8 +268,8 @@ export default function LoginPage() {
 
         .auth-form input:focus {
           outline: none;
-          border-color: rgba(15, 118, 110, 0.45);
-          box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 4px var(--color-primary-light);
         }
 
         .auth-form input:disabled {
@@ -278,7 +278,7 @@ export default function LoginPage() {
         }
 
         .auth-form__error {
-          color: #dc2626;
+          color: var(--color-error);
           font-weight: 500;
         }
 

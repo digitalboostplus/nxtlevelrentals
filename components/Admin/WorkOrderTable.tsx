@@ -72,7 +72,8 @@ export default function WorkOrderTable({ workOrders }: WorkOrderTableProps) {
         thead th {
           position: sticky;
           top: var(--header-height);
-          z-index: 1;
+          z-index: 2;
+          background: var(--color-surface-elevated);
         }
 
         tbody tr:nth-child(even) {

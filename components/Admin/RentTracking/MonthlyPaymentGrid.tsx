@@ -293,7 +293,8 @@ export default function MonthlyPaymentGrid({ properties, onRecordPayment }: Mont
           white-space: nowrap;
           position: sticky;
           top: var(--header-height);
-          z-index: 1;
+          z-index: 2;
+          background: var(--color-surface-elevated);
         }
 
         th.sortable {

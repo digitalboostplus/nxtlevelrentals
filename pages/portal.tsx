@@ -26,7 +26,7 @@ const PortalPage: NextPageWithAuth = () => {
                     .spinner {
                         width: 40px;
                         height: 40px;
-                        border: 4px solid rgba(108, 92, 231, 0.1);
+                        border: 4px solid var(--color-border);
                         border-top-color: var(--color-primary);
                         border-radius: 50%;
                         animation: spin 1s linear infinite;

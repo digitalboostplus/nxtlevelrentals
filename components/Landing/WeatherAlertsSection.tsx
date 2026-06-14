@@ -46,8 +46,8 @@ export default function WeatherAlertsSection() {
       <style jsx>{`
         .weather-alerts {
           padding: clamp(3.5rem, 7vw, 5.5rem) 1.5rem;
-          background: linear-gradient(160deg, rgba(15, 118, 110, 0.95), rgba(3, 105, 161, 0.9));
-          color: white;
+          background: linear-gradient(160deg, rgba(47, 128, 237, 0.12), transparent 55%), var(--color-background);
+          color: var(--color-text);
         }
 
         .weather-alerts__inner {
@@ -62,7 +62,7 @@ export default function WeatherAlertsSection() {
         }
 
         .section-eyebrow {
-          color: rgba(226, 232, 240, 0.85);
+          color: var(--color-primary);
         }
 
         .weather-alerts__header h2 {
@@ -71,7 +71,7 @@ export default function WeatherAlertsSection() {
         }
 
         .weather-alerts__header p {
-          color: rgba(226, 232, 240, 0.9);
+          color: var(--color-muted);
           line-height: 1.7;
         }
 
@@ -82,13 +82,12 @@ export default function WeatherAlertsSection() {
         }
 
         .weather-card {
-          background: rgba(15, 23, 42, 0.45);
+          background: var(--color-surface-elevated);
           border-radius: var(--radius-lg);
           padding: 1.85rem;
           display: grid;
           gap: 1.25rem;
-          border: 1px solid rgba(226, 232, 240, 0.2);
-          backdrop-filter: blur(8px);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-md);
         }
 
@@ -97,7 +96,8 @@ export default function WeatherAlertsSection() {
           align-items: center;
           padding: 0.45rem 0.9rem;
           border-radius: 999px;
-          background: rgba(248, 250, 252, 0.16);
+          background: var(--tag-info-bg);
+          color: var(--tag-info-text);
           font-weight: 600;
           letter-spacing: 0.1em;
           text-transform: uppercase;
@@ -106,13 +106,13 @@ export default function WeatherAlertsSection() {
 
         .weather-card__window {
           margin-top: 0.5rem;
-          color: rgba(226, 232, 240, 0.75);
+          color: var(--color-muted);
           font-weight: 500;
         }
 
         .weather-card__summary {
           line-height: 1.6;
-          color: rgba(226, 232, 240, 0.9);
+          color: var(--color-text);
         }
 
         .weather-card__actions {
@@ -126,7 +126,7 @@ export default function WeatherAlertsSection() {
         .weather-card__actions li {
           position: relative;
           padding-left: 1.4rem;
-          color: rgba(226, 232, 240, 0.85);
+          color: var(--color-muted);
           line-height: 1.6;
         }
 
@@ -138,12 +138,12 @@ export default function WeatherAlertsSection() {
           width: 0.5rem;
           height: 0.5rem;
           border-radius: 999px;
-          background: rgba(191, 219, 254, 0.9);
+          background: var(--color-accent);
         }
 
         .weather-card__footer {
           font-size: 0.9rem;
-          color: rgba(226, 232, 240, 0.85);
+          color: var(--color-muted);
         }
       `}</style>
     </section>

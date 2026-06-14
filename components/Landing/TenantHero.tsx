@@ -222,16 +222,16 @@ export default function TenantHero() {
           position: relative;
           overflow: hidden;
           padding: clamp(4rem, 8vw, 6.5rem) 1.5rem;
-          background: radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 55%),
-            linear-gradient(120deg, rgba(3, 105, 161, 0.12), transparent 65%),
+          background: radial-gradient(circle at top left, rgba(47, 128, 237, 0.18), transparent 55%),
+            linear-gradient(120deg, rgba(92, 176, 255, 0.12), transparent 65%),
             var(--color-surface);
         }
 
         .tenant-hero__gradient {
           position: absolute;
           inset: 0;
-          background: radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.18), transparent 55%),
-            radial-gradient(circle at 80% 10%, rgba(3, 105, 161, 0.14), transparent 50%);
+          background: radial-gradient(circle at 20% 20%, rgba(47, 128, 237, 0.16), transparent 55%),
+            radial-gradient(circle at 80% 10%, rgba(92, 176, 255, 0.14), transparent 50%);
           pointer-events: none;
         }
 
@@ -256,7 +256,7 @@ export default function TenantHero() {
           font-size: 0.85rem;
           letter-spacing: 0.28em;
           font-weight: 700;
-          color: rgba(15, 118, 110, 0.75);
+          color: var(--color-primary);
           margin-bottom: 1rem;
         }
 
@@ -379,14 +379,14 @@ export default function TenantHero() {
         }
 
         .tenant-hero__card {
-          background: rgba(15, 23, 42, 0.82);
-          color: white;
+          background: var(--color-surface-elevated);
+          color: var(--color-text);
+          border: 1px solid var(--color-border);
           border-radius: clamp(1.5rem, 3vw, 2.25rem);
           padding: clamp(2rem, 4vw, 2.75rem);
           display: grid;
           gap: 1.75rem;
-          box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
-          backdrop-filter: blur(8px);
+          box-shadow: var(--shadow-lg);
           align-self: start;
         }
 
@@ -405,8 +405,8 @@ export default function TenantHero() {
           font-weight: 700;
           padding: 0.4rem 0.8rem;
           border-radius: 999px;
-          background: rgba(96, 165, 250, 0.18);
-          color: #bfdbfe;
+          background: var(--tag-info-bg);
+          color: var(--tag-info-text);
         }
 
         .tenant-hero__card-list {
@@ -427,7 +427,7 @@ export default function TenantHero() {
         }
 
         .tenant-hero__card-list p {
-          color: rgba(226, 232, 240, 0.82);
+          color: var(--color-muted);
           line-height: 1.6;
         }
 
@@ -440,7 +440,7 @@ export default function TenantHero() {
         }
 
         .tenant-hero__card-footer a {
-          color: #bae6fd;
+          color: var(--color-primary);
           font-weight: 600;
         }
 
