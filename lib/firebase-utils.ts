@@ -84,6 +84,11 @@ export interface Property {
   managementStartDate?: any; // Timestamp
   managementEndDate?: any; // Timestamp
   managementStatus?: 'active' | 'inactive' | 'pending';
+  // GoHighLevel custom-object sync metadata (present on GHL-sourced docs)
+  ghlObjectId?: string; // GHL custom-object record id
+  ghlObjectKey?: string; // GHL custom-object key, e.g. custom_objects.properties
+  source?: 'ghl' | 'manual'; // origin of this property record
+  lastSyncedAt?: string; // ISO timestamp of the last GHL sync
   createdAt: any;
   updatedAt: any;
 }

@@ -23,6 +23,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  // Properties are sourced from GoHighLevel and synced in; manual creation is
+  // disabled by default. Set ALLOW_MANUAL_PROPERTY=true to re-enable.
+  if (process.env.ALLOW_MANUAL_PROPERTY !== 'true') {
+    return res.status(403).json({
+      message: 'Manual property creation is disabled; properties sync from GoHighLevel.',
+    });
+  }
+
   try {
     // 1. Verify auth token
     const authHeader = req.headers.authorization;

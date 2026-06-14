@@ -10,6 +10,12 @@ yarn-error.log*
 .env*.local
 *.log
 
+# Service account / admin SDK private keys — NEVER commit
+*firebase-adminsdk*.json
+serviceAccount*.json
+*-service-account*.json
+gcloud-key*.json
+
 # Firebase deployment artifacts
 .firebase/
 

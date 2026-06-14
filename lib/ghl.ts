@@ -10,8 +10,8 @@
 //   GHL_API_KEY      (preferred)  or  GHL_ACCESS_TOKEN
 //   GHL_LOCATION_ID  (preferred)  or  LOCATION_ID
 
-const GHL_API_BASE = 'https://services.leadconnectorhq.com';
-const GHL_API_VERSION = '2021-07-28';
+export const GHL_API_BASE = 'https://services.leadconnectorhq.com';
+export const GHL_API_VERSION = '2021-07-28';
 
 // Custom Field IDs (from the GHL location's contact custom fields).
 export const GHL_FIELD_IDS = {
@@ -54,7 +54,7 @@ export type UpsertContactInput = {
   customFields?: GHLCustomField[];
 };
 
-function getCredentials(): { token: string; locationId: string | undefined } {
+export function getCredentials(): { token: string; locationId: string | undefined } {
   const token = process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN;
   const locationId = process.env.GHL_LOCATION_ID || process.env.LOCATION_ID;
   if (!token) {
@@ -70,16 +70,16 @@ export function isGHLConfigured(): boolean {
   return Boolean(process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN);
 }
 
-async function ghlFetch(
+export async function ghlFetch(
   path: string,
-  init: { method?: string; body?: unknown } = {}
+  init: { method?: string; body?: unknown; version?: string } = {}
 ): Promise<any> {
   const { token } = getCredentials();
   const res = await fetch(`${GHL_API_BASE}${path}`, {
     method: init.method || 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-      Version: GHL_API_VERSION,
+      Version: init.version || GHL_API_VERSION,
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
