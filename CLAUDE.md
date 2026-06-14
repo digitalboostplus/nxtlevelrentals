@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Next Level Rentals is a property management tenant portal built with Next.js 14, React, TypeScript, and Firebase. It provides a public landing page, tenant portal, and admin dashboard for property management operations.
 
-**Requirements**: Node.js 20
+**Requirements**: Node.js 22
 
 ## Development Commands
 
