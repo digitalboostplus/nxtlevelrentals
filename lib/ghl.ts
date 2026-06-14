@@ -26,6 +26,7 @@ export type GHLCustomField = { id: string; value: unknown };
 export type GHLContact = {
   id: string;
   email: string;
+  name?: string;
   firstName?: string;
   lastName?: string;
   phone?: string;
@@ -114,6 +115,7 @@ function parseGHLContact(raw: any): GHLContact {
   return {
     id: raw.id,
     email: raw.email,
+    name: raw.contactName || [raw.firstName, raw.lastName].filter(Boolean).join(' ') || undefined,
     firstName: raw.firstName,
     lastName: raw.lastName,
     phone: raw.phone,
@@ -153,6 +155,43 @@ export async function getGHLContactById(contactId: string): Promise<GHLContact |
     console.error(`GHL getContactById(${contactId}) failed:`, err);
     return null;
   }
+}
+
+/**
+ * Search all contacts carrying a given tag (e.g. "active"), paginating through
+ * the v2 search API. Used to import an "active tenants" smart-list equivalent.
+ */
+export async function searchGHLContactsByTag(tag: string): Promise<GHLContact[]> {
+  const { locationId } = getCredentials();
+  const pageLimit = 100;
+  const MAX_PAGES = 50; // safety backstop (~5k contacts)
+  const all: GHLContact[] = [];
+  let page = 1;
+
+  while (page <= MAX_PAGES) {
+    const data = await ghlFetch('/contacts/search', {
+      method: 'POST',
+      body: {
+        locationId,
+        page,
+        pageLimit,
+        filters: [{ field: 'tags', operator: 'contains', value: tag }],
+      },
+    });
+
+    const contacts: any[] = data.contacts || [];
+    all.push(...contacts.map(parseGHLContact));
+
+    const total = data.total ?? all.length;
+    if (contacts.length < pageLimit) break;
+    if (total && all.length >= total) break;
+
+    page += 1;
+    // CARIV throttles ~11 rapid calls -> space requests out.
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  return all;
 }
 
 // ---------------------------------------------------------------------------

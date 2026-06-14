@@ -12,6 +12,7 @@ const TenantsPage: NextPageWithAuth = () => {
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState<string | null>(null); // 'all' or a tenant id
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
+    const [importing, setImporting] = useState(false);
 
     const fetchTenants = async () => {
         try {
@@ -27,6 +28,33 @@ const TenantsPage: NextPageWithAuth = () => {
     useEffect(() => {
         fetchTenants();
     }, []);
+
+    // Import active tenants (contacts tagged "active") from GoHighLevel as new
+    // tenant records. De-duplicates by email; best-effort links to a property.
+    const handleImport = async () => {
+        if (!user) return;
+        setImporting(true);
+        setSyncMessage(null);
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch('/api/admin/import-tenants', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ tag: 'active' }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Import failed');
+            setSyncMessage(data.message || 'Import complete');
+            await fetchTenants();
+        } catch (err: any) {
+            setSyncMessage(err.message || 'Import failed');
+        } finally {
+            setImporting(false);
+        }
+    };
 
     // Pull tenant data from GoHighLevel. Pass a uid to sync one, omit for all.
     const handleSync = async (uid?: string) => {
@@ -69,9 +97,16 @@ const TenantsPage: NextPageWithAuth = () => {
                     <div className="header-actions">
                         {syncMessage && <span className="sync-message">{syncMessage}</span>}
                         <button
+                            className="sync-button sync-button--secondary"
+                            onClick={handleImport}
+                            disabled={importing || syncing !== null}
+                        >
+                            {importing ? 'Importing…' : 'Import active from GHL'}
+                        </button>
+                        <button
                             className="sync-button"
                             onClick={() => handleSync()}
-                            disabled={syncing !== null}
+                            disabled={importing || syncing !== null}
                         >
                             {syncing === 'all' ? 'Syncing…' : 'Sync all from GHL'}
                         </button>
@@ -190,6 +225,12 @@ const TenantsPage: NextPageWithAuth = () => {
         .sync-button:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+        }
+
+        .sync-button--secondary {
+          background-color: transparent;
+          color: var(--color-primary);
+          border: 1px solid var(--color-primary);
         }
 
         .sync-link {
