@@ -130,7 +130,7 @@ export default function LandlordPortal() {
         .hero-content h1 {
             font-size: 2.5rem;
             margin: 0.5rem 0;
-            color: #111827;
+            color: var(--color-text);
         }
         .hero-content p {
             color: var(--color-muted);
@@ -149,9 +149,9 @@ export default function LandlordPortal() {
         }
 
         .property-card {
-          background: white;
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
           overflow: hidden;
           transition: transform 0.2s;
@@ -164,7 +164,7 @@ export default function LandlordPortal() {
         .property-image {
           height: 200px;
           position: relative;
-          background: #f1f5f9;
+          background: var(--color-surface-elevated);
         }
 
         .image-placeholder {
@@ -172,7 +172,7 @@ export default function LandlordPortal() {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #94a3b8;
+          color: var(--color-muted);
         }
 
         .status-tag {
@@ -193,14 +193,14 @@ export default function LandlordPortal() {
           padding: 1.5rem;
         }
 
-        h3 { margin: 0; font-size: 1.25rem; color: #1e293b; }
-        .address { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 1rem; }
+        h3 { margin: 0; font-size: 1.25rem; color: var(--color-text); }
+        .address { font-size: 0.875rem; color: var(--color-muted); margin: 0.5rem 0 1rem; }
 
         .property-details {
           display: flex;
           gap: 1rem;
           font-size: 0.875rem;
-          color: #475569;
+          color: var(--color-text);
           margin-bottom: 1.5rem;
         }
 
@@ -208,24 +208,24 @@ export default function LandlordPortal() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 1px solid #f1f5f9;
+          border-top: 1px solid var(--color-border);
           padding-top: 1rem;
         }
 
-        .rent { font-weight: 700; color: #1e293b; font-size: 1.1rem; }
+        .rent { font-weight: 700; color: var(--color-text); font-size: 1.1rem; }
 
         .loading-state, .empty-state {
           text-align: center;
           padding: 4rem;
-          color: #64748b;
-          border: 2px dashed #e2e8f0;
+          color: var(--color-muted);
+          border: 2px dashed var(--color-border);
           border-radius: var(--radius-lg);
         }
 
         .secondary-button {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          color: #475569;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          color: var(--color-text);
           padding: 0.5rem 1rem;
           border-radius: var(--radius-sm);
           font-size: 0.875rem;

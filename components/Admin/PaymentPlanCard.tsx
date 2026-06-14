@@ -51,10 +51,10 @@ export default function PaymentPlanCard({ plan }: PaymentPlanCardProps) {
 
             <style jsx>{`
         .plan-card {
-          background: white;
+          background: var(--color-surface);
           padding: 1.5rem;
           border-radius: var(--radius-lg);
-          border: 1px solid rgba(15, 23, 42, 0.08);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
         }
 
@@ -68,12 +68,12 @@ export default function PaymentPlanCard({ plan }: PaymentPlanCardProps) {
         h3 {
           margin: 0;
           font-size: 1.1rem;
-          color: #1e293b;
+          color: var(--color-text);
         }
 
         .plan-dates {
           font-size: 0.85rem;
-          color: #64748b;
+          color: var(--color-muted);
           margin: 0.25rem 0 0;
         }
 
@@ -85,8 +85,8 @@ export default function PaymentPlanCard({ plan }: PaymentPlanCardProps) {
           text-transform: uppercase;
         }
 
-        .status--active { background: #dcfce7; color: #166534; }
-        .status--broken { background: #fee2e2; color: #991b1b; }
+        .status--active { background: var(--tag-success-bg); color: var(--tag-success-text); }
+        .status--broken { background: var(--tag-error-bg); color: var(--tag-error-text); }
 
         .plan-stats {
           display: grid;
@@ -102,7 +102,7 @@ export default function PaymentPlanCard({ plan }: PaymentPlanCardProps) {
 
         .stat-label {
           font-size: 0.75rem;
-          color: #64748b;
+          color: var(--color-muted);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
@@ -110,7 +110,7 @@ export default function PaymentPlanCard({ plan }: PaymentPlanCardProps) {
         .stat-value {
           font-size: 1.25rem;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text);
         }
 
         .progress-container {
@@ -119,7 +119,7 @@ export default function PaymentPlanCard({ plan }: PaymentPlanCardProps) {
 
         .progress-bar {
           height: 8px;
-          background: #f1f5f9;
+          background: var(--color-surface-elevated);
           border-radius: 4px;
           overflow: hidden;
           margin-bottom: 0.5rem;
@@ -133,12 +133,12 @@ export default function PaymentPlanCard({ plan }: PaymentPlanCardProps) {
 
         .progress-text {
           font-size: 0.8rem;
-          color: #64748b;
+          color: var(--color-muted);
         }
 
         .installments-preview h4 {
           font-size: 0.85rem;
-          color: #1e293b;
+          color: var(--color-text);
           margin-bottom: 0.75rem;
         }
 
@@ -153,7 +153,7 @@ export default function PaymentPlanCard({ plan }: PaymentPlanCardProps) {
           justify-content: space-between;
           padding: 0.5rem 0;
           font-size: 0.9rem;
-          border-top: 1px solid #f1f5f9;
+          border-top: 1px solid var(--color-border);
         }
       `}</style>
         </div>

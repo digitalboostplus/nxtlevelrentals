@@ -302,7 +302,7 @@ export default function TenantHero() {
         }
 
         .tenant-hero__primary {
-          box-shadow: 0 18px 35px rgba(15, 118, 110, 0.2);
+          box-shadow: 0 18px 35px rgba(59, 155, 255, 0.2);
         }
 
         .tenant-hero__trust {
@@ -315,7 +315,7 @@ export default function TenantHero() {
         .trust-pill {
           padding: 0.35rem 0.85rem;
           border-radius: 999px;
-          background: rgba(15, 118, 110, 0.12);
+          background: var(--color-accent-subtle-strong);
           color: var(--color-primary);
           font-size: 0.85rem;
           font-weight: 600;
@@ -340,7 +340,7 @@ export default function TenantHero() {
           font-size: 0.9rem;
           text-transform: uppercase;
           letter-spacing: 0.12em;
-          color: rgba(15, 118, 110, 0.7);
+          color: var(--color-primary);
           font-weight: 700;
         }
 

@@ -118,7 +118,7 @@ export default function PushPermissionPrompt() {
           bottom: 2rem;
           right: 2rem;
           max-width: 400px;
-          background: white;
+          background: var(--color-surface);
           border-radius: 12px;
           box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
           z-index: 1000;
@@ -197,7 +197,7 @@ export default function PushPermissionPrompt() {
         }
 
         .dismiss-button:hover:not(:disabled) {
-          border-color: rgba(15, 118, 110, 0.3);
+          border-color: var(--color-border);
           background-color: var(--color-surface-elevated);
         }
 

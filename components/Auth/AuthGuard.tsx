@@ -26,7 +26,7 @@ const LoadingState = () => (
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        border: 6px solid rgba(108, 92, 231, 0.18);
+        border: 6px solid var(--color-border);
         border-top-color: var(--color-primary);
         animation: spin 0.8s linear infinite;
       }

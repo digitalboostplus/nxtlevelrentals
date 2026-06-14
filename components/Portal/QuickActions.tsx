@@ -45,7 +45,7 @@ export default function QuickActions({ actions }: QuickActionsProps) {
           padding: 1.75rem;
           border-radius: var(--radius-md);
           background: var(--color-surface);
-          border: 1px solid rgba(15, 118, 110, 0.12);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
           display: grid;
           gap: 0.85rem;

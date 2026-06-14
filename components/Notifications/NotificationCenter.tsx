@@ -377,13 +377,13 @@ export default function NotificationCenter() {
         }
 
         .notification-card:hover {
-          border-color: rgba(15, 118, 110, 0.2);
+          border-color: var(--color-border);
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .notification-card.unread {
           background-color: var(--color-primary-light);
-          border-color: rgba(15, 118, 110, 0.3);
+          border-color: var(--color-border);
         }
 
         .card-header {

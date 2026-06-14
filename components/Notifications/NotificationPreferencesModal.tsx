@@ -285,7 +285,7 @@ export default function NotificationPreferencesModal({
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: var(--overlay-background);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -293,7 +293,7 @@ export default function NotificationPreferencesModal({
           }
 
           .modal {
-            background: white;
+            background: var(--color-surface);
             border-radius: 12px;
             width: 100%;
             max-width: 600px;
@@ -307,13 +307,13 @@ export default function NotificationPreferencesModal({
             justify-content: space-between;
             align-items: center;
             padding: 1.5rem 2rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--color-border);
           }
 
           .modal__header h2 {
             margin: 0;
             font-size: 1.5rem;
-            color: #1e293b;
+            color: var(--color-text);
           }
 
           .close-button {
@@ -321,13 +321,13 @@ export default function NotificationPreferencesModal({
             border: none;
             font-size: 2rem;
             cursor: pointer;
-            color: #94a3b8;
+            color: var(--color-muted);
             padding: 0;
             line-height: 1;
           }
 
           .close-button:hover {
-            color: #64748b;
+            color: var(--color-muted);
           }
 
           .modal__content {
@@ -336,7 +336,7 @@ export default function NotificationPreferencesModal({
 
           .description {
             margin: 0 0 2rem;
-            color: #64748b;
+            color: var(--color-muted);
             line-height: 1.6;
           }
 
@@ -351,7 +351,7 @@ export default function NotificationPreferencesModal({
           .spinner {
             width: 48px;
             height: 48px;
-            border: 4px solid #e2e8f0;
+            border: 4px solid var(--color-border);
             border-top-color: var(--color-primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -367,7 +367,7 @@ export default function NotificationPreferencesModal({
           .preference-section {
             margin-bottom: 2rem;
             padding-bottom: 2rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--color-border);
           }
 
           .preference-section:last-of-type {
@@ -384,13 +384,13 @@ export default function NotificationPreferencesModal({
           .section-header h3 {
             margin: 0;
             font-size: 1.125rem;
-            color: #1e293b;
+            color: var(--color-text);
           }
 
           .section-note {
             margin: 0.5rem 0 0;
             font-size: 0.875rem;
-            color: #94a3b8;
+            color: var(--color-muted);
           }
 
           .toggle-switch {
@@ -413,7 +413,7 @@ export default function NotificationPreferencesModal({
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #cbd5e1;
+            background-color: var(--color-border);
             transition: 0.3s;
             border-radius: 24px;
           }
@@ -456,7 +456,7 @@ export default function NotificationPreferencesModal({
           }
 
           .checkbox-label:hover {
-            background-color: #f8fafc;
+            background-color: var(--color-surface-elevated);
           }
 
           .checkbox-label input[type='checkbox'] {
@@ -467,15 +467,15 @@ export default function NotificationPreferencesModal({
           }
 
           .checkbox-label span {
-            color: #475569;
+            color: var(--color-text);
             font-size: 0.938rem;
           }
 
           .error-message {
-            color: #dc2626;
+            color: var(--tag-error-text);
             font-size: 0.875rem;
             padding: 0.75rem;
-            background: #fee2e2;
+            background: var(--tag-error-bg);
             border-radius: 6px;
             margin: 1rem 0;
           }
@@ -486,7 +486,7 @@ export default function NotificationPreferencesModal({
             gap: 1rem;
             margin-top: 2rem;
             padding-top: 1.5rem;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid var(--color-border);
           }
 
           .outline-button,
@@ -500,14 +500,14 @@ export default function NotificationPreferencesModal({
           }
 
           .outline-button {
-            background: white;
-            border: 1px solid #cbd5e1;
-            color: #475569;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
           }
 
           .outline-button:hover:not(:disabled) {
-            border-color: #94a3b8;
-            background-color: #f8fafc;
+            border-color: var(--color-border);
+            background-color: var(--color-surface-elevated);
           }
 
           .primary-button {

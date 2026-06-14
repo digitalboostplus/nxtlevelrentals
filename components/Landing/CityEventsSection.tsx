@@ -71,7 +71,7 @@ export default function CityEventsSection() {
           font-size: 0.8rem;
           letter-spacing: 0.28em;
           font-weight: 700;
-          color: rgba(15, 118, 110, 0.7);
+          color: var(--color-primary);
           margin-bottom: 0.75rem;
         }
 
@@ -98,7 +98,7 @@ export default function CityEventsSection() {
           padding: 1.75rem;
           display: grid;
           gap: 1rem;
-          border: 1px solid rgba(15, 118, 110, 0.12);
+          border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
         }
 

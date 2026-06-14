@@ -192,7 +192,7 @@ const PropertiesPage: NextPageWithAuth = () => {
           font-size: 0.7rem;
           font-weight: 600;
           letter-spacing: 0.03em;
-          background: rgba(15, 118, 110, 0.12);
+          background: var(--color-accent-subtle);
           color: var(--color-primary);
         }
 
@@ -249,8 +249,8 @@ const PropertiesPage: NextPageWithAuth = () => {
           backdrop-filter: blur(4px);
         }
 
-        .status--available { background: rgba(15, 118, 110, 0.9); color: white; }
-        .status--occupied { background: rgba(3, 105, 161, 0.9); color: white; }
+        .status--available { background: var(--color-primary); color: white; }
+        .status--occupied { background: var(--color-accent); color: white; }
 
         .property-content {
           padding: 1.5rem;

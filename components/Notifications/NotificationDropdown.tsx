@@ -270,7 +270,7 @@ export default function NotificationDropdown({
         }
 
         .notification-item.unread:hover {
-          background-color: rgba(15, 118, 110, 0.18);
+          background-color: var(--color-accent-subtle-strong);
         }
 
         .notification-icon {
