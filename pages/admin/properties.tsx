@@ -6,13 +6,22 @@ import SiteLayout from '@/components/Layout/SiteLayout';
 import AddPropertyModal from '@/components/Admin/AddPropertyModal';
 import { propertyUtils } from '@/lib/firebase-utils';
 import type { Property } from '@/lib/firebase-utils';
+import { useAuth } from '@/context/AuthContext';
 import type { NextPageWithAuth } from '../_app';
+
+// Properties are sourced from GoHighLevel and synced into Firestore, so the app
+// is read-only for them. Flip to true (and set ALLOW_MANUAL_PROPERTY=true on the
+// server) to temporarily re-enable in-app creation.
+const ALLOW_MANUAL_PROPERTY = false;
 
 const PropertiesPage: NextPageWithAuth = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const fetchProperties = async () => {
     try {
@@ -32,6 +41,31 @@ const PropertiesPage: NextPageWithAuth = () => {
 
   const handleAddProperty = () => {
     setIsAddModalOpen(true);
+  };
+
+  const handleSyncFromGHL = async () => {
+    if (!user) return;
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/admin/sync-properties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Sync failed');
+      setSyncMessage(data.message);
+      await fetchProperties();
+    } catch (err: any) {
+      setSyncMessage(err.message || 'Sync failed');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const handlePropertyCreated = () => {
@@ -56,10 +90,19 @@ const PropertiesPage: NextPageWithAuth = () => {
         <header className="admin-header">
           <div>
             <h1>Properties</h1>
-            <p>Overview of all physical units and their current status.</p>
+            <p>Synced from GoHighLevel. Overview of all units and their current status.</p>
           </div>
-          <button className="primary-button" onClick={handleAddProperty}>+ Add Property</button>
+          <div className="header-actions">
+            <button className="primary-button" onClick={handleSyncFromGHL} disabled={syncing}>
+              {syncing ? 'Syncing…' : 'Sync from GHL'}
+            </button>
+            {ALLOW_MANUAL_PROPERTY && (
+              <button className="secondary-button" onClick={handleAddProperty}>+ Add Property</button>
+            )}
+          </div>
         </header>
+
+        {syncMessage && <div className="sync-banner">{syncMessage}</div>}
 
         {loading ? (
           <div className="loading-state">Loading properties...</div>
@@ -84,6 +127,7 @@ const PropertiesPage: NextPageWithAuth = () => {
                 </div>
                 <div className="property-content">
                   <h3>{property.name}</h3>
+                  {property.source === 'ghl' && <span className="ghl-badge">Synced from GHL</span>}
                   <p className="address">{property.address}</p>
                   <div className="property-details">
                     <span>{property.bedrooms} Bed</span>
@@ -101,11 +145,13 @@ const PropertiesPage: NextPageWithAuth = () => {
         )}
       </div>
 
-      <AddPropertyModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSuccess={handlePropertyCreated}
-      />
+      {ALLOW_MANUAL_PROPERTY && (
+        <AddPropertyModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={handlePropertyCreated}
+        />
+      )}
 
       <style jsx>{`
         .admin-container {
@@ -119,6 +165,35 @@ const PropertiesPage: NextPageWithAuth = () => {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 2rem;
+        }
+
+        .header-actions {
+          display: flex;
+          gap: 0.75rem;
+          align-items: center;
+        }
+
+        .sync-banner {
+          background: var(--color-surface-elevated);
+          border: 1px solid var(--color-border);
+          border-left: 4px solid var(--color-primary);
+          border-radius: var(--radius-md);
+          padding: 0.75rem 1rem;
+          margin-bottom: 1.5rem;
+          color: var(--color-text-secondary);
+          font-size: 0.9rem;
+        }
+
+        .ghl-badge {
+          display: inline-block;
+          margin: 0.25rem 0;
+          padding: 0.15rem 0.6rem;
+          border-radius: 9999px;
+          font-size: 0.7rem;
+          font-weight: 600;
+          letter-spacing: 0.03em;
+          background: rgba(15, 118, 110, 0.12);
+          color: var(--color-primary);
         }
 
         h1 { font-size: 2rem; color: var(--color-text-secondary); margin: 0; }

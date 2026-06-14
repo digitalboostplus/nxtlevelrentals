@@ -45,10 +45,12 @@ export function usePortalData(): PortalData {
             const leases = await leaseUtils.getLeasesByTenant(user.uid);
             const activeLease = (leases.find(l => l.isActive && l.status === 'active') || leases[0] || null) as unknown as Lease;
 
-            // 2. Fetch Property Details if we have a lease
+            // 2. Fetch Property Details. Prefer the lease's propertyId; fall back
+            //    to the tenant's first assigned property (e.g. GHL-synced).
             let property: Property | null = null;
-            if (activeLease) {
-                const p = await propertyUtils.getProperty(activeLease.propertyId);
+            const propertyId = activeLease?.propertyId || profile.propertyIds?.[0];
+            if (propertyId) {
+                const p = await propertyUtils.getProperty(propertyId);
                 if (p) {
                     property = p as unknown as Property;
                 }

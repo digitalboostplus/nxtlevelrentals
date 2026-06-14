@@ -15,7 +15,14 @@ import {
   upsertGHLContact,
   addGHLContactNote,
   addGHLContactTags,
+  searchGHLContactsByTag,
 } from './ghl';
+import {
+  GHL_PROPERTY_OBJECT_KEY,
+  getAllGHLPropertyRecords,
+  mapGHLRecordToProperty,
+  resolvePropertyObjectKey,
+} from './ghl-properties';
 
 /**
  * Run a GHL side-effect without letting failures bubble up to the caller.
@@ -228,5 +235,250 @@ export async function pushMaintenanceStatusToGHL(params: {
   });
 }
 
-// Re-export for callers that want the custom field ids.
-export { GHL_FIELD_IDS };
+// ---------------------------------------------------------------------------
+// Pull: GHL Properties custom object -> Firestore `properties`
+// ---------------------------------------------------------------------------
+
+export type PropertySyncResult = {
+  total: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: { recordId: string; message: string }[];
+  objectKey: string;
+};
+
+/**
+ * Pull all "Properties" custom-object records from GHL into Firestore.
+ *
+ * Each record is upserted to `properties/ghl-{recordId}` (deterministic id =>
+ * idempotent re-runs, no duplicates) and tagged with `source: 'ghl'`. Existing
+ * manually-created property docs (random ids) are left untouched so existing
+ * maintenance/ledger/tenant joins keep working. GHL is the source of truth, so
+ * a record missing both a name and an address is skipped.
+ */
+export async function syncGHLPropertiesToFirestore(
+  opts: { dryRun?: boolean } = {}
+): Promise<PropertySyncResult> {
+  const result: PropertySyncResult = {
+    total: 0,
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [],
+    objectKey: '',
+  };
+
+  if (!isGHLConfigured()) {
+    result.errors.push({ recordId: '-', message: 'GoHighLevel is not configured' });
+    return result;
+  }
+
+  const objectKey = await resolvePropertyObjectKey();
+  result.objectKey = objectKey;
+
+  const records = await getAllGHLPropertyRecords();
+  result.total = records.length;
+
+  for (const record of records) {
+    try {
+      const mapped = mapGHLRecordToProperty(record);
+
+      // GHL is authoritative; an empty record (no name AND no address) is noise.
+      if (!mapped.name && !mapped.address) {
+        result.skipped++;
+        continue;
+      }
+
+      const ref = adminDb.collection('properties').doc(`ghl-${record.id}`);
+      const existing = await ref.get();
+
+      const data: Record<string, unknown> = {
+        name: mapped.name || mapped.address,
+        address: mapped.address,
+        description: mapped.description,
+        rent: mapped.rent,
+        bedrooms: mapped.bedrooms,
+        bathrooms: mapped.bathrooms,
+        squareFeet: mapped.squareFeet,
+        available: mapped.available,
+        amenities: mapped.amenities,
+        ghlObjectId: mapped.ghlObjectId,
+        ghlObjectKey: objectKey,
+        source: 'ghl',
+        lastSyncedAt: new Date().toISOString(),
+        updatedAt: FieldValue.serverTimestamp(),
+        // Set createdAt only on first write so admin `orderBy createdAt` works.
+        ...(existing.exists ? {} : { createdAt: FieldValue.serverTimestamp() }),
+      };
+
+      // Only overwrite images when GHL actually returned some; seed [] on create.
+      if (mapped.images.length) {
+        data.images = mapped.images;
+      } else if (!existing.exists) {
+        data.images = [];
+      }
+
+      if (!opts.dryRun) {
+        await ref.set(data, { merge: true });
+      }
+
+      if (existing.exists) result.updated++;
+      else result.created++;
+
+      // Throttle Firestore writes / stay friendly to GHL rate limits.
+      await new Promise((r) => setTimeout(r, 200));
+    } catch (err: any) {
+      result.errors.push({ recordId: record.id || '-', message: err?.message || String(err) });
+    }
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Import: GHL active-tenant contacts -> Firestore `users` (role: tenant)
+// ---------------------------------------------------------------------------
+
+export type TenantImportResult = {
+  total: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  matched: number; // tenants linked to a property by address
+  unmatched: number; // tenants with an address but no property match
+  errors: { contactId: string; message: string }[];
+};
+
+/** Normalize an address for loose comparison (lowercase, alphanumerics + spaces). */
+function normalizeAddress(s?: string | null): string {
+  return (s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Import active tenants from GHL (contacts carrying `tag`, default "active")
+ * into the Firestore `users` collection as role 'tenant'. Records only — no
+ * Firebase Auth accounts are created. De-duplicates by email (updates the
+ * existing user doc when present, else creates `users/ghl-{contactId}`), never
+ * demotes an admin, and best-effort links each tenant to a property by address.
+ */
+export async function importActiveTenantsFromGHL(
+  opts: { tag?: string; dryRun?: boolean } = {}
+): Promise<TenantImportResult> {
+  const tag = opts.tag || 'active';
+  const result: TenantImportResult = {
+    total: 0,
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    matched: 0,
+    unmatched: 0,
+    errors: [],
+  };
+
+  if (!isGHLConfigured()) {
+    result.errors.push({ contactId: '-', message: 'GoHighLevel is not configured' });
+    return result;
+  }
+
+  const contacts = await searchGHLContactsByTag(tag);
+  result.total = contacts.length;
+
+  // Index property addresses once for best-effort tenant->property matching.
+  const propsSnap = await adminDb.collection('properties').get();
+  const propIndex = propsSnap.docs
+    .map((d) => ({
+      id: d.id,
+      name: (d.data().name as string) || '',
+      addr: normalizeAddress(d.data().address as string),
+    }))
+    .filter((p) => p.addr);
+
+  for (const c of contacts) {
+    try {
+      if (!c.email) {
+        result.skipped++;
+        continue;
+      }
+
+      // De-dup by email.
+      const existingSnap = await adminDb
+        .collection('users')
+        .where('email', '==', c.email)
+        .limit(1)
+        .get();
+      const isUpdate = !existingSnap.empty;
+      const existingData = isUpdate ? existingSnap.docs[0].data() : null;
+
+      // Never modify an admin who happens to carry the tag.
+      if (existingData && (existingData.role === 'admin' || existingData.role === 'super-admin')) {
+        result.skipped++;
+        continue;
+      }
+
+      const ref = isUpdate
+        ? existingSnap.docs[0].ref
+        : adminDb.collection('users').doc(`ghl-${c.id}`);
+
+      // Best-effort address match to a property.
+      const tenantAddr = normalizeAddress(c.address);
+      let matched: { id: string; name: string } | undefined;
+      if (tenantAddr && tenantAddr.length >= 5) {
+        const hit = propIndex.find(
+          (p) => p.addr === tenantAddr || p.addr.startsWith(tenantAddr) || tenantAddr.startsWith(p.addr)
+        );
+        if (hit) matched = { id: hit.id, name: hit.name };
+        if (matched) result.matched++;
+        else result.unmatched++;
+      }
+
+      const displayName =
+        c.name || [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email;
+
+      const data: Record<string, unknown> = {
+        email: c.email,
+        displayName,
+        role: 'tenant',
+        ghlContactId: c.id,
+        phoneNumber: c.phone ?? null,
+        address: c.address ?? null,
+        city: c.city ?? null,
+        state: c.state ?? null,
+        zip: c.postalCode ?? null,
+        monthlyRent: c.monthlyRent ?? null,
+        leaseStart: c.leaseStart ?? null,
+        leaseEnd: c.leaseEnd ?? null,
+        isLeaseActive: Boolean(c.isLeaseActive),
+        source: 'ghl',
+        lastSyncedAt: new Date().toISOString(),
+      };
+
+      // Link to a property only if matched and we won't clobber a manual assignment.
+      if (matched && !(existingData?.propertyIds?.length)) {
+        data.propertyIds = [matched.id];
+        data.unit = existingData?.unit || matched.name;
+      }
+      if (!isUpdate) data.createdAt = new Date().toISOString();
+
+      if (!opts.dryRun) {
+        await ref.set(data, { merge: true });
+      }
+
+      if (isUpdate) result.updated++;
+      else result.created++;
+
+      await new Promise((r) => setTimeout(r, 100));
+    } catch (err: any) {
+      result.errors.push({ contactId: c.id || '-', message: err?.message || String(err) });
+    }
+  }
+
+  return result;
+}
+
+// Re-export for callers that want the custom field ids / object key.
+export { GHL_FIELD_IDS, GHL_PROPERTY_OBJECT_KEY };

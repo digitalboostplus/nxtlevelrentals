@@ -10,8 +10,8 @@
 //   GHL_API_KEY      (preferred)  or  GHL_ACCESS_TOKEN
 //   GHL_LOCATION_ID  (preferred)  or  LOCATION_ID
 
-const GHL_API_BASE = 'https://services.leadconnectorhq.com';
-const GHL_API_VERSION = '2021-07-28';
+export const GHL_API_BASE = 'https://services.leadconnectorhq.com';
+export const GHL_API_VERSION = '2021-07-28';
 
 // Custom Field IDs (from the GHL location's contact custom fields).
 export const GHL_FIELD_IDS = {
@@ -26,6 +26,7 @@ export type GHLCustomField = { id: string; value: unknown };
 export type GHLContact = {
   id: string;
   email: string;
+  name?: string;
   firstName?: string;
   lastName?: string;
   phone?: string;
@@ -54,7 +55,7 @@ export type UpsertContactInput = {
   customFields?: GHLCustomField[];
 };
 
-function getCredentials(): { token: string; locationId: string | undefined } {
+export function getCredentials(): { token: string; locationId: string | undefined } {
   const token = process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN;
   const locationId = process.env.GHL_LOCATION_ID || process.env.LOCATION_ID;
   if (!token) {
@@ -70,16 +71,16 @@ export function isGHLConfigured(): boolean {
   return Boolean(process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN);
 }
 
-async function ghlFetch(
+export async function ghlFetch(
   path: string,
-  init: { method?: string; body?: unknown } = {}
+  init: { method?: string; body?: unknown; version?: string } = {}
 ): Promise<any> {
   const { token } = getCredentials();
   const res = await fetch(`${GHL_API_BASE}${path}`, {
     method: init.method || 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-      Version: GHL_API_VERSION,
+      Version: init.version || GHL_API_VERSION,
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
@@ -114,6 +115,7 @@ function parseGHLContact(raw: any): GHLContact {
   return {
     id: raw.id,
     email: raw.email,
+    name: raw.contactName || [raw.firstName, raw.lastName].filter(Boolean).join(' ') || undefined,
     firstName: raw.firstName,
     lastName: raw.lastName,
     phone: raw.phone,
@@ -153,6 +155,43 @@ export async function getGHLContactById(contactId: string): Promise<GHLContact |
     console.error(`GHL getContactById(${contactId}) failed:`, err);
     return null;
   }
+}
+
+/**
+ * Search all contacts carrying a given tag (e.g. "active"), paginating through
+ * the v2 search API. Used to import an "active tenants" smart-list equivalent.
+ */
+export async function searchGHLContactsByTag(tag: string): Promise<GHLContact[]> {
+  const { locationId } = getCredentials();
+  const pageLimit = 100;
+  const MAX_PAGES = 50; // safety backstop (~5k contacts)
+  const all: GHLContact[] = [];
+  let page = 1;
+
+  while (page <= MAX_PAGES) {
+    const data = await ghlFetch('/contacts/search', {
+      method: 'POST',
+      body: {
+        locationId,
+        page,
+        pageLimit,
+        filters: [{ field: 'tags', operator: 'contains', value: tag }],
+      },
+    });
+
+    const contacts: any[] = data.contacts || [];
+    all.push(...contacts.map(parseGHLContact));
+
+    const total = data.total ?? all.length;
+    if (contacts.length < pageLimit) break;
+    if (total && all.length >= total) break;
+
+    page += 1;
+    // CARIV throttles ~11 rapid calls -> space requests out.
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  return all;
 }
 
 // ---------------------------------------------------------------------------

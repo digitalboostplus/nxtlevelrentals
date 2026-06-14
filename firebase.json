@@ -13,7 +13,8 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/*firebase-adminsdk*.json"
     ],
     "frameworksBackend": {
       "region": "us-central1"

@@ -28,6 +28,7 @@ export default function TenantPortal() {
     // Use our new hook for data
     const {
         lease,
+        property,
         payments,
         maintenanceRequests,
         metrics: realMetrics,
@@ -107,7 +108,7 @@ export default function TenantPortal() {
         <>
             <PortalHero
                 residentName={profile?.displayName || tenantDashboard.residentName}
-                propertyName={tenantDashboard.propertyName} // TODO: Fetch Property Name
+                propertyName={property?.name || tenantDashboard.propertyName}
                 unit={profile?.unit || tenantDashboard.unit}
                 nextDueDate={metrics.dueDate}
             />
