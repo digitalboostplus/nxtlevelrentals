@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rental Autopilot</title>
+<style>
+  :root {
+    --teal: #0f766e; --teal-dark: #115e59; --blue: #0369a1;
+    --ink: #1f2937; --muted: #6b7280; --line: #e5e7eb;
+    --bg: #f3f4f6; --card: #ffffff;
+    --red: #b91c1c; --red-bg: #fee2e2;
+    --amber: #b45309; --amber-bg: #fef3c7;
+    --green: #15803d; --green-bg: #dcfce7;
+    --blue-bg: #e0f2fe;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); font-size: 15px; }
+  header { background: linear-gradient(135deg, var(--teal) 0%, var(--blue) 100%); color: #fff; padding: 16px 22px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  header h1 { font-size: 19px; margin: 0; font-weight: 650; }
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: .4px; }
+  .badge.demo { background: var(--amber-bg); color: var(--amber); }
+  .badge.live { background: var(--green-bg); color: var(--green); }
+  header .date { opacity: .9; font-size: 13.5px; }
+  header .spacer { flex: 1; }
+  .btn { border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 8px; padding: 7px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: #f9fafb; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.primary { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .btn.primary:hover { background: var(--teal-dark); }
+  .btn.subtle { border-color: transparent; background: transparent; color: var(--muted); }
+  .btn.subtle:hover { color: var(--ink); background: #f3f4f6; }
+  .btn.danger { color: var(--red); border-color: #fecaca; }
+  .btn.small { padding: 4px 10px; font-size: 12.5px; }
+  header .btn { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.35); color: #fff; }
+  header .btn:hover { background: rgba(255,255,255,.25); }
+  nav { background: #fff; border-bottom: 1px solid var(--line); padding: 0 22px; display: flex; gap: 4px; overflow-x: auto; }
+  nav button { border: none; background: none; padding: 13px 14px; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2.5px solid transparent; white-space: nowrap; }
+  nav button.active { color: var(--teal); border-bottom-color: var(--teal); }
+  nav button .count { background: var(--red); color: #fff; border-radius: 20px; padding: 1px 7px; font-size: 11.5px; margin-left: 6px; }
+  main { max-width: 980px; margin: 0 auto; padding: 22px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+  .section-h { display: flex; align-items: center; gap: 10px; margin: 22px 0 10px; }
+  .section-h:first-child { margin-top: 0; }
+  .section-h h2 { font-size: 15px; margin: 0; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+  .section-h .n { color: var(--muted); font-size: 13px; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 650; }
+  .chip.red { background: var(--red-bg); color: var(--red); }
+  .chip.amber { background: var(--amber-bg); color: var(--amber); }
+  .chip.green { background: var(--green-bg); color: var(--green); }
+  .chip.blue { background: var(--blue-bg); color: var(--blue); }
+  .chip.gray { background: #f3f4f6; color: var(--muted); }
+  .item-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .item-top .who { font-weight: 700; }
+  .item-top .meta { color: var(--muted); font-size: 13px; }
+  .subject-row { margin: 10px 0 6px; }
+  input[type=text], input[type=number], input[type=email], select, textarea {
+    width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 14px; font-family: inherit; color: var(--ink); background: #fff;
+  }
+  textarea { resize: vertical; line-height: 1.5; }
+  .body-preview { margin-top: 8px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  label.ck { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); font-weight: 600; cursor: pointer; }
+  .empty { text-align: center; color: var(--muted); padding: 46px 0; font-size: 15px; }
+  .empty .big { font-size: 34px; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
+  th { background: #f9fafb; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  tr:last-child td { border-bottom: none; }
+  td input[type=number] { width: 64px; padding: 5px 8px; }
+  .table-wrap { overflow-x: auto; border-radius: 12px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-grid label { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+  #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none; max-width: 90vw; z-index: 50; }
+  #toast.show { opacity: 1; }
+  #toast.err { background: var(--red); }
+  .errors { background: var(--amber-bg); color: var(--amber); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; margin-bottom: 14px; }
+  details.preview summary { cursor: pointer; color: var(--teal); font-size: 13px; font-weight: 650; }
+  .sms-row { margin-top: 8px; }
+  .sms-row label { font-size: 12.5px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 4px; }
+  @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } main { padding: 14px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Rental Autopilot</h1>
+  <span id="mode" class="badge demo">…</span>
+  <span class="date" id="today"></span>
+  <span class="spacer"></span>
+  <button class="btn" onclick="refresh(true)">↻ Refresh data</button>
+</header>
+<nav id="nav"></nav>
+<main id="main"><div class="empty">Loading…</div></main>
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+let S = null;                 // last /api/state payload
+let tab = 'today';
+const edits = {};             // itemId -> {subject, text, sms}
+const expanded = new Set();   // itemIds with open previews
+const smsOn = new Set();      // itemIds with the SMS checkbox on
+const emailOff = new Set();   // itemIds with the email checkbox turned off
+
+const TABS = [
+  ['today', 'Today'],
+  ['tenants', 'Tenants'],
+  ['maintenance', 'Maintenance'],
+  ['history', 'History'],
+  ['settings', 'Settings'],
+];
+
+const KIND_LABELS = {
+  'rent-upcoming': 'Upcoming rent reminder', 'rent-due': 'Rent due', 'rent-late-1': 'Late notice #1',
+  'rent-late-2': 'Late notice #2', 'rent-late-3': 'Final late notice',
+  'onboard-welcome': 'Welcome email', 'onboard-portal': 'Portal setup', 'onboard-movein': 'Move-in day', 'onboard-checkin': 'One-week check-in',
+  'renewal-offer': 'Renewal offer', 'renewal-followup': 'Renewal follow-up', 'moveout-notice': 'Move-out instructions',
+  'maint-ack': 'Tenant acknowledgment', 'maint-dispatch': 'Vendor dispatch', 'maint-update': 'Tenant status update', 'maint-complete': 'Completion notice',
+};
+const KIND_CHIPS = {
+  'rent-late-1': 'amber', 'rent-late-2': 'red', 'rent-late-3': 'red', 'rent-due': 'blue', 'rent-upcoming': 'gray',
+  'maint-ack': 'blue', 'maint-dispatch': 'amber', 'maint-update': 'amber', 'maint-complete': 'green',
+  'moveout-notice': 'red', 'renewal-followup': 'amber', 'renewal-offer': 'blue',
+};
+const WORKFLOWS = [
+  ['rent', 'Rent'], ['maintenance', 'Maintenance'], ['onboarding', 'Onboarding'], ['renewal', 'Renewals & move-outs'],
+];
+
+function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(t._h); t._h = setTimeout(() => t.className = '', err ? 5000 : 2500);
+}
+
+async function api(path, body) {
+  const res = await fetch(path, body ? { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) } : undefined);
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+async function refresh(force) {
+  try {
+    S = await api('/api/state' + (force ? '?refresh=1' : ''));
+    render();
+    if (force) toast('Data refreshed');
+  } catch (e) { toast('Could not load: ' + e.message, true); }
+}
+
+function render() {
+  document.getElementById('mode').textContent = S.mode.toUpperCase();
+  document.getElementById('mode').className = 'badge ' + S.mode;
+  document.getElementById('today').textContent = new Date(S.today + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('nav').innerHTML = TABS.map(([id, name]) =>
+    `<button class="${tab === id ? 'active' : ''}" onclick="setTab('${id}')">${name}${id === 'today' && S.queue.length ? `<span class="count">${S.queue.length}</span>` : ''}</button>`
+  ).join('');
+  const main = document.getElementById('main');
+  main.innerHTML =
+    tab === 'today' ? renderToday() :
+    tab === 'tenants' ? renderTenants() :
+    tab === 'maintenance' ? renderMaintenance() :
+    tab === 'history' ? renderHistory() : renderSettings();
+}
+function setTab(t) { tab = t; render(); }
+
+// ------------------------------- Today ------------------------------------
+
+function renderToday() {
+  let html = '';
+  if (S.errors && S.errors.length) html += `<div class="errors">⚠ ${S.errors.map(esc).join('<br>')}</div>`;
+  if (!S.queue.length) {
+    return html + `<div class="empty"><div class="big">🎉</div>Nothing to send — you're all caught up.<br><span style="font-size:13px;">New reminders appear here automatically as due dates approach.</span></div>`;
+  }
+  const sendable = S.queue.filter((q) => q.actions.includes('send') && q.recipient.email && !edits[q.id]).length;
+  html += `<div class="row" style="margin:0 0 14px;justify-content:space-between;">
+    <div style="color:var(--muted);font-size:14px;">${S.queue.length} message${S.queue.length === 1 ? '' : 's'} ready for review</div>
+    ${sendable > 1 ? `<button class="btn primary" onclick="sendAll()">Send all ${sendable} unedited emails</button>` : ''}
+  </div>`;
+  for (const [wf, name] of WORKFLOWS) {
+    const items = S.queue.filter((q) => q.workflow === wf);
+    if (!items.length) continue;
+    html += `<div class="section-h"><h2>${name}</h2><span class="n">${items.length}</span></div>`;
+    html += items.map(renderItem).join('');
+  }
+  return html;
+}
+
+function renderItem(q) {
+  const e = edits[q.id] || {};
+  const subject = e.subject ?? q.subject;
+  const text = e.text ?? q.text;
+  const sms = e.sms ?? q.sms;
+  const isCopy = q.actions.includes('copy');
+  const open = expanded.has(q.id);
+  const canEmail = Boolean(q.recipient.email);
+  const canSms = Boolean(q.recipient.phone);
+  const emailChecked = canEmail && !emailOff.has(q.id);
+  const smsChecked = smsOn.has(q.id);
+
+  const contactBits = [q.recipient.email, q.recipient.phone].filter(Boolean).map(esc).join(' · ');
+  return `<div class="card" id="card-${cssId(q.id)}">
+    <div class="item-top">
+      <span class="who">${esc(q.recipient.name)}</span>
+      <span class="chip ${KIND_CHIPS[q.kind] || 'gray'}">${KIND_LABELS[q.kind] || q.kind}</span>
+      <span class="meta">${esc(q.note)}</span>
+      <span class="meta" style="margin-left:auto;">${contactBits || 'no contact info'}</span>
+    </div>
+    <div class="subject-row"><input type="text" value="${esc(subject)}" onchange="edit('${q.id}','subject',this.value)"></div>
+    <details class="preview" ${open ? 'open' : ''} ontoggle="togglePrev('${q.id}', this.open)">
+      <summary>${open ? 'Hide' : 'Review / edit'} message</summary>
+      <div class="body-preview"><textarea rows="9" onchange="edit('${q.id}','text',this.value)">${esc(text)}</textarea></div>
+      ${canSms && !isCopy ? `<div class="sms-row"><label>SMS version</label><textarea rows="2" onchange="edit('${q.id}','sms',this.value)">${esc(sms)}</textarea></div>` : ''}
+    </details>
+    <div class="row">
+      ${isCopy ? `
+        <button class="btn primary" onclick="copyMsg('${q.id}')">Copy message</button>
+        ${q.recipient.email ? `<a class="btn" href="${mailtoHref(q)}" onclick="void 0">Open in email app</a>` : ''}
+        <button class="btn" onclick="act('copy-done','${q.id}')">Mark handled</button>
+      ` : `
+        <label class="ck"><input type="checkbox" ${emailChecked ? 'checked' : ''} ${canEmail ? '' : 'disabled'} onchange="toggleCh('${q.id}','email',this.checked)"> Email</label>
+        <label class="ck"><input type="checkbox" ${smsChecked ? 'checked' : ''} ${canSms ? '' : 'disabled'} onchange="toggleCh('${q.id}','sms',this.checked)"> SMS</label>
+        <button class="btn primary" onclick="sendOne('${q.id}')">Send</button>
+      `}
+      <span style="flex:1"></span>
+      ${q.actions.includes('mark-paid') ? `<button class="btn small" onclick="act('mark-paid','${q.id}')">✓ Rent was paid</button>` : ''}
+      ${q.actions.includes('mark-renewed') ? `<button class="btn small" onclick="act('mark-renewed','${q.id}')">✓ Renewed</button>` : ''}
+      <button class="btn subtle small" onclick="act('skip','${q.id}')">Skip</button>
+    </div>
+  </div>`;
+}
+
+function cssId(s) { return s.replace(/[^a-zA-Z0-9_-]/g, '_'); }
+function edit(id, field, value) { edits[id] = { ...(edits[id] || {}), [field]: value }; }
+function togglePrev(id, open) { open ? expanded.add(id) : expanded.delete(id); }
+function toggleCh(id, ch, on) {
+  if (ch === 'sms') { on ? smsOn.add(id) : smsOn.delete(id); }
+  else { on ? emailOff.delete(id) : emailOff.add(id); }
+}
+function findItem(id) { return S.queue.find((q) => q.id === id); }
+function mailtoHref(q) {
+  return `mailto:${encodeURIComponent(q.recipient.email)}?subject=${encodeURIComponent(q.subject)}&body=${encodeURIComponent(q.text)}`;
+}
+
+async function copyMsg(id) {
+  const q = findItem(id);
+  const e = edits[id] || {};
+  const full = `To: ${q.recipient.name}${q.recipient.email ? ' <' + q.recipient.email + '>' : ''}${q.recipient.phone ? ' ' + q.recipient.phone : ''}\nSubject: ${e.subject ?? q.subject}\n\n${e.text ?? q.text}`;
+  await navigator.clipboard.writeText(full);
+  toast('Copied — paste into email/text to your vendor, then Mark handled');
+}
+
+async function sendOne(id) {
+  const q = findItem(id);
+  const channels = [];
+  if (q.recipient.email && !emailOff.has(id)) channels.push('email');
+  if (smsOn.has(id)) channels.push('sms');
+  if (!channels.length) return toast('Pick at least one channel (email or SMS)', true);
+  try {
+    setBusy(id, true);
+    await api('/api/action', { type: 'send', id, channels, edited: edits[id] });
+    delete edits[id]; smsOn.delete(id); emailOff.delete(id); expanded.delete(id);
+    toast(`Sent to ${q.recipient.name}${S.mode === 'demo' ? ' (demo outbox)' : ''}`);
+    await refresh();
+  } catch (e) {
+    setBusy(id, false);
+    toast('Send failed: ' + e.message, true);
+  }
+}
+
+async function sendAll() {
+  const items = S.queue.filter((q) => q.actions.includes('send') && q.recipient.email && !edits[q.id]);
+  if (!items.length) return;
+  if (!confirm(`Send ${items.length} emails now?\n\n${items.map((q) => `• ${q.recipient.name} — ${KIND_LABELS[q.kind] || q.kind}`).join('\n')}`)) return;
+  let sent = 0, failed = 0;
+  for (const q of items) {
+    try {
+      await api('/api/action', { type: 'send', id: q.id, channels: ['email'] });
+      sent++;
+    } catch (e) { failed++; console.error(q.id, e); }
+  }
+  toast(`Sent ${sent}${failed ? `, ${failed} failed (see queue)` : ''}${S.mode === 'demo' ? ' — demo outbox' : ''}`, failed > 0);
+  await refresh();
+}
+
+async function act(type, id) {
+  try {
+    await api('/api/action', { type, id });
+    delete edits[id];
+    toast(type === 'skip' ? 'Skipped' : type === 'mark-paid' ? 'Marked paid — reminders stop for this month' : type === 'mark-renewed' ? 'Marked renewed' : 'Done');
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+}
+
+function setBusy(id, busy) {
+  const card = document.getElementById('card-' + cssId(id));
+  if (card) card.querySelectorAll('button').forEach((b) => b.disabled = busy);
+}
+
+// ------------------------------ Tenants -----------------------------------
+
+function renderTenants() {
+  if (!S.tenants.length) return `<div class="empty">No tenants found${S.mode === 'live' ? ' in Firestore (role == "tenant")' : ''}.</div>`;
+  const rows = S.tenants.map((t) => `<tr>
+    <td><strong>${esc(t.displayName)}</strong><br><span style="color:var(--muted);font-size:12px;">${esc(t.email || '')}${t.phoneNumber ? ' · ' + esc(t.phoneNumber) : ''}</span></td>
+    <td>${esc(t.unit)}</td>
+    <td>${t.monthlyRent ? '$' + Number(t.monthlyRent).toLocaleString() : '—'}</td>
+    <td><input type="number" min="1" max="31" value="${t.dueDay}" onchange="setOverride('${t.id}', {dueDay: this.value})"></td>
+    <td>${t.leaseEnd ? esc(t.leaseEnd) : 'month-to-month'}</td>
+    <td>
+      ${!t.isLeaseActive ? '<span class="chip gray">inactive</span>' :
+        t.paidThisPeriod ? '<span class="chip green">paid ' + esc(S.period) + '</span>' : '<span class="chip amber">unpaid ' + esc(S.period) + '</span>'}
+      ${t.rentPaused ? ' <span class="chip gray">reminders paused</span>' : ''}
+      ${!t.ghlContactId && S.mode === 'live' ? ' <span class="chip amber" title="Will be looked up by email at send time">no GHL link</span>' : ''}
+    </td>
+    <td style="white-space:nowrap;">
+      ${t.isLeaseActive && !t.paidThisPeriod ? `<button class="btn small" onclick="markPaid('${t.id}')">✓ Paid</button>` : ''}
+      <button class="btn subtle small" onclick="setOverride('${t.id}', {rentPaused: ${!t.rentPaused}})">${t.rentPaused ? 'Resume' : 'Pause'}</button>
+    </td>
+  </tr>`).join('');
+  return `<div class="table-wrap"><table>
+    <tr><th>Tenant</th><th>Unit</th><th>Rent</th><th>Due day</th><th>Lease ends</th><th>Status</th><th></th></tr>
+    ${rows}
+  </table></div>
+  <p style="color:var(--muted);font-size:13px;">Due day and pause are saved locally per tenant. “✓ Paid” stops this month's reminders${S.mode === 'live' ? ' (payment records in Firestore are also detected automatically)' : ''}.</p>`;
+}
+
+async function setOverride(tenantId, patch) {
+  try {
+    await api('/api/tenant-override', { tenantId, ...patch });
+    toast('Saved');
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function markPaid(tenantId) {
+  try {
+    await api('/api/action', { type: 'mark-paid', tenantId });
+    toast('Marked paid for ' + S.period);
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+}
+
+// ---------------------------- Maintenance ----------------------------------
+
+function renderMaintenance() {
+  const options = S.tenants.filter((t) => t.isLeaseActive).map((t) => `<option value="${t.id}">${esc(t.displayName)} — ${esc(t.unit)}</option>`).join('');
+  const form = `<div class="card">
+    <strong>Log a new request</strong>
+    <div class="form-grid" style="margin-top:10px;">
+      <div><label>Tenant</label><select id="m-tenant">${options}</select></div>
+      <div><label>Priority</label><select id="m-priority"><option>low</option><option selected>medium</option><option>high</option><option>urgent</option></select></div>
+      <div class="full"><label>Title</label><input type="text" id="m-title" placeholder="e.g. Water heater not working"></div>
+      <div class="full"><label>Details</label><textarea id="m-desc" rows="2" placeholder="What the tenant reported"></textarea></div>
+      <div class="full"><button class="btn primary" onclick="createMaint()">Log request</button>
+        <span style="color:var(--muted);font-size:13px;margin-left:8px;">Creates the ticket + queues the tenant acknowledgment and vendor dispatch on the Today tab.</span></div>
+    </div>
+  </div>`;
+
+  const STATUS_CHIP = { submitted: 'blue', pending: 'blue', in_progress: 'amber', completed: 'green' };
+  const rows = S.maintenance.map((r) => `<tr>
+    <td><strong>${esc(r.title)}</strong><br><span style="color:var(--muted);font-size:12px;">${esc(r.tenantName)} · ${esc(r.createdAt || '')}</span></td>
+    <td><span class="chip ${r.priority === 'urgent' || r.priority === 'high' ? 'red' : 'gray'}">${esc(r.priority)}</span></td>
+    <td><span class="chip ${STATUS_CHIP[r.status] || 'gray'}">${esc(r.status.replace('_', ' '))}</span></td>
+    <td style="white-space:nowrap;">
+      ${r.status === 'submitted' || r.status === 'pending' ? `<button class="btn small" onclick="setMaint('${r.id}','in_progress')">Start work</button>` : ''}
+      ${r.status === 'in_progress' ? `<button class="btn small" onclick="setMaint('${r.id}','completed')">Mark complete</button>` : ''}
+    </td>
+  </tr>`).join('');
+  const list = S.maintenance.length
+    ? `<div class="table-wrap"><table><tr><th>Request</th><th>Priority</th><th>Status</th><th></th></tr>${rows}</table></div>`
+    : `<div class="empty">No maintenance requests.</div>`;
+  return form + `<div class="section-h"><h2>Requests</h2></div>` + list;
+}
+
+async function createMaint() {
+  const body = {
+    tenantId: document.getElementById('m-tenant').value,
+    title: document.getElementById('m-title').value.trim(),
+    description: document.getElementById('m-desc').value.trim(),
+    priority: document.getElementById('m-priority').value,
+  };
+  if (!body.title) return toast('Give the request a title', true);
+  try {
+    await api('/api/maintenance', body);
+    toast('Logged — acknowledgment & dispatch are on the Today tab');
+    await refresh(true);
+    setTab('today');
+  } catch (e) { toast(e.message, true); }
+}
+
+async function setMaint(id, status) {
+  try {
+    await api('/api/maintenance-status', { id, status });
+    toast(status === 'completed' ? 'Completed — the tenant notice is on the Today tab' : 'Updated');
+    await refresh(true);
+  } catch (e) { toast(e.message, true); }
+}
+
+// ------------------------------ History ------------------------------------
+
+function renderHistory() {
+  const ACTION_CHIP = { sent: 'green', skipped: 'gray', paid: 'blue', renewed: 'blue' };
+  const rows = S.history.map((h) => `<tr>
+    <td style="white-space:nowrap;color:var(--muted);">${new Date(h.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
+    <td><span class="chip ${ACTION_CHIP[h.action] || 'gray'}">${esc(h.action)}</span>${h.channels ? ' <span style="color:var(--muted);font-size:12px;">' + h.channels.join('+') + '</span>' : ''}</td>
+    <td>${esc(h.tenantName || '')}</td>
+    <td>${esc(h.subject || h.key)}</td>
+    <td><button class="btn subtle small" title="Remove this record so the message can appear in the queue again" onclick="undo('${esc(h.key)}','${h.at}','${h.action}')">undo</button></td>
+  </tr>`).join('');
+  const hist = S.history.length
+    ? `<div class="table-wrap"><table><tr><th>When</th><th>Action</th><th>Tenant</th><th>Message</th><th></th></tr>${rows}</table></div>`
+    : `<div class="empty">Nothing sent or skipped yet.</div>`;
+  let outbox = '';
+  if (S.mode === 'demo') {
+    const orows = S.outbox.map((o) => `<tr>
+      <td style="white-space:nowrap;color:var(--muted);">${new Date(o.at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</td>
+      <td><span class="chip ${o.channel === 'sms' ? 'amber' : 'blue'}">${o.channel}</span></td>
+      <td>${esc(o.recipientName)}<br><span style="color:var(--muted);font-size:12px;">${esc(o.to)}</span></td>
+      <td>${esc(o.subject)}</td>
+    </tr>`).join('');
+    outbox = `<div class="section-h"><h2>Demo outbox</h2><span class="n">what would have been sent via GoHighLevel</span></div>` +
+      (S.outbox.length ? `<div class="table-wrap"><table><tr><th>Time</th><th>Channel</th><th>To</th><th>Subject</th></tr>${orows}</table></div>` : `<div class="empty">Empty — click Send on the Today tab.</div>`);
+  }
+  return hist + outbox;
+}
+
+async function undo(key, at, action) {
+  try {
+    await api('/api/action', { type: 'undo', key, at, action });
+    toast('Undone — the message is back in the queue if still relevant');
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+}
+
+// ------------------------------ Settings -----------------------------------
+
+function renderSettings() {
+  const s = S.settings;
+  const vendorRows = s.vendors.map((v, i) => `<tr>
+    <td><input type="text" value="${esc(v.name)}" onchange="editVendor(${i},'name',this.value)"></td>
+    <td><input type="text" value="${esc(v.trade || '')}" onchange="editVendor(${i},'trade',this.value)" placeholder="plumbing, hvac…"></td>
+    <td><input type="text" value="${esc(v.email || '')}" onchange="editVendor(${i},'email',this.value)"></td>
+    <td><input type="text" value="${esc(v.phone || '')}" onchange="editVendor(${i},'phone',this.value)"></td>
+    <td><button class="btn subtle small danger" onclick="removeVendor(${i})">✕</button></td>
+  </tr>`).join('');
+  return `<div class="card"><div class="form-grid">
+      <div><label>Company name</label><input type="text" id="s-companyName" value="${esc(s.companyName)}"></div>
+      <div><label>Signature name</label><input type="text" id="s-managerName" value="${esc(s.managerName)}"></div>
+      <div><label>Reply email</label><input type="text" id="s-replyEmail" value="${esc(s.replyEmail)}"></div>
+      <div><label>Reply phone</label><input type="text" id="s-replyPhone" value="${esc(s.replyPhone)}"></div>
+      <div class="full"><label>Tenant portal URL (adds a button to emails)</label><input type="text" id="s-portalUrl" value="${esc(s.portalUrl)}"></div>
+      <div><label>Default rent due day</label><input type="number" min="1" max="31" id="s-defaultDueDay" value="${s.defaultDueDay}"></div>
+      <div><label>Remind days before due</label><input type="number" min="1" max="15" id="s-remindDaysBefore" value="${s.remindDaysBefore}"></div>
+      <div class="full"><label>Late notices (days after due, comma-separated)</label><input type="text" id="s-lateSteps" value="${s.lateSteps.join(', ')}"></div>
+      <div class="full"><label>Late fee wording (used in late notices)</label><textarea id="s-lateFeeText" rows="2">${esc(s.lateFeeText)}</textarea></div>
+    </div>
+    <div class="section-h"><h2>Vendors</h2><span class="n">used for maintenance dispatch (matched by trade keyword)</span></div>
+    <div class="table-wrap"><table>
+      <tr><th>Name</th><th>Trade</th><th>Email</th><th>Phone</th><th></th></tr>
+      ${vendorRows || ''}
+    </table></div>
+    <div class="row">
+      <button class="btn small" onclick="addVendor()">+ Add vendor</button>
+      <span style="flex:1"></span>
+      <button class="btn primary" onclick="saveSettings()">Save settings</button>
+    </div>
+  </div>
+  <p style="color:var(--muted);font-size:13px;">Settings are stored locally in <code>automation/state/</code> on this machine.</p>`;
+}
+
+function editVendor(i, field, value) { S.settings.vendors[i][field] = value; }
+function addVendor() { S.settings.vendors.push({ name: '', trade: '', email: '', phone: '' }); render(); }
+function removeVendor(i) { S.settings.vendors.splice(i, 1); render(); }
+
+async function saveSettings() {
+  const g = (id) => document.getElementById(id).value;
+  const body = {
+    companyName: g('s-companyName').trim() || 'Next Level Rentals',
+    managerName: g('s-managerName').trim(),
+    replyEmail: g('s-replyEmail').trim(),
+    replyPhone: g('s-replyPhone').trim(),
+    portalUrl: g('s-portalUrl').trim(),
+    defaultDueDay: Math.min(31, Math.max(1, Number(g('s-defaultDueDay')) || 1)),
+    remindDaysBefore: Math.min(15, Math.max(1, Number(g('s-remindDaysBefore')) || 3)),
+    lateSteps: g('s-lateSteps').split(',').map((x) => Number(x.trim())).filter((n) => n > 0).sort((a, b) => a - b),
+    lateFeeText: g('s-lateFeeText').trim(),
+    vendors: S.settings.vendors.filter((v) => v.name.trim()),
+  };
+  try {
+    await api('/api/settings', body);
+    toast('Settings saved');
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+}
+
+refresh();
+</script>
+</body>
+</html>

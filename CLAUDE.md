@@ -46,6 +46,17 @@ npm run emulators
 npm run seed:roles
 ```
 
+### Rental Autopilot (local communications dashboard)
+```bash
+npm run autopilot        # live: Firestore data, sends via GoHighLevel
+npm run autopilot:demo   # demo: sample data, sends go to a local outbox
+npm run autopilot:test   # self-check (unit + end-to-end)
+```
+Local review-then-send tool at http://127.0.0.1:4100 for rent reminders,
+maintenance comms, tenant onboarding, and renewals. See `automation/README.md`.
+Rules and message templates live in `automation/engine.js` (pure functions,
+covered by `automation/test.js`); local state in `automation/state/` (git-ignored).
+
 ### Utility Scripts
 Located in `scripts/` directory:
 - `seed-roles.js` - Create initial user roles in Firestore (update UIDs before running)

@@ -28,3 +28,6 @@ gcloud-key*.json
 # Agent artifacts
 .agent-artifacts/
 validation_report.md
+
+# Rental autopilot local state (sent log, settings, demo outbox)
+automation/state/
