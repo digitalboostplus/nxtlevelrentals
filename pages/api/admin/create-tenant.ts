@@ -15,6 +15,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ message: 'Method not allowed' });
     }
 
+<<<<<<< HEAD
+=======
+    // TODO: Add server-side auth check to ensure caller is Admin
+    // SECURITY: Currently any authenticated user can create tenants.
+    // Add Firebase Admin SDK verification to check user role before allowing writes.
+    // (Requires verifying ID token from req headers)
+
+    const { email, password, displayName, propertyId, unit } = req.body as CreateTenantRequest;
+
+    if (!email || !displayName || !propertyId) {
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+>>>>>>> e1f9ca4 (repo cleanup: prune 10 stale branches, add PR workflow, code review fixes)
     try {
         // 1. Verify caller is an authenticated admin
         const authHeader = req.headers.authorization;
