@@ -1,2 +1,147 @@
-HEAD
+import { useMemo, useState } from 'react';
+import PortalHero from '@/components/Portal/PortalHero';
+import DashboardHighlights from '@/components/Portal/DashboardHighlights';
+import PaymentHistory from '@/components/Portal/PaymentHistory';
+import MaintenanceRequests from '@/components/Portal/MaintenanceRequests';
+import CommunicationHub from '@/components/Portal/CommunicationHub';
+import LeaseDocuments from '@/components/Portal/LeaseDocuments';
+import QuickActions from '@/components/Portal/QuickActions';
+import SupportContacts from '@/components/Portal/SupportContacts';
+import MaintenanceRequestForm from '@/components/Portal/MaintenanceRequestForm';
+import ResidentResources from '@/components/Portal/ResidentResources';
+import { tenantDashboard } from '@/data/portal';
+import { useAuth } from '@/context/AuthContext';
+import { usePortalData } from '@/hooks/usePortalData';
+
+type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
+// Matches the shape emitted by MaintenanceRequestForm.onSubmit.
+type MaintenanceFormPayload = {
+    title: string;
+    description: string;
+    priority: 'Low' | 'Medium' | 'High';
+    category?: string;
+};
+
+export default function TenantPortal() {
+    const { user, profile } = useAuth();
+
+    // Use our new hook for data
+    const {
+        lease,
+        property,
+        payments,
+        maintenanceRequests,
+        metrics: realMetrics,
+        loading,
+        refresh
+    } = usePortalData();
+
+    const [maintenanceFilter, setMaintenanceFilter] = useState<MaintenanceStatusFilter>('All');
+    const [requestSubmitting, setRequestSubmitting] = useState(false);
+
+    // Combine real metrics with static fallbacks where needed
+    const metrics = useMemo(
+        () => ({
+            ...tenantDashboard.metrics,
+            currentBalance: realMetrics.currentBalance,
+            dueDate: realMetrics.nextDueDate?.toISOString() || tenantDashboard.metrics.dueDate, // Fallback if null
+            leaseRenewalDate: lease?.endDate ? (lease.endDate as any).toDate().toISOString() : tenantDashboard.metrics.leaseRenewalDate,
+            // Dynamic Maintenance Count is now calculated in the hook? No, hook provides raw list.
+            // But DashboardHighlights expects a `DashboardMetrics` object.
+            // We are essentially patching the `tenantDashboard.metrics` object with real values.
+            maintenanceOpen: maintenanceRequests.filter((request) => request.status !== 'completed' && request.status !== 'cancelled').length,
+            lastPaymentDate: payments[0]?.paidAt ? (payments[0].paidAt as Date).toISOString() : tenantDashboard.metrics.lastPaymentDate,
+            lastPaymentAmount: payments[0]?.amount || tenantDashboard.metrics.lastPaymentAmount
+        }),
+        [realMetrics, lease, maintenanceRequests, payments]
+    );
+
+    // Transform lease doc for UI - currently mock structure
+    const documents = lease?.documents ? [{
+        id: 'lease-doc',
+        title: 'Lease Agreement',
+        updatedOn: (lease.updatedAt as any)?.toDate?.().toISOString() || new Date().toISOString(),
+        downloadUrl: '#'
+    }] : tenantDashboard.documents;
+
+
+    const handleRequestSubmit = async (payload: MaintenanceFormPayload) => {
+        if (!user || !profile) return;
+        setRequestSubmitting(true);
+
+        try {
+            // Submit via the server route so the request is also pushed to GHL.
+            const token = await user.getIdToken();
+            const res = await fetch('/api/maintenance/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    title: payload.title,
+                    description: payload.description,
+                    priority: payload.priority.toLowerCase(),
+                    category: payload.category?.toLowerCase() || 'other',
+                    propertyId: profile.propertyIds?.[0] || 'unassigned',
+                }),
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || 'Failed to create request');
+            }
+
+            // Refresh data to show new request
+            await refresh();
+            setMaintenanceFilter('All');
+        } catch (err) {
+            console.error('Failed to create request', err);
+        } finally {
+            setRequestSubmitting(false);
+        }
+    };
+
+    // if (loading) return <div className="loading">Loading Portal...</div>; 
+
+    return (
+        <>
+            <PortalHero
+                residentName={profile?.displayName || tenantDashboard.residentName}
                 propertyName={property?.name || tenantDashboard.propertyName}
+                unit={profile?.unit || tenantDashboard.unit}
+                nextDueDate={metrics.dueDate}
+            />
+            <DashboardHighlights metrics={metrics} />
+            <QuickActions
+                actions={tenantDashboard.quickActions
+                    .filter((action) => action.id !== 'qa-pay-rent')
+                    .map((action) => {
+                    switch (action.id) {
+                        case 'qa-maintenance':
+                            return { ...action, onClick: () => document.getElementById('maintenance-form')?.scrollIntoView({ behavior: 'smooth' }) };
+                        case 'qa-documents':
+                            return { ...action, onClick: () => document.getElementById('lease-documents')?.scrollIntoView({ behavior: 'smooth' }) };
+                        default:
+                            return action;
+                    }
+                })}
+            />
+            <PaymentHistory payments={payments} />
+
+            <MaintenanceRequestForm onSubmit={handleRequestSubmit} submitting={requestSubmitting} />
+            <MaintenanceRequests
+                requests={maintenanceRequests}
+                activeStatus={maintenanceFilter}
+                onStatusChange={setMaintenanceFilter}
+            />
+            <CommunicationHub
+                announcements={tenantDashboard.announcements}
+                messages={tenantDashboard.messages}
+            />
+            <LeaseDocuments documents={documents} />
+            <ResidentResources resources={tenantDashboard.residentResources} />
+            <SupportContacts contacts={tenantDashboard.supportContacts} />
+        </>
+    );
+}
