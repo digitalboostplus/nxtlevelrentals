@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { company } from '@/data/site';
 
 // Local prop type (kept independent of the server-only properties-public helper
 // so this client component never pulls firebase-admin into the browser bundle).
@@ -18,9 +18,6 @@ type Props = {
   properties: LandingProperty[];
 };
 
-const PLACEHOLDER_IMAGE =
-  'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=80';
-
 function formatRent(rent: number): string {
   if (!rent) return 'Contact for pricing';
   return `$${rent.toLocaleString()}/mo`;
@@ -35,10 +32,9 @@ export default function FeaturedPropertiesSection({ properties }: Props) {
       <div className="featured-properties__inner">
         <div className="featured-properties__header">
           <p className="section-eyebrow">Available now</p>
-          <h2 id="featuredPropertiesHeading">Explore our available rentals</h2>
+          <h2 id="featuredPropertiesHeading">Homes we have open</h2>
           <p>
-            Browse current openings managed by Next Level Rentals. Found a place you love? Sign in or reach out to start
-            your application.
+            Updated from our listings automatically. See one you like? Ask us about it and we will set up a showing.
           </p>
         </div>
 
@@ -46,9 +42,13 @@ export default function FeaturedPropertiesSection({ properties }: Props) {
           {properties.map((property) => (
             <article className="property-card" key={property.id} role="listitem">
               <div className="property-card__image">
-                {/* Plain img keeps arbitrary GHL/Storage image hosts working without next/image config. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={property.images?.[0] || PLACEHOLDER_IMAGE} alt={property.name} loading="lazy" />
+                {property.images?.[0] ? (
+                  // Plain img keeps arbitrary GHL/Storage image hosts working without next/image config.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={property.images[0]} alt={property.name} loading="lazy" />
+                ) : (
+                  <span className="property-card__no-photo">Photos coming soon</span>
+                )}
               </div>
               <div className="property-card__body">
                 <h3>{property.name}</h3>
@@ -63,10 +63,13 @@ export default function FeaturedPropertiesSection({ properties }: Props) {
                 )}
                 <div className="property-card__footer">
                   <span className="property-card__rent">{formatRent(property.rent)}</span>
-                  <Link href="/login" className="property-card__cta">
-                    Inquire
+                  <a
+                    href={`mailto:${company.email}?subject=${encodeURIComponent(`Showing request: ${property.name}`)}`}
+                    className="property-card__cta"
+                  >
+                    Ask about this home
                     <span aria-hidden="true">&gt;</span>
-                  </Link>
+                  </a>
                 </div>
               </div>
             </article>
@@ -125,7 +128,15 @@ export default function FeaturedPropertiesSection({ properties }: Props) {
 
         .property-card__image {
           height: 200px;
-          background: var(--color-surface);
+          background: linear-gradient(160deg, var(--color-surface-elevated), var(--color-surface));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .property-card__no-photo {
+          font-size: 0.85rem;
+          color: var(--color-muted);
         }
 
         .property-card__image img {

@@ -20,9 +20,11 @@ function CloseIcon() {
 }
 
 const landingLinks = [
-  { href: '#city-events', label: 'Events' },
-  { href: '#maintenance-schedule', label: 'Schedule' },
-  { href: '#tenant-resources', label: 'Resources' }
+  { href: '/login?next=/portal', label: 'Pay rent' },
+  { href: '#maintenance', label: 'Maintenance' },
+  { href: '#local-guide', label: 'Local guide' },
+  { href: '#properties', label: 'Rentals' },
+  { href: '#faq', label: 'FAQ' }
 ];
 
 export default function Header() {
