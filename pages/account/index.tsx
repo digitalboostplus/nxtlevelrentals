@@ -2,6 +2,8 @@ import NotificationSettings from '@/components/Portal/NotificationSettings';
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import SiteLayout from '@/components/Layout/SiteLayout';
+import LandlordLayout from '@/components/Landlord/LandlordLayout';
+import AdminLayout from '@/components/Admin/AdminLayout';
 import { useAuth } from '@/context/AuthContext';
 import type { NextPageWithAuth } from '../_app';
 import type { EmergencyContact, VehicleInfo, PetInfo } from '@/types/schema';
@@ -12,6 +14,44 @@ type AccountTab = 'profile' | 'vehicles' | 'pets' | 'payments' | 'notifications'
 
 const AccountPage: NextPageWithAuth = () => {
   const { user, profile, role, refreshProfile } = useAuth();
+  const audience: 'tenant' | 'landlord' | 'admin' = role === 'landlord' ? 'landlord' : role === 'admin' || role === 'super-admin' ? 'admin' : 'tenant';
+  const Shell = audience === 'landlord' ? LandlordLayout : audience === 'admin' ? AdminLayout : SiteLayout;
+  const copy = {
+    tenant: {
+      eyebrow: 'Tenant portal · Account',
+      sub: 'Manage profile details, emergency contacts, parking permits, and preferences.',
+      profileTab: 'Profile & Emergency',
+      profileSub: 'Official records associated with your lease agreement.',
+      nameFallback: 'Resident',
+      contactTitle: 'Emergency Contact',
+      contactSub: 'Designated contact for urgent safety or emergency entry situations.',
+      contactEmpty: 'No emergency contact registered yet.',
+      contactAdd: 'Add Emergency Contact',
+    },
+    landlord: {
+      eyebrow: 'Owner portal · Account',
+      sub: 'Your contact details and how we reach you about your homes and payouts.',
+      profileTab: 'Profile & contact',
+      profileSub: 'How the office reaches you about your homes, statements and payouts.',
+      nameFallback: 'Owner',
+      contactTitle: 'Backup contact',
+      contactSub: 'Someone we can reach if we cannot get hold of you about an urgent repair at one of your homes.',
+      contactEmpty: 'No backup contact on file yet.',
+      contactAdd: 'Add backup contact',
+    },
+    admin: {
+      eyebrow: 'Admin · Account',
+      sub: 'Your contact details and notification preferences.',
+      profileTab: 'Profile & contact',
+      profileSub: 'Your staff contact details.',
+      nameFallback: 'Staff',
+      contactTitle: 'Backup contact',
+      contactSub: 'Someone the office can reach if you are unavailable.',
+      contactEmpty: 'No backup contact on file yet.',
+      contactAdd: 'Add backup contact',
+    },
+  }[audience];
+  const homesCount = profile?.propertyIds?.length ?? 0;
   const [activeTab, setActiveTab] = useState<AccountTab>('profile');
 
   // Edit Profile Modal state
@@ -239,18 +279,18 @@ const AccountPage: NextPageWithAuth = () => {
   };
 
   return (
-    <SiteLayout>
+    <Shell title="Account">
       <Head>
-        <title>Resident Account Settings - Next Level Rentals</title>
+        <title>Account Settings - Next Level Rentals</title>
       </Head>
 
-      <div className="owner-page account-page">
+      <div className={audience === 'tenant' ? 'owner-page account-page account-page--site' : 'owner-page account-page'}>
         <div>
           <div className="owner-page__head">
             <div>
-              <p className="section-eyebrow">{role === 'tenant' ? 'Tenant portal' : role === 'landlord' ? 'Owner portal' : 'Admin'} · Account</p>
+              <p className="section-eyebrow">{copy.eyebrow}</p>
               <h1>Account Settings</h1>
-              <p className="owner-page__sub">Manage profile details, emergency contacts, parking permits, and preferences.</p>
+              <p className="owner-page__sub">{copy.sub}</p>
             </div>
           </div>
 
@@ -263,7 +303,7 @@ const AccountPage: NextPageWithAuth = () => {
                   onClick={() => setActiveTab('profile')}
                   className={`account-nav__item${activeTab === 'profile' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'profile' ? 'page' : undefined}
                 >
-                  👤 Profile & Emergency
+                  👤 {copy.profileTab}
                 </button>
 
                 {role === 'tenant' && (
@@ -312,7 +352,7 @@ const AccountPage: NextPageWithAuth = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <div>
                       <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Personal Information</h2>
-                      <p style={{ color: 'var(--color-muted)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>Official records associated with your lease agreement.</p>
+                      <p style={{ color: 'var(--color-muted)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>{copy.profileSub}</p>
                     </div>
                     <button
                       type="button"
@@ -327,7 +367,7 @@ const AccountPage: NextPageWithAuth = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
                     <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Legal Name</span>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.displayName || 'Resident'}</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.displayName || copy.nameFallback}</div>
                     </div>
 
                     <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
@@ -340,17 +380,24 @@ const AccountPage: NextPageWithAuth = () => {
                       <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.phoneNumber || 'Not provided'}</div>
                     </div>
 
-                    <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit / Apartment</span>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.unit || 'Assigned via Lease'}</div>
-                    </div>
+                    {audience === 'tenant' ? (
+                      <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit / Apartment</span>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.unit || 'Assigned via Lease'}</div>
+                      </div>
+                    ) : audience === 'landlord' ? (
+                      <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Homes we manage for you</span>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{homesCount > 0 ? (homesCount === 1 ? '1 home' : homesCount + ' homes') : 'See My Properties'}</div>
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* Emergency Contact Section */}
                   <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.75rem' }}>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>🚨 Emergency Contact</h3>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{audience === 'tenant' ? '🚨 ' : ''}{copy.contactTitle}</h3>
                     <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
-                      Designated contact for urgent safety or emergency entry situations.
+                      {copy.contactSub}
                     </p>
 
                     {profile?.emergencyContact?.name ? (
@@ -388,14 +435,14 @@ const AccountPage: NextPageWithAuth = () => {
                         textAlign: 'center',
                         color: 'var(--color-muted)',
                       }}>
-                        <p style={{ margin: '0 0 0.75rem' }}>No emergency contact registered yet.</p>
+                        <p style={{ margin: '0 0 0.75rem' }}>{copy.contactEmpty}</p>
                         <button
                           type="button"
                           className="outline-button"
                           onClick={() => setIsEditProfileOpen(true)}
                           style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}
                         >
-                          Add Emergency Contact
+                          {copy.contactAdd}
                         </button>
                       </div>
                     )}
@@ -677,7 +724,7 @@ const AccountPage: NextPageWithAuth = () => {
                 </div>
               )}
 
-              {activeTab === 'notifications' && <NotificationSettings />}
+              {activeTab === 'notifications' && <NotificationSettings audience={audience} />}
             </main>
           </div>
         </div>
@@ -1331,7 +1378,7 @@ const AccountPage: NextPageWithAuth = () => {
           }
         }
       `}</style>
-    </SiteLayout>
+    </Shell>
   );
 };
 

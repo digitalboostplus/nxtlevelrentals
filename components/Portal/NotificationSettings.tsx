@@ -8,7 +8,15 @@ const CHANNELS = [
   { key: 'inApp', label: 'In-app', hint: 'Shown inside the portal.' },
 ] as const;
 
-export default function NotificationSettings() {
+type Audience = 'tenant' | 'landlord' | 'admin';
+
+const INTRO: Record<Audience, string> = {
+  tenant: 'Choose which maintenance events you receive. Rent reminders and community announcements are not automated yet.',
+  landlord: 'Choose which maintenance events at your homes you hear about. Statement and payout notices are not automated yet.',
+  admin: 'Choose which maintenance events you hear about.',
+};
+
+export default function NotificationSettings({ audience = 'tenant' }: { audience?: Audience }) {
   const { user } = useAuth();
   const [prefs, setPrefs] = useState(DEFAULT_PREFERENCES);
   const [loading, setLoading] = useState(true);
@@ -44,7 +52,7 @@ export default function NotificationSettings() {
     <div className="prefs">
       <div className="prefs__head">
         <h2>Maintenance notifications</h2>
-        <p className="owner-note">Choose which maintenance events you receive. Rent reminders and community announcements are not automated yet.</p>
+        <p className="owner-note">{INTRO[audience]}</p>
       </div>
       {error && (
         <p ref={errorRef} role="alert" className="owner-alert">

@@ -183,3 +183,18 @@ test('admin dashboard shows rent status, the queue, public requests and work ord
     await page.screenshot({ path: `.agent-artifacts/${shot}.png`, fullPage: true });
   }
 });
+
+test('landlord account page shares the owner console shell', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page, 'landlord', '/account/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Account Settings' })).toBeVisible();
+  await expect(page.getByText('Owner Cockpit')).toBeVisible();
+  await expect(page.getByText('Owner portal · Account')).toBeVisible();
+  await expect(page.getByText('Homes we manage for you')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('lease agreement');
+  await expect(page.locator('body')).not.toContainText('parking permits');
+  await page.screenshot({ path: '.agent-artifacts/landlord-account.png', fullPage: true });
+  await page.getByRole('button', { name: /Notifications/ }).click();
+  await expect(page.getByText(/maintenance events at your homes/)).toBeVisible();
+  await page.screenshot({ path: '.agent-artifacts/landlord-account-notifications.png', fullPage: true });
+});
