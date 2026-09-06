@@ -22,6 +22,7 @@ const monthStatusTag: Record<PropertyRow['monthStatus'], string> = {
   paid: 'tag--success',
   late: 'tag--error',
   due: 'tag--info',
+  none: 'tag--neutral',
   vacant: 'tag--neutral',
 };
 

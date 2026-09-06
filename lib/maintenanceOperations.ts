@@ -19,14 +19,36 @@ export async function updateWorkOrder(db: Firestore, uid: string, input: any) {
     if (!previous) throw new Error('Ticket not found');
     const operation = ref.collection('operations').doc(input.operationId); const completed = (await tx.get(operation)).data();
     if (completed) { if (completed.fingerprint !== fingerprint) throw new Error('Operation already used'); return { changed: false, request: previous }; }
-    const property = (await tx.get(db.doc(`properties/${previous.propertyId}`))).data();
-    if (!property || property.archived) throw new Error('Property not found');
+
+    // Public-form tickets arrive with propertyId 'unassigned' and tenantId 'public'.
+    // An admin may link them here; until a property is linked the ticket can only
+    // change status and notes (no cost, no visit, no attachments).
+    const unmatched = previous.propertyId === 'unassigned' || previous.tenantId === 'public';
+    let propertyId: string = previous.propertyId;
+    let tenantId: string = previous.tenantId;
+    if (unmatched && input.propertyId !== undefined) {
+      if (typeof input.propertyId !== 'string' || !/^[\w-]{1,128}$/.test(input.propertyId)) throw new Error('Invalid property');
+      propertyId = input.propertyId;
+    }
+    const property = propertyId === 'unassigned' ? null : (await tx.get(db.doc(`properties/${propertyId}`))).data();
+    if (propertyId !== 'unassigned' && (!property || property.archived)) throw new Error('Property not found');
+    if (unmatched && input.tenantId !== undefined && input.tenantId !== '') {
+      if (typeof input.tenantId !== 'string' || !/^[\w-]{1,128}$/.test(input.tenantId)) throw new Error('Invalid tenant');
+      const tenant = (await tx.get(db.doc(`users/${input.tenantId}`))).data();
+      if (!tenant || tenant.role !== 'tenant') throw new Error('Tenant not found');
+      if (propertyId === 'unassigned' || !tenant.propertyIds?.includes(propertyId)) throw new Error('Tenant is not assigned to that property');
+      tenantId = input.tenantId;
+    }
+    if (propertyId === 'unassigned' && (input.scheduledDate || input.fileIds?.length || input.actualCost !== undefined)) throw new Error('Link the ticket to a property before scheduling a visit or recording a cost');
+
     const expenseRef = db.doc(`landlordExpenses/maintenance-${input.requestId}`);
     const expense = (await tx.get(expenseRef)).data();
-    const files = await attachmentRefs(tx, db, input.fileIds || [], uid, 'expense', previous.propertyId, expenseRef.path);
+    const files = propertyId === 'unassigned' ? [] : await attachmentRefs(tx, db, input.fileIds || [], uid, 'expense', propertyId, expenseRef.path);
     const cost = input.actualCost ?? previous.actualCost;
     if (expense && (input.status !== 'completed' || cost !== expense.amount)) throw new Error('Reconcile the existing expense before reopening or changing its cost');
     const updated = { ...previous, status: input.status, updatedAt: Date.now(),
+      propertyId, tenantId,
+      ...(property && propertyId !== previous.propertyId ? { propertyName: property.name || previous.propertyName || '' } : {}),
       ...(input.adminNotes?.trim() ? { adminNotes: `${previous.adminNotes || ''}\n${input.adminNotes.trim()}`.trim() } : {}),
       ...(input.technicianName !== undefined ? { assignedVendorName: String(input.technicianName).slice(0, 200) } : {}),
       ...(input.vendorPhone !== undefined ? { assignedVendorPhone: String(input.vendorPhone).slice(0, 50) } : {}),
@@ -40,7 +62,8 @@ export async function updateWorkOrder(db: Firestore, uid: string, input: any) {
     tx.set(ref, updated);
     if (expense && input.fileIds?.length) throw new Error('Invoice already recorded; reconcile attachments with accounting');
     if (!expense && input.status === 'completed' && cost > 0) {
-      tx.set(expenseRef, { ...(expense || {}), landlordId: property.landlordId || 'direct-management', propertyId: previous.propertyId,
+      if (!property) throw new Error('Link the ticket to a property before recording a cost');
+      tx.set(expenseRef, { ...(expense || {}), landlordId: property.landlordId || 'direct-management', propertyId,
         maintenanceRequestId: input.requestId, amount: cost, expenseType: 'maintenance', category: previous.category || 'repair',
         vendor: updated.assignedVendorName || '', description: previous.title, date: new Date().toISOString(),
         status: 'approved', fileIds: input.fileIds || [], createdBy: uid,

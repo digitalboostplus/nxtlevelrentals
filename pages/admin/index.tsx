@@ -46,6 +46,7 @@ type QueueRow = {
 };
 
 const priorityTag: Record<string, string> = {
+  emergency: 'tag--error',
   urgent: 'tag--error',
   high: 'tag--warning',
   medium: 'tag--info',
