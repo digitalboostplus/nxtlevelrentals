@@ -40,7 +40,7 @@ const AccountPage: NextPageWithAuth = () => {
       contactAdd: 'Add backup contact',
     },
     admin: {
-      eyebrow: 'Admin · Account',
+      eyebrow: role === 'super-admin' ? 'Super admin · Account' : 'Admin · Account',
       sub: 'Your contact details and notification preferences.',
       profileTab: 'Profile & contact',
       profileSub: 'Your staff contact details.',
@@ -390,7 +390,12 @@ const AccountPage: NextPageWithAuth = () => {
                         <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Homes we manage for you</span>
                         <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{homesCount > 0 ? (homesCount === 1 ? '1 home' : homesCount + ' homes') : 'See My Properties'}</div>
                       </div>
-                    ) : null}
+                    ) : (
+                      <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Access level</span>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{role === 'super-admin' ? 'Super admin' : 'Admin'}</div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Emergency Contact Section */}
