@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { firebaseAdmin } from '@/lib/firebase-admin';
-import { getFirestoreClient } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 interface RegisterTokenRequest {
   token: string;
@@ -24,11 +23,10 @@ export default async function handler(
     }
 
     const authToken = authHeader.split('Bearer ')[1];
-    const admin = firebaseAdmin;
 
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(authToken);
+      decodedToken = await adminAuth.verifyIdToken(authToken);
     } catch (error) {
       return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
@@ -43,14 +41,14 @@ export default async function handler(
     }
 
     // Store FCM token in Firestore
-    const db = getFirestoreClient();
-    const tokenRef = doc(db, 'fcmTokens', userId);
+    const db = adminDb;
+    const tokenRef = db.collection('fcmTokens').doc(userId);
 
-    await setDoc(tokenRef, {
+    await tokenRef.set({
       token,
       deviceInfo: deviceInfo || 'web',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
     });
 
     console.log(`FCM token registered for user ${userId}`);

@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const path = require('path');
-const admin = require('firebase-admin');
+const { getApps, initializeApp, applicationDefault, cert, deleteApp, getApp } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 const serviceAccountArg = process.argv[2];
 
@@ -9,27 +10,27 @@ if (serviceAccountArg) {
     const serviceAccountPath = path.resolve(serviceAccountArg);
     const serviceAccount = require(serviceAccountPath);
 
-    if (!admin.apps.length) {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
+    if (!getApps().length) {
+        initializeApp({
+            credential: cert(serviceAccount),
             projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || serviceAccount.project_id
         });
     }
 } else {
     // Try using Application Default Credentials (ADC)
     console.log('No service account provided. Attempting to use Application Default Credentials...');
-    if (!admin.apps.length) {
+    if (!getApps().length) {
         // If running outside nextjs (script), we might need to load env vars manually or hardcode project ID
         // Check if we can get project ID from env or arg
         const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'rental-tracker-app-2026';
-        admin.initializeApp({
-            credential: admin.credential.applicationDefault(),
+        initializeApp({
+            credential: applicationDefault(),
             projectId: projectId
         });
     }
 }
 
-const db = admin.firestore();
+const db = getFirestore();
 
 // Sample tenant IDs - IN A REAL SCENARIO THESE SHOULD MATCH ACTUAL USERS
 // For this seeder, we will assume some dummy UIDs or you can replace them.
@@ -94,7 +95,7 @@ async function run() {
     } finally {
         // Only delete app if we created it locally in this script
         // but typically safe to close to end process
-        await admin.app().delete();
+        await deleteApp(getApp());
     }
 }
 

@@ -21,12 +21,12 @@ export type PublicProperty = {
 export async function getPublicProperties(): Promise<PublicProperty[]> {
   const snap = await adminDb.collection('properties').where('available', '==', true).get();
 
-  const list: PublicProperty[] = snap.docs.map((doc) => {
+  const list: PublicProperty[] = snap.docs.filter(doc => !doc.data().archived).map((doc) => {
     const p = doc.data();
     return {
       id: doc.id,
       name: (p.name as string) || (p.address as string) || 'Property',
-      address: (p.address as string) || '',
+      address: typeof p.address === 'string' ? p.address : [p.address?.street, p.address?.city, p.address?.state, p.address?.zipCode].filter(Boolean).join(', '),
       description: (p.description as string) || '',
       images: Array.isArray(p.images) ? (p.images as string[]) : [],
       bedrooms: Number(p.bedrooms) || 0,

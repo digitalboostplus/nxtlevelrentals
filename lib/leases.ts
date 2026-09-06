@@ -20,6 +20,16 @@ const COLLECTION_NAME = 'leases';
 
 export const leaseUtils = {
     /**
+     * All active leases across the portfolio (admin dashboards).
+     */
+    async getActiveLeases(): Promise<Lease[]> {
+        const db = getFirestoreClient();
+        const q = query(collection(db, COLLECTION_NAME), where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as DocumentData) }) as Lease);
+    },
+
+    /**
      * Create a new lease
      */
     async createLease(leaseData: Omit<Lease, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {

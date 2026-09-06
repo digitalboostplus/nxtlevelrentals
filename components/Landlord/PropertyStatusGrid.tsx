@@ -5,13 +5,19 @@ type PropertyStatusGridProps = {
     properties: Property[];
 };
 
+function formatAddress(address: Property['address']) {
+    if (!address) return 'No address provided';
+    if (typeof address === 'string') return address;
+    return `${address.street || ''}${address.city ? `, ${address.city}` : ''}${address.state ? ` ${address.state}` : ''}`;
+}
+
 export default function PropertyStatusGrid({ properties }: PropertyStatusGridProps) {
     return (
         <section className="section">
             <div className="section__inner">
                 <div className="card__header" style={{ marginBottom: '2rem' }}>
                     <h2 className="card__title">Your Properties</h2>
-                    <Link href="/admin/properties" className="ghost-button">Manage All</Link>
+                    <Link href="/landlord/properties" className="ghost-button">Manage All</Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {properties.map((property) => (
@@ -24,11 +30,16 @@ export default function PropertyStatusGrid({ properties }: PropertyStatusGridPro
                                         {property.status}
                                     </span>
                                 </div>
-                                <p className="text-gray-600 mb-4">{property.address.street}, {property.address.city}</p>
+                                <p className="text-gray-600 mb-4">{formatAddress(property.address)}</p>
                                 <div className="border-t pt-4">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Rent</span>
-                                        <span className="font-semibold">${property.defaultRentAmount}</span>
+                                    <div className="flex justify-between text-sm items-center">
+                                        <span className="text-gray-500">Target Rent</span>
+                                        <span className="font-semibold">${property.defaultRentAmount || property.rent || 0}/mo</span>
+                                    </div>
+                                    <div className="mt-4 flex justify-end">
+                                        <Link href={`/landlord/properties/${property.id}`} className="outline-button text-xs py-1 px-3">
+                                            View Details →
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -44,3 +55,4 @@ export default function PropertyStatusGrid({ properties }: PropertyStatusGridPro
         </section>
     );
 }
+

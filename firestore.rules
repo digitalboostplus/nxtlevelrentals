@@ -33,17 +33,22 @@ service cloud.firestore {
 
     // Users collection - users can read/write their own data
     match /users/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin();
+      // Self-service profile changes use the validated server endpoint.
+      allow write: if isAdmin();
     }
 
     // Properties collection - admins can read/write, tenants/landlords can read
     // Landlords can also read properties they own
     match /properties/{propertyId} {
-      allow read: if request.auth != null;
+      allow read: if isAdmin() || (request.auth != null && (
+        (isLandlord() && resource.data.landlordId == request.auth.uid) ||
+        (hasRole('tenant') && propertyId in getUserData().get('propertyIds', []))
+      ));
       allow write: if isAdmin();
     }
 
-    // Maintenance requests - tenants can create/read their own, admins can read/write all
+    // Maintenance requests - tenants read their own and submit through the server
     // Landlords can read maintenance requests for their properties
     match /maintenanceRequests/{requestId} {
       allow read: if request.auth != null && (
@@ -52,13 +57,17 @@ service cloud.firestore {
         isAdmin()
       );
 
-      // Allow create if the tenantId matches the auth uid (Tenants creating their own requests)
-      allow create: if request.auth != null && request.resource.data.tenantId == request.auth.uid;
+      // Server workflows validate assignments, bind files and enforce status transitions.
+      allow write: if isAdmin();
+    }
 
-      // Allow updates if it's the tenant (read-only for status usually, but keeping simple for now) OR admin
-      allow update: if request.auth != null && (
-        resource.data.tenantId == request.auth.uid || isAdmin()
-      );
+    match /notificationJobs/{jobId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /fileAttachments/{fileId} {
+      allow read, write: if false;
     }
 
     // Lease documents - tenants can read their own, admins can read/write all
@@ -74,21 +83,11 @@ service cloud.firestore {
         // Tenants can read their own leases
         allow read: if request.auth != null && (
             resource.data.tenantId == request.auth.uid ||
-            (isLandlord() && resource.data.landlordId == request.auth.uid) ||
+            (isLandlord() && resource.data.landlordId == request.auth.uid && landlordOwnsProperty(resource.data.propertyId)) ||
             isAdmin()
         );
         
-        // Landlords can create leases for themselves
-        allow create: if request.auth != null && 
-            isLandlord() && 
-            request.resource.data.landlordId == request.auth.uid;
-
-        // Landlords can update their own leases
-        allow update: if request.auth != null && 
-            isLandlord() && 
-            resource.data.landlordId == request.auth.uid;
-            
-        // Admins can do everything
+        // Lease activation is an operator workflow; owners have read-only access.
         allow write: if isAdmin();
     }
 
@@ -104,7 +103,7 @@ service cloud.firestore {
     match /ledger/{entryId} {
       allow read: if request.auth != null && (
         resource.data.tenantId == request.auth.uid ||
-        resource.data.landlordId == request.auth.uid ||
+        (isLandlord() && landlordOwnsProperty(resource.data.propertyId) && resource.data.get('landlordId', request.auth.uid) == request.auth.uid) ||
         isAdmin()
       );
       // Only admins can create/update ledger entries manually
@@ -169,7 +168,7 @@ service cloud.firestore {
       // Landlords can update their own profile, but NOT sensitive fields
       allow update: if isOwner(landlordId) &&
         !request.resource.data.diff(resource.data).affectedKeys()
-          .hasAny(['accountStatus', 'totalProperties', 'activeTenants',
+          .hasAny(['managementFee', 'bankingInformation', 'taxInformation', 'payoutPreferences', 'accountStatus', 'totalProperties', 'activeTenants',
                    'monthlyRentTotal', 'createdAt', 'createdBy']);
 
       // Admins can update any landlord profile including sensitive fields
@@ -186,21 +185,8 @@ service cloud.firestore {
         resource.data.landlordId == request.auth.uid || isAdmin()
       );
 
-      // Landlords can create their own documents
-      allow create: if request.auth != null &&
-        request.resource.data.landlordId == request.auth.uid;
-
-      // Landlords can update their own documents, but NOT status/review fields
-      allow update: if request.auth != null &&
-        resource.data.landlordId == request.auth.uid &&
-        !request.resource.data.diff(resource.data).affectedKeys()
-          .hasAny(['status', 'reviewedBy', 'reviewedAt', 'rejectionReason']);
-
-      // Admins can update status and review fields
-      allow update: if isAdmin();
-
-      // Only admins can delete documents
-      allow delete: if isAdmin();
+      // Management supplies documents; owners cannot forge ownership or review status.
+      allow write: if isAdmin();
     }
 
     // Payouts - landlords can read their own, only admins/backend can create/update
@@ -214,15 +200,30 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Landlord expenses - landlords can read their own, only admins can create/update
+    // Landlord expenses - landlords can read and submit their own, admins can manage all
     match /landlordExpenses/{expenseId} {
       // Landlords can read their own expenses, admins can read all
       allow read: if request.auth != null && (
         resource.data.landlordId == request.auth.uid || isAdmin()
       );
 
-      // Only admins can create/update/delete expenses
-      allow write: if isAdmin();
+      // Landlords can create expenses for their own account
+      allow create: if isAdmin() || (
+        isLandlord() &&
+        request.resource.data.landlordId == request.auth.uid &&
+        landlordOwnsProperty(request.resource.data.propertyId) &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0 && request.resource.data.amount <= 1000000 &&
+        request.resource.data.keys().hasOnly(['landlordId', 'propertyId', 'propertyName',
+          'expenseType', 'category', 'vendor', 'amount', 'description', 'date', 'status',
+          'invoiceNumber', 'taxDeductible', 'paymentMethod', 'reimbursementStatus',
+          'receiptUrls', 'createdBy', 'createdAt', 'updatedAt'])
+      );
+
+      // Only admins can update status/delete expenses
+      allow update, delete: if isAdmin();
     }
 
     // Landlord reports - landlords can read their own, only admins/backend can create/update

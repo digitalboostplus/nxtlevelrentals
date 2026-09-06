@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Firebase's framework adapter invokes `next build` directly, using Turbopack.
+  // Keep explicit Webpack builds available for the existing local workflow.
+  turbopack: {},
+  distDir: process.env.NLR_TEST_SERVER === 'true' ? '.next-test' : '.next',
   // output: 'export',
   trailingSlash: true,
   images: {

@@ -1,17 +1,6 @@
-import { firebaseAdmin } from './firebase-admin';
-import { getFirestoreClient } from './firebase';
-import {
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  setDoc,
-  query,
-  where,
-  getDocs,
-  serverTimestamp,
-  Timestamp
-} from 'firebase/firestore';
+import { adminAuth, adminDb } from './firebase-admin';
+import { getMessaging } from 'firebase-admin/messaging';
+import { FieldValue } from 'firebase-admin/firestore';
 import { isGHLConfigured, getGHLContactByEmail, sendGHLEmail } from './ghl';
 
 // Types
@@ -22,49 +11,24 @@ import {
 } from '@/types/notifications';
 
 // Default notification preferences for new users
-export const DEFAULT_PREFERENCES: Omit<NotificationPreferences, 'userId' | 'createdAt' | 'updatedAt'> = {
-  email: {
-    enabled: true,
-    statusChanges: true,
-    notesAdded: true,
-    requestConfirmation: true,
-    technicianScheduled: true
-  },
-  push: {
-    enabled: true,
-    statusChanges: true,
-    notesAdded: true,
-    requestConfirmation: true,
-    technicianScheduled: true
-  },
-  inApp: {
-    enabled: true
-  }
-};
+export { DEFAULT_PREFERENCES } from './notificationPreferences';
+import { DEFAULT_PREFERENCES } from './notificationPreferences';
 
 /**
  * Get user's notification preferences
  * Creates default preferences if none exist
  */
 export async function getNotificationPreferences(userId: string): Promise<NotificationPreferences> {
-  const db = getFirestoreClient();
-  const prefsRef = doc(db, 'notificationPreferences', userId);
-  const prefsSnap = await getDoc(prefsRef);
+  const db = adminDb;
+  const prefsRef = db.doc(`notificationPreferences/${userId}`);
+  const prefsSnap = await prefsRef.get();
 
-  if (prefsSnap.exists()) {
-    return prefsSnap.data() as NotificationPreferences;
+  if (prefsSnap.exists) {
+    const saved = prefsSnap.data()!;
+    return { ...saved, userId, email: { ...DEFAULT_PREFERENCES.email, ...saved.email }, push: { ...DEFAULT_PREFERENCES.push, ...saved.push }, inApp: { ...DEFAULT_PREFERENCES.inApp, ...saved.inApp } } as NotificationPreferences;
   }
 
-  // Create default preferences
-  const defaultPrefs: NotificationPreferences = {
-    userId,
-    ...DEFAULT_PREFERENCES,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  };
-
-  await setDoc(prefsRef, defaultPrefs);
-  return defaultPrefs;
+  return { userId, ...DEFAULT_PREFERENCES } as NotificationPreferences;
 }
 
 /**
@@ -96,17 +60,18 @@ export async function sendPushNotification(
   data?: Record<string, string>
 ): Promise<boolean> {
   try {
-    const admin = firebaseAdmin;
-    const db = getFirestoreClient();
+
+    if (process.env.FIREBASE_AUTH_EMULATOR_HOST) return false;
+    const db = adminDb;
 
     // Get user's FCM token
-    const tokenDoc = await getDoc(doc(db, 'fcmTokens', userId));
-    if (!tokenDoc.exists()) {
+    const tokenDoc = await db.doc(`fcmTokens/${userId}`).get();
+    if (!tokenDoc.exists) {
       console.log(`No FCM token found for user ${userId}`);
       return false;
     }
 
-    const fcmToken = tokenDoc.data().token;
+    const fcmToken = tokenDoc.data()!.token;
 
     // Send notification via Firebase Admin
     const message = {
@@ -123,7 +88,7 @@ export async function sendPushNotification(
       }
     };
 
-    await admin.messaging().send(message);
+    await getMessaging(adminAuth.app).send(message);
     console.log(`Push notification sent to user ${userId}`);
     return true;
   } catch (error: any) {
@@ -133,8 +98,8 @@ export async function sendPushNotification(
     if (error.code === 'messaging/invalid-registration-token' ||
       error.code === 'messaging/registration-token-not-registered') {
       try {
-        const db = getFirestoreClient();
-        await setDoc(doc(db, 'fcmTokens', userId), { token: '', updatedAt: serverTimestamp() }, { merge: true });
+        const db = adminDb;
+        await db.doc(`fcmTokens/${userId}`).set({ token: '', updatedAt: FieldValue.serverTimestamp() }, { merge: true });
       } catch (deleteError) {
         console.error('Failed to clear invalid FCM token:', deleteError);
       }
@@ -154,6 +119,7 @@ export async function sendEmailNotification(
   htmlContent: string,
   _textContent?: string
 ): Promise<boolean> {
+  if (process.env.FIREBASE_AUTH_EMULATOR_HOST) return false;
   if (!isGHLConfigured()) {
     console.warn('GHL not configured, skipping email notification');
     return false;
@@ -187,7 +153,7 @@ export async function createInAppNotification(
   metadata?: Notification['metadata']
 ): Promise<string | null> {
   try {
-    const db = getFirestoreClient();
+    const db = adminDb;
 
     const notification: Omit<Notification, 'id'> = {
       userId,
@@ -196,11 +162,11 @@ export async function createInAppNotification(
       message,
       maintenanceRequestId,
       read: false,
-      createdAt: serverTimestamp(),
-      metadata
+      createdAt: FieldValue.serverTimestamp(),
+      ...(metadata ? { metadata } : {})
     };
 
-    const docRef = await addDoc(collection(db, 'notifications'), notification);
+    const docRef = await db.collection('notifications').add(notification);
     console.log(`In-app notification created for user ${userId}`);
     return docRef.id;
   } catch (error) {
@@ -291,13 +257,8 @@ export async function sendMultiChannelNotification(
  */
 export async function getAdminUsers(): Promise<Array<{ id: string; email: string; displayName?: string }>> {
   try {
-    const db = getFirestoreClient();
-    const adminsQuery = query(
-      collection(db, 'users'),
-      where('role', 'in', ['admin', 'super-admin'])
-    );
-
-    const snapshot = await getDocs(adminsQuery);
+    const db = adminDb;
+    const snapshot = await db.collection('users').where('role', 'in', ['admin', 'super-admin']).get();
     return snapshot.docs.map(doc => ({
       id: doc.id,
       email: doc.data().email,
@@ -314,9 +275,9 @@ export async function getAdminUsers(): Promise<Array<{ id: string; email: string
  */
 export async function markNotificationAsRead(notificationId: string): Promise<boolean> {
   try {
-    const db = getFirestoreClient();
-    const notificationRef = doc(db, 'notifications', notificationId);
-    await setDoc(notificationRef, { read: true }, { merge: true });
+    const db = adminDb;
+    const notificationRef = db.doc(`notifications/${notificationId}`);
+    await notificationRef.set({ read: true }, { merge: true });
     return true;
   } catch (error) {
     console.error(`Failed to mark notification ${notificationId} as read:`, error);
@@ -343,14 +304,8 @@ export async function markNotificationsAsRead(notificationIds: string[]): Promis
  */
 export async function getUnreadNotificationCount(userId: string): Promise<number> {
   try {
-    const db = getFirestoreClient();
-    const q = query(
-      collection(db, 'notifications'),
-      where('userId', '==', userId),
-      where('read', '==', false)
-    );
-
-    const snapshot = await getDocs(q);
+    const db = adminDb;
+    const snapshot = await db.collection('notifications').where('userId', '==', userId).where('read', '==', false).get();
     return snapshot.size;
   } catch (error) {
     console.error(`Failed to get unread count for user ${userId}:`, error);

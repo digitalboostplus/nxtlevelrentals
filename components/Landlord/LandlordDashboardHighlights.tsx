@@ -8,7 +8,7 @@ interface LandlordSummary {
 }
 
 const formatCurrency = (value: number) =>
-    new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+    new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
 
 type LandlordDashboardHighlightsProps = {
     summary: LandlordSummary;
@@ -19,10 +19,10 @@ export default function LandlordDashboardHighlights({ summary }: LandlordDashboa
         {
             label: 'Total Rent Collected',
             value: formatCurrency(summary.totalRentCollected),
-            meta: 'Current period'
+            meta: 'Year to date (UTC)'
         },
         {
-            label: 'Net Income',
+            label: 'Recorded Net',
             value: formatCurrency(summary.netIncome),
             meta: `After ${formatCurrency(summary.totalExpenses)} expenses`
         },
@@ -34,7 +34,7 @@ export default function LandlordDashboardHighlights({ summary }: LandlordDashboa
         {
             label: 'Pending Payout',
             value: formatCurrency(summary.pendingPayouts),
-            meta: 'Next scheduled transfer'
+            meta: 'Total scheduled records'
         }
     ];
 
@@ -43,7 +43,7 @@ export default function LandlordDashboardHighlights({ summary }: LandlordDashboa
             <div className="section__inner">
                 <div className="card__header" style={{ marginBottom: '2rem' }}>
                     <h2 className="card__title">Financial Overview</h2>
-                    <span className="tag tag--success">Next payout in 3 days</span>
+                    <span className="tag tag--success">Recorded transactions</span>
                 </div>
                 <div className="stat-grid">
                     {stats.map((stat) => (

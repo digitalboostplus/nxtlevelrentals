@@ -1,31 +1,22 @@
+import { normalizeDate } from '@/lib/date';
 import { useMemo, useState } from 'react';
-import PortalHero from '@/components/Portal/PortalHero';
-import DashboardHighlights from '@/components/Portal/DashboardHighlights';
+import TenantHome from '@/components/Portal/TenantHome';
 import PaymentHistory from '@/components/Portal/PaymentHistory';
 import MaintenanceRequests from '@/components/Portal/MaintenanceRequests';
-import CommunicationHub from '@/components/Portal/CommunicationHub';
 import LeaseDocuments from '@/components/Portal/LeaseDocuments';
-import QuickActions from '@/components/Portal/QuickActions';
-import SupportContacts from '@/components/Portal/SupportContacts';
-import MaintenanceRequestForm from '@/components/Portal/MaintenanceRequestForm';
-import ResidentResources from '@/components/Portal/ResidentResources';
+import MaintenanceRequestForm, { type MaintenanceRequestPayload } from '@/components/Portal/MaintenanceRequestForm';
+import PayRentModal from '@/components/Portal/PayRentModal';
 import { tenantDashboard } from '@/data/portal';
 import { useAuth } from '@/context/AuthContext';
 import { usePortalData } from '@/hooks/usePortalData';
+import { formatPropertyAddress, tenantActivity, tenantAttentionItems } from '@/lib/console-home';
 
 type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
-// Matches the shape emitted by MaintenanceRequestForm.onSubmit.
-type MaintenanceFormPayload = {
-    title: string;
-    description: string;
-    priority: 'Low' | 'Medium' | 'High';
-    category?: string;
-};
 
 export default function TenantPortal() {
     const { user, profile } = useAuth();
 
-    // Use our new hook for data
+    // Use our portal data hook
     const {
         lease,
         property,
@@ -33,22 +24,23 @@ export default function TenantPortal() {
         maintenanceRequests,
         metrics: realMetrics,
         loading,
+        error,
         refresh
     } = usePortalData();
 
     const [maintenanceFilter, setMaintenanceFilter] = useState<MaintenanceStatusFilter>('All');
     const [requestSubmitting, setRequestSubmitting] = useState(false);
+    const [requestSaved, setRequestSaved] = useState(false);
+    const [isPayModalOpen, setIsPayModalOpen] = useState(false);
 
     // Combine real metrics with static fallbacks where needed
     const metrics = useMemo(
         () => ({
             ...tenantDashboard.metrics,
             currentBalance: realMetrics.currentBalance,
-            dueDate: realMetrics.nextDueDate?.toISOString() || tenantDashboard.metrics.dueDate, // Fallback if null
-            leaseRenewalDate: lease?.endDate ? (lease.endDate as any).toDate().toISOString() : tenantDashboard.metrics.leaseRenewalDate,
-            // Dynamic Maintenance Count is now calculated in the hook? No, hook provides raw list.
-            // But DashboardHighlights expects a `DashboardMetrics` object.
-            // We are essentially patching the `tenantDashboard.metrics` object with real values.
+            autoPayEnabled: false,
+            dueDate: realMetrics.nextDueDate?.toISOString() || '',
+            leaseRenewalDate: normalizeDate(lease?.endDate)?.toISOString() || '',
             maintenanceOpen: maintenanceRequests.filter((request) => request.status !== 'completed' && request.status !== 'cancelled').length,
             lastPaymentDate: payments[0]?.paidAt ? (payments[0].paidAt as Date).toISOString() : tenantDashboard.metrics.lastPaymentDate,
             lastPaymentAmount: payments[0]?.amount || tenantDashboard.metrics.lastPaymentAmount
@@ -56,21 +48,35 @@ export default function TenantPortal() {
         [realMetrics, lease, maintenanceRequests, payments]
     );
 
-    // Transform lease doc for UI - currently mock structure
-    const documents = lease?.documents ? [{
-        id: 'lease-doc',
-        title: 'Lease Agreement',
-        updatedOn: (lease.updatedAt as any)?.toDate?.().toISOString() || new Date().toISOString(),
-        downloadUrl: '#'
-    }] : tenantDashboard.documents;
+    // Transform lease doc for UI
+    const documents = (lease?.documents || []).filter(url => url.startsWith('https://')).map((url, index) => ({
+        id: `lease-${index}`, title: 'Lease Agreement', updatedOn: normalizeDate(lease?.updatedAt)?.toISOString() || '', downloadUrl: url
+    }));
 
+    const attention = useMemo(
+        () => tenantAttentionItems({
+            maintenanceRequests,
+            lease,
+            hasRentersInsurance: Boolean(profile?.rentersInsurance),
+            currentBalance: realMetrics.currentBalance,
+            nextDueDate: realMetrics.nextDueDate,
+        }),
+        [maintenanceRequests, lease, profile?.rentersInsurance, realMetrics.currentBalance, realMetrics.nextDueDate]
+    );
+    const activity = useMemo(() => tenantActivity({ payments, maintenanceRequests }), [payments, maintenanceRequests]);
+    const lastPayment = useMemo(() => {
+        const paid = payments.find((payment) => ['paid', 'completed', 'succeeded'].includes(String(payment.status)) && payment.paidAt);
+        const date = normalizeDate(paid?.paidAt);
+        return paid && date ? { amount: paid.amount, date, method: paid.paymentMethod, receiptUrl: paid.receiptUrl } : null;
+    }, [payments]);
 
-    const handleRequestSubmit = async (payload: MaintenanceFormPayload) => {
+    const handleRequestSubmit = async (payload: MaintenanceRequestPayload) => {
         if (!user || !profile) return;
         setRequestSubmitting(true);
+        setRequestSaved(false);
 
         try {
-            // Submit via the server route so the request is also pushed to GHL.
+            // Save the request and its attachments through the authorized server route.
             const token = await user.getIdToken();
             const res = await fetch('/api/maintenance/create', {
                 method: 'POST',
@@ -83,7 +89,12 @@ export default function TenantPortal() {
                     description: payload.description,
                     priority: payload.priority.toLowerCase(),
                     category: payload.category?.toLowerCase() || 'other',
-                    propertyId: profile.propertyIds?.[0] || 'unassigned',
+                    propertyId: lease?.propertyId || profile.propertyIds?.[0] || 'unassigned',
+                    permissionToEnter: payload.permissionToEnter,
+                    hasPets: payload.hasPets,
+                    fileIds: payload.fileIds,
+                    operationId: payload.operationId,
+                    preferredTime: payload.preferredTime,
                 }),
             });
 
@@ -92,56 +103,59 @@ export default function TenantPortal() {
                 throw new Error(err.message || 'Failed to create request');
             }
 
+            setRequestSaved(true);
             // Refresh data to show new request
             await refresh();
             setMaintenanceFilter('All');
         } catch (err) {
             console.error('Failed to create request', err);
+            throw err;
         } finally {
             setRequestSubmitting(false);
         }
     };
 
-    // if (loading) return <div className="loading">Loading Portal...</div>; 
-
+    if (loading) return <p role="status">Loading resident records...</p>;
+    if (error) return <div>{requestSaved && <p role="status">Request received. Refresh the page to reload your records.</p>}<p role="alert">{error}</p></div>;
     return (
         <>
-            <PortalHero
-                residentName={profile?.displayName || tenantDashboard.residentName}
-                propertyName={property?.name || tenantDashboard.propertyName}
-                unit={profile?.unit || tenantDashboard.unit}
-                nextDueDate={metrics.dueDate}
-            />
-            <DashboardHighlights metrics={metrics} />
-            <QuickActions
-                actions={tenantDashboard.quickActions
-                    .filter((action) => action.id !== 'qa-pay-rent')
-                    .map((action) => {
-                    switch (action.id) {
-                        case 'qa-maintenance':
-                            return { ...action, onClick: () => document.getElementById('maintenance-form')?.scrollIntoView({ behavior: 'smooth' }) };
-                        case 'qa-documents':
-                            return { ...action, onClick: () => document.getElementById('lease-documents')?.scrollIntoView({ behavior: 'smooth' }) };
-                        default:
-                            return action;
-                    }
-                })}
+            {requestSaved && <p role="status">Request received! We will follow up shortly.</p>}
+            <TenantHome
+                name={(profile?.displayName || '').split(' ')[0] || 'there'}
+                addressLine={[formatPropertyAddress(property?.address), lease?.unit || profile?.unit].filter(Boolean).join(' · ')}
+                rentAmount={lease?.monthlyRent || lease?.rentAmount || 0}
+                currentBalance={realMetrics.currentBalance}
+                nextDueDate={realMetrics.nextDueDate}
+                daysUntilDue={realMetrics.daysUntilDue}
+                lastPayment={lastPayment}
+                attention={attention}
+                activity={activity}
+                documents={documents}
+                hasRentersInsurance={Boolean(profile?.rentersInsurance)}
+                onPayRent={() => setIsPayModalOpen(true)}
             />
             <PaymentHistory payments={payments} />
 
-            <MaintenanceRequestForm onSubmit={handleRequestSubmit} submitting={requestSubmitting} />
+            <MaintenanceRequestForm propertyId={lease?.propertyId || profile?.propertyIds?.[0]} onSubmit={handleRequestSubmit} submitting={requestSubmitting} />
             <MaintenanceRequests
                 requests={maintenanceRequests}
                 activeStatus={maintenanceFilter}
                 onStatusChange={setMaintenanceFilter}
             />
-            <CommunicationHub
-                announcements={tenantDashboard.announcements}
-                messages={tenantDashboard.messages}
+            <LeaseDocuments
+                documents={documents}
+                lease={lease}
+                rentersInsurance={profile?.rentersInsurance}
+                onInsuranceUpdated={refresh}
             />
-            <LeaseDocuments documents={documents} />
-            <ResidentResources resources={tenantDashboard.residentResources} />
-            <SupportContacts contacts={tenantDashboard.supportContacts} />
+
+            <PayRentModal
+                isOpen={isPayModalOpen}
+                onClose={() => setIsPayModalOpen(false)}
+                currentBalance={metrics.currentBalance}
+                propertyName={property?.name}
+                onSuccess={refresh}
+            />
         </>
     );
 }

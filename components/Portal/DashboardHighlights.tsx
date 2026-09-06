@@ -7,19 +7,20 @@ const formatCurrency = (value: number) =>
 
 type DashboardHighlightsProps = {
   metrics: DashboardMetrics;
+  onPayRent?: () => void;
 };
 
-export default function DashboardHighlights({ metrics }: DashboardHighlightsProps) {
+export default function DashboardHighlights({ metrics, onPayRent }: DashboardHighlightsProps) {
   const stats = [
     {
       label: 'Current Balance',
       value: formatCurrency(metrics.currentBalance),
-      meta: `Due ${formatLocalDate(metrics.dueDate, { month: 'short', day: 'numeric', year: 'numeric' })}`
+      meta: metrics.dueDate ? `Oldest posted charge: ${formatLocalDate(metrics.dueDate)}` : 'No posted balance due'
     },
     {
       label: 'AutoPay',
-      value: metrics.autoPayEnabled ? 'Enabled' : 'Disabled',
-      meta: metrics.autoPayEnabled ? 'Payments drafted automatically' : 'Enable autopay to avoid late fees'
+      value: 'Unavailable',
+      meta: 'Contact management for payment instructions'
     },
     {
       label: 'Next Inspection',
@@ -40,9 +41,24 @@ export default function DashboardHighlights({ metrics }: DashboardHighlightsProp
   return (
     <section className="section">
       <div className="section__inner">
-        <div className="card__header" style={{ marginBottom: '2rem' }}>
-          <h2 className="card__title">Dashboard overview</h2>
-          <span className="tag tag--info">All systems operational</span>
+        <div className="card__header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h2 className="card__title">Dashboard overview</h2>
+            <p style={{ color: 'var(--color-muted)', margin: 0 }}>Monitor rent balance, lease status, and community notifications.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <span className="tag tag--info">Online payments unavailable</span>
+            {onPayRent && (
+              <button
+                type="button"
+                onClick={onPayRent}
+                className="primary-button"
+                style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                💳 Pay Rent
+              </button>
+            )}
+          </div>
         </div>
         <div className="stat-grid">
           {stats.map((stat) => (
@@ -57,4 +73,3 @@ export default function DashboardHighlights({ metrics }: DashboardHighlightsProp
     </section>
   );
 }
-

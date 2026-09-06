@@ -20,6 +20,9 @@ export const company = {
   emergencyPhoneTel: '',
   // Plain-language service promise shown next to the maintenance form.
   repairWindow: 'within a few business days',
+  // Flip on once a real payment processor is wired up. Until then the portal
+  // shows payment instructions instead of a pay button.
+  onlinePaymentsEnabled: false,
 };
 
 export function emergencyPhone() {

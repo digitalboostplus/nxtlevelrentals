@@ -43,6 +43,10 @@ const parseProfile = (user: FirebaseUser, data: DocumentData | undefined): UserP
     photoURL: data?.photoURL,
     stripeCustomerId: data?.stripeCustomerId,
     onboardingCompleted: data?.onboardingCompleted ?? false,
+    emergencyContact: data?.emergencyContact,
+    vehicles: data?.vehicles,
+    pets: data?.pets,
+    rentersInsurance: data?.rentersInsurance,
     createdAt: data?.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : data.createdAt) : new Date(),
     updatedAt: data?.updatedAt ? (data.updatedAt.toDate ? data.updatedAt.toDate() : data.updatedAt) : new Date(),
   } as UserProfile;

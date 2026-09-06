@@ -101,7 +101,8 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     { label: 'Properties', path: '/admin/properties', icon: <PropertiesIcon /> },
     { label: 'Tenants', path: '/admin/tenants', icon: <TenantsIcon /> },
     { label: 'Rent Payments', path: '/admin/rent-payments', icon: <PaymentsIcon /> },
-    { label: 'Maintenance', path: '/admin/maintenance', icon: <MaintenanceIcon /> }
+    { label: 'Maintenance', path: '/admin/maintenance', icon: <MaintenanceIcon /> },
+    { label: 'Operations', path: '/admin/operations', icon: <MaintenanceIcon /> }
   ];
 
   const pathSegments = router.asPath.split('?')[0].split('/').filter(Boolean);

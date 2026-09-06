@@ -11,8 +11,7 @@ import {
   newRequestAdminEmail
 } from './email-templates';
 import type { MaintenanceRequest, MaintenanceStatus } from '@/types/maintenance';
-import { getFirestoreClient } from './firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { adminDb } from './firebase-admin';
 
 const PORTAL_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nxtlevelrentals.com';
 
@@ -21,15 +20,15 @@ const PORTAL_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nxtlevelren
  */
 async function getUserDetails(userId: string): Promise<{ email: string; displayName: string } | null> {
   try {
-    const db = getFirestoreClient();
-    const userDoc = await getDoc(doc(db, 'users', userId));
+    const db = adminDb;
+    const userDoc = await db.doc(`users/${userId}`).get();
 
-    if (!userDoc.exists()) {
+    if (!userDoc.exists) {
       console.error(`User ${userId} not found`);
       return null;
     }
 
-    const userData = userDoc.data();
+    const userData = userDoc.data()!;
     return {
       email: userData.email || '',
       displayName: userData.displayName || 'Tenant'
@@ -45,15 +44,15 @@ async function getUserDetails(userId: string): Promise<{ email: string; displayN
  */
 async function getPropertyDetails(propertyId: string): Promise<{ name: string } | null> {
   try {
-    const db = getFirestoreClient();
-    const propertyDoc = await getDoc(doc(db, 'properties', propertyId));
+    const db = adminDb;
+    const propertyDoc = await db.doc(`properties/${propertyId}`).get();
 
-    if (!propertyDoc.exists()) {
+    if (!propertyDoc.exists) {
       return null;
     }
 
     return {
-      name: propertyDoc.data().name || 'Unknown Property'
+      name: propertyDoc.data()!.name || 'Unknown Property'
     };
   } catch (error) {
     console.error(`Failed to fetch property details for ${propertyId}:`, error);

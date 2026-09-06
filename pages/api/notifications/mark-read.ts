@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { firebaseAdmin } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { markNotificationAsRead, markNotificationsAsRead } from '@/lib/notifications';
-import { getFirestoreClient } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
 interface MarkReadRequest {
   notificationId?: string;
@@ -25,11 +23,10 @@ export default async function handler(
     }
 
     const authToken = authHeader.split('Bearer ')[1];
-    const admin = firebaseAdmin;
 
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(authToken);
+      decodedToken = await adminAuth.verifyIdToken(authToken);
     } catch (error) {
       return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
@@ -45,22 +42,22 @@ export default async function handler(
       });
     }
 
-    const db = getFirestoreClient();
+    const db = adminDb;
 
     // Verify user owns the notification(s) before marking as read
     const idsToMark = notificationId ? [notificationId] : notificationIds!;
 
     for (const id of idsToMark) {
-      const notificationDoc = await getDoc(doc(db, 'notifications', id));
+      const notificationDoc = await db.collection('notifications').doc(id).get();
 
-      if (!notificationDoc.exists()) {
+      if (!notificationDoc.exists) {
         return res.status(404).json({
           message: `Notification ${id} not found`
         });
       }
 
       const notificationData = notificationDoc.data();
-      if (notificationData.userId !== userId) {
+      if (notificationData?.userId !== userId) {
         return res.status(403).json({
           message: `Forbidden: You don't have permission to modify notification ${id}`
         });

@@ -1,25 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
-import { DEFAULT_PREFERENCES } from '@/lib/notifications';
+import { DEFAULT_PREFERENCES, validatePreferenceUpdates } from '@/lib/notificationPreferences';
 import type { NotificationPreferences } from '@/types/notifications';
 
-// Read notification preferences via the Admin SDK, seeding defaults if absent.
 async function readPreferences(userId: string): Promise<NotificationPreferences> {
-  const ref = adminDb.collection('notificationPreferences').doc(userId);
-  const snap = await ref.get();
-  if (snap.exists) {
-    return snap.data() as NotificationPreferences;
-  }
-
-  const defaults: NotificationPreferences = {
-    userId,
-    ...DEFAULT_PREFERENCES,
-    createdAt: FieldValue.serverTimestamp() as any,
-    updatedAt: FieldValue.serverTimestamp() as any,
-  };
-  await ref.set(defaults);
-  return defaults;
+  const saved = (await adminDb.doc(`notificationPreferences/${userId}`).get()).data() || {};
+  return { ...saved, userId, email: { ...DEFAULT_PREFERENCES.email, ...saved.email }, push: { ...DEFAULT_PREFERENCES.push, ...saved.push }, inApp: { ...DEFAULT_PREFERENCES.inApp, ...saved.inApp } } as NotificationPreferences;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -50,7 +37,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Handle PUT request - update preferences
-    const updates = req.body as Partial<NotificationPreferences>;
+    let updates: Partial<NotificationPreferences>;
+    try { updates = validatePreferenceUpdates(req.body) as Partial<NotificationPreferences>; }
+    catch { return res.status(400).json({ message: 'Unsupported preference or non-boolean value' }); }
 
     if (!updates.email && !updates.push && !updates.inApp) {
       return res.status(400).json({
@@ -58,20 +47,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const currentPreferences = await readPreferences(userId);
-
-    const updatedPreferences: NotificationPreferences = {
-      ...currentPreferences,
-      ...(updates.email && { email: { ...currentPreferences.email, ...updates.email } }),
-      ...(updates.push && { push: { ...currentPreferences.push, ...updates.push } }),
-      ...(updates.inApp && { inApp: { ...currentPreferences.inApp, ...updates.inApp } }),
-      updatedAt: FieldValue.serverTimestamp() as any,
-    };
-
-    await adminDb
-      .collection('notificationPreferences')
-      .doc(userId)
-      .set(updatedPreferences, { merge: true });
+    const updatedPreferences = await adminDb.runTransaction(async tx => {
+      const ref = adminDb.doc(`notificationPreferences/${userId}`);
+      const current = (await tx.get(ref)).data() || {};
+      const updated = { userId, createdAt: current.createdAt || FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
+        email: { ...DEFAULT_PREFERENCES.email, ...current.email, ...updates.email },
+        push: { ...DEFAULT_PREFERENCES.push, ...current.push, ...updates.push },
+        inApp: { ...DEFAULT_PREFERENCES.inApp, ...current.inApp, ...updates.inApp } };
+      tx.set(ref, updated);
+      return updated;
+    });
 
     return res.status(200).json({
       success: true,

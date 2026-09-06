@@ -1,3 +1,4 @@
+import { calculateBalance } from '@/lib/ledger';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -74,6 +75,7 @@ const TenantLedgerPage: NextPageWithAuth = () => {
                         <div className="ledger-grid">
                             <div className="main-content">
                                 <Card title="Financial Ledger">
+                                    <p>Current balance: ${calculateBalance(ledger).toFixed(2)}</p>
                                     <LedgerTable entries={ledger} />
                                 </Card>
                             </div>

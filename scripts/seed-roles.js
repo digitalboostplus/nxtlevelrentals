@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const path = require('path');
-const admin = require('firebase-admin');
+const { initializeApp, cert, deleteApp, getApp } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 const serviceAccountArg = process.argv[2];
 if (!serviceAccountArg) {
@@ -11,12 +12,12 @@ if (!serviceAccountArg) {
 const serviceAccountPath = path.resolve(serviceAccountArg);
 const serviceAccount = require(serviceAccountPath);
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+initializeApp({
+  credential: cert(serviceAccount),
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || serviceAccount.project_id
 });
 
-const db = admin.firestore();
+const db = getFirestore();
 
 const seedUsers = [
   {
@@ -65,7 +66,7 @@ async function run() {
   } catch (error) {
     console.error('Failed to seed roles:', error);
   } finally {
-    await admin.app().delete();
+    await deleteApp(getApp());
   }
 }
 

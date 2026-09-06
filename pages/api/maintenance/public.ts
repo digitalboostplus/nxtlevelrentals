@@ -144,7 +144,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       propertyId,
       title,
       description,
-      priority,
+      // Stored lowercase to match the portal's create route ('low' | 'medium' | 'high').
+      priority: priority.toLowerCase(),
       category,
       status: 'submitted',
       permissionToEnter: Boolean(body.permissionToEnter),

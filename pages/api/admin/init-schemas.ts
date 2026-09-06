@@ -1,9 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { adminDb } from '@/lib/firebase-admin';
+import { requestActor } from '@/lib/serverRequest';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
+    }
+
+    // Writes metadata; operators only.
+    try {
+        await requestActor(req, ['admin', 'super-admin']);
+    } catch {
+        return res.status(403).json({ message: 'Admin access required' });
     }
 
     try {

@@ -1,14 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { firebaseAdmin } from '@/lib/firebase-admin';
-import { getFirestoreClient } from '@/lib/firebase';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  limit as firestoreLimit,
-  getDocs
-} from 'firebase/firestore';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import type { Notification } from '@/types/notifications';
 
 export default async function handler(
@@ -27,11 +18,10 @@ export default async function handler(
     }
 
     const authToken = authHeader.split('Bearer ')[1];
-    const admin = firebaseAdmin;
 
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(authToken);
+      decodedToken = await adminAuth.verifyIdToken(authToken);
     } catch (error) {
       return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
@@ -40,32 +30,14 @@ export default async function handler(
 
     // Parse query parameters
     const { limit = '50', includeRead = 'false' } = req.query;
-    const limitNum = parseInt(limit as string, 10);
-    const includeReadBool = includeRead === 'true';
-
-    // Query notifications
-    const db = getFirestoreClient();
-    const notificationsRef = collection(db, 'notifications');
-
-    let q = query(
-      notificationsRef,
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
-      firestoreLimit(limitNum)
-    );
-
-    // Filter by read status if needed
-    if (!includeReadBool) {
-      q = query(
-        notificationsRef,
-        where('userId', '==', userId),
-        where('read', '==', false),
-        orderBy('createdAt', 'desc'),
-        firestoreLimit(limitNum)
-      );
+    const limitNum = Number(limit);
+    if (!Number.isInteger(limitNum) || limitNum < 1 || limitNum > 100) {
+      return res.status(400).json({ message: 'Limit must be an integer from 1 to 100' });
     }
-
-    const snapshot = await getDocs(q);
+    const includeReadBool = includeRead === 'true';
+    const notificationsRef = adminDb.collection('notifications').where('userId', '==', userId);
+    const filtered = includeReadBool ? notificationsRef : notificationsRef.where('read', '==', false);
+    const snapshot = await filtered.orderBy('createdAt', 'desc').limit(limitNum).get();
 
     const notifications: Notification[] = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -73,13 +45,7 @@ export default async function handler(
     } as Notification));
 
     // Get unread count
-    const unreadQuery = query(
-      notificationsRef,
-      where('userId', '==', userId),
-      where('read', '==', false)
-    );
-
-    const unreadSnapshot = await getDocs(unreadQuery);
+    const unreadSnapshot = await notificationsRef.where('read', '==', false).get();
     const unreadCount = unreadSnapshot.size;
 
     return res.status(200).json({

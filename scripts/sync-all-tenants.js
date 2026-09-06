@@ -1,15 +1,16 @@
 const fetch = require('node-fetch');
-const admin = require('firebase-admin');
+const { getApps, initializeApp, applicationDefault } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 // 1. Initialize Firebase Admin
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
+if (!getApps().length) {
+    initializeApp({
+        credential: applicationDefault(),
         projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'rental-tracker-app-2026'
     });
 }
 
-const db = admin.firestore();
+const db = getFirestore();
 
 const GHL_TOKEN = process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN;
 if (!GHL_TOKEN) {

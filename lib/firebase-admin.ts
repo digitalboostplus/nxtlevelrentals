@@ -1,5 +1,4 @@
 import { existsSync } from 'fs';
-import * as admin from 'firebase-admin';
 import { getApps, initializeApp, cert, applicationDefault, type App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -48,6 +47,5 @@ function getAdminApp(): App {
 
 const app = getAdminApp();
 
-export const firebaseAdmin = admin;
 export const adminDb = getFirestore(app);
 export const adminAuth = getAuth(app);
