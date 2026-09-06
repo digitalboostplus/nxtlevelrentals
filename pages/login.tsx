@@ -1,3 +1,4 @@
+import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -29,7 +30,15 @@ const portalHighlights = [
   }
 ];
 
-export default function LoginPage() {
+// Read the destination on the server so the owner and admin entry points render
+// with the right copy on first paint instead of switching after hydration.
+export const getServerSideProps: GetServerSideProps<LoginPageProps> = async ({ query }) => ({
+  props: { next: typeof query.next === 'string' ? query.next : null },
+});
+
+type LoginPageProps = { next: string | null };
+
+export default function LoginPage({ next }: LoginPageProps) {
   const router = useRouter();
   const { user, signIn, error, loading } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
@@ -37,7 +46,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const redirectTarget = typeof router.query.next === 'string' ? router.query.next : '/portal';
+  const redirectTarget = typeof router.query.next === 'string' ? router.query.next : next ?? '/portal';
   const audience: 'landlord' | 'admin' | 'tenant' = redirectTarget.startsWith('/landlord')
     ? 'landlord'
     : redirectTarget.startsWith('/admin')
