@@ -99,8 +99,8 @@ export default function TenantPortal() {
     if (loading) return <p role="status">Loading resident records...</p>;
     if (error) return <div>{requestSaved && <p role="status">Request received. Refresh the page to reload your records.</p>}<p role="alert">{error}</p></div>;
     return (
-        <>
-            {requestSaved && <p role="status">Request received! We will follow up shortly.</p>}
+        <div className="tenant-portal">
+            {requestSaved && <p role="status" className="tenant-portal__status">Request received! We will follow up shortly.</p>}
             <TenantHome
                 name={(profile?.displayName || '').split(' ')[0] || 'there'}
                 addressLine={[formatPropertyAddress(property?.address), lease?.unit || profile?.unit].filter(Boolean).join(' · ')}
@@ -138,6 +138,6 @@ export default function TenantPortal() {
                 propertyName={property?.name}
                 onSuccess={refresh}
             />
-        </>
+        </div>
     );
 }

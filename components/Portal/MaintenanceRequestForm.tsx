@@ -210,7 +210,7 @@ export default function MaintenanceRequestForm({ onSubmit, submitting, propertyI
           </div>
 
           <div className="maintenance-form__grid">
-            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+            <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
@@ -226,7 +226,7 @@ export default function MaintenanceRequestForm({ onSubmit, submitting, propertyI
                 </div>
               </label>
             </div>
-            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+            <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
@@ -292,7 +292,7 @@ export default function MaintenanceRequestForm({ onSubmit, submitting, propertyI
           font-size: 1rem;
           transition: border 0.2s ease, box-shadow 0.2s ease;
           font-family: inherit;
-          background: var(--color-surface);
+          background: var(--color-background);
           color: var(--color-text);
         }
 
@@ -304,7 +304,7 @@ export default function MaintenanceRequestForm({ onSubmit, submitting, propertyI
         select:focus,
         textarea:focus {
           outline: none;
-          border-color: var(--color-border);
+          border-color: var(--color-primary);
           box-shadow: 0 0 0 4px var(--color-accent-subtle);
         }
 

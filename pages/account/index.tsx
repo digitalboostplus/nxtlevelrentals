@@ -244,36 +244,24 @@ const AccountPage: NextPageWithAuth = () => {
         <title>Resident Account Settings - Next Level Rentals</title>
       </Head>
 
-      <div className="section section--full-height">
-        <div className="section__inner">
-          <div className="card__header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="owner-page account-page">
+        <div>
+          <div className="owner-page__head">
             <div>
-              <h1 className="card__title" style={{ fontSize: '2rem' }}>Account Settings</h1>
-              <p style={{ color: 'var(--color-muted)', margin: 0 }}>Manage profile details, emergency contacts, parking permits, and preferences.</p>
+              <p className="section-eyebrow">{role === 'tenant' ? 'Tenant portal' : role === 'landlord' ? 'Owner portal' : 'Admin'} · Account</p>
+              <h1>Account Settings</h1>
+              <p className="owner-page__sub">Manage profile details, emergency contacts, parking permits, and preferences.</p>
             </div>
-            <span className="tag tag--info capitalize">{role} Account</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '2rem' }} className="account-grid-layout">
+          <div className="account-grid-layout">
             {/* Sidebar Navigation */}
             <aside>
-              <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <nav className="account-nav" aria-label="Account sections">
                 <button
                   type="button"
                   onClick={() => setActiveTab('profile')}
-                  style={{
-                    textAlign: 'left',
-                    padding: '0.85rem 1.25rem',
-                    borderRadius: '10px',
-                    border: '1px solid',
-                    borderColor: activeTab === 'profile' ? 'var(--color-primary)' : 'var(--color-border)',
-                    background: activeTab === 'profile' ? 'rgba(79, 70, 229, 0.15)' : 'var(--color-surface)',
-                    color: activeTab === 'profile' ? '#fff' : 'var(--color-text)',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '0.95rem',
-                    transition: 'all 0.2s ease',
-                  }}
+                  className={`account-nav__item${activeTab === 'profile' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'profile' ? 'page' : undefined}
                 >
                   👤 Profile & Emergency
                 </button>
@@ -283,19 +271,7 @@ const AccountPage: NextPageWithAuth = () => {
                     <button
                       type="button"
                       onClick={() => setActiveTab('vehicles')}
-                      style={{
-                        textAlign: 'left',
-                        padding: '0.85rem 1.25rem',
-                        borderRadius: '10px',
-                        border: '1px solid',
-                        borderColor: activeTab === 'vehicles' ? 'var(--color-primary)' : 'var(--color-border)',
-                        background: activeTab === 'vehicles' ? 'rgba(79, 70, 229, 0.15)' : 'var(--color-surface)',
-                        color: activeTab === 'vehicles' ? '#fff' : 'var(--color-text)',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '0.95rem',
-                        transition: 'all 0.2s ease',
-                      }}
+                      className={`account-nav__item${activeTab === 'vehicles' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'vehicles' ? 'page' : undefined}
                     >
                       🚗 Vehicles & Parking
                     </button>
@@ -303,19 +279,7 @@ const AccountPage: NextPageWithAuth = () => {
                     <button
                       type="button"
                       onClick={() => setActiveTab('pets')}
-                      style={{
-                        textAlign: 'left',
-                        padding: '0.85rem 1.25rem',
-                        borderRadius: '10px',
-                        border: '1px solid',
-                        borderColor: activeTab === 'pets' ? 'var(--color-primary)' : 'var(--color-border)',
-                        background: activeTab === 'pets' ? 'rgba(79, 70, 229, 0.15)' : 'var(--color-surface)',
-                        color: activeTab === 'pets' ? '#fff' : 'var(--color-text)',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '0.95rem',
-                        transition: 'all 0.2s ease',
-                      }}
+                      className={`account-nav__item${activeTab === 'pets' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'pets' ? 'page' : undefined}
                     >
                       🐾 Registered Pets
                     </button>
@@ -323,19 +287,7 @@ const AccountPage: NextPageWithAuth = () => {
                     <button
                       type="button"
                       onClick={() => setActiveTab('payments')}
-                      style={{
-                        textAlign: 'left',
-                        padding: '0.85rem 1.25rem',
-                        borderRadius: '10px',
-                        border: '1px solid',
-                        borderColor: activeTab === 'payments' ? 'var(--color-primary)' : 'var(--color-border)',
-                        background: activeTab === 'payments' ? 'rgba(79, 70, 229, 0.15)' : 'var(--color-surface)',
-                        color: activeTab === 'payments' ? '#fff' : 'var(--color-text)',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '0.95rem',
-                        transition: 'all 0.2s ease',
-                      }}
+                      className={`account-nav__item${activeTab === 'payments' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'payments' ? 'page' : undefined}
                     >
                       💳 Payment Methods
                     </button>
@@ -345,19 +297,7 @@ const AccountPage: NextPageWithAuth = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('notifications')}
-                  style={{
-                    textAlign: 'left',
-                    padding: '0.85rem 1.25rem',
-                    borderRadius: '10px',
-                    border: '1px solid',
-                    borderColor: activeTab === 'notifications' ? 'var(--color-primary)' : 'var(--color-border)',
-                    background: activeTab === 'notifications' ? 'rgba(79, 70, 229, 0.15)' : 'var(--color-surface)',
-                    color: activeTab === 'notifications' ? '#fff' : 'var(--color-text)',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '0.95rem',
-                    transition: 'all 0.2s ease',
-                  }}
+                  className={`account-nav__item${activeTab === 'notifications' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'notifications' ? 'page' : undefined}
                 >
                   🔔 Notifications
                 </button>
@@ -365,13 +305,7 @@ const AccountPage: NextPageWithAuth = () => {
             </aside>
 
             {/* Main Content Pane */}
-            <main style={{
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2rem',
-              boxShadow: 'var(--shadow-md)',
-            }}>
+            <main className="owner-card account-page__main">
               {/* Profile Tab */}
               {activeTab === 'profile' && (
                 <div>
@@ -391,22 +325,22 @@ const AccountPage: NextPageWithAuth = () => {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
-                    <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                    <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Legal Name</span>
                       <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.displayName || 'Resident'}</div>
                     </div>
 
-                    <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                    <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email Address</span>
                       <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{user?.email}</div>
                     </div>
 
-                    <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                    <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Phone</span>
                       <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.phoneNumber || 'Not provided'}</div>
                     </div>
 
-                    <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                    <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit / Apartment</span>
                       <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.unit || 'Assigned via Lease'}</div>
                     </div>
@@ -421,7 +355,7 @@ const AccountPage: NextPageWithAuth = () => {
 
                     {profile?.emergencyContact?.name ? (
                       <div style={{
-                        background: 'rgba(255, 255, 255, 0.02)',
+                        background: 'var(--color-background)',
                         border: '1px solid var(--color-border)',
                         borderRadius: '8px',
                         padding: '1.25rem',
@@ -514,7 +448,7 @@ const AccountPage: NextPageWithAuth = () => {
                     <div style={{ display: 'grid', gap: '1rem' }}>
                       {profile.vehicles.map((v, idx) => (
                         <div key={idx} style={{
-                          background: 'rgba(255, 255, 255, 0.02)',
+                          background: 'var(--color-background)',
                           border: '1px solid var(--color-border)',
                           borderRadius: '10px',
                           padding: '1.25rem 1.5rem',
@@ -529,7 +463,7 @@ const AccountPage: NextPageWithAuth = () => {
                               width: '44px',
                               height: '44px',
                               borderRadius: '8px',
-                              background: 'rgba(79, 70, 229, 0.1)',
+                              background: 'var(--tag-info-bg)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -613,7 +547,7 @@ const AccountPage: NextPageWithAuth = () => {
                     <div style={{ display: 'grid', gap: '1rem' }}>
                       {profile.pets.map((pet, idx) => (
                         <div key={idx} style={{
-                          background: 'rgba(255, 255, 255, 0.02)',
+                          background: 'var(--color-background)',
                           border: '1px solid var(--color-border)',
                           borderRadius: '10px',
                           padding: '1.25rem 1.5rem',
@@ -628,7 +562,7 @@ const AccountPage: NextPageWithAuth = () => {
                               width: '44px',
                               height: '44px',
                               borderRadius: '8px',
-                              background: 'rgba(16, 185, 129, 0.1)',
+                              background: 'var(--tag-success-bg)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -690,7 +624,7 @@ const AccountPage: NextPageWithAuth = () => {
                   <div style={{ display: 'grid', gap: '1rem' }}>
                     {savedMethods.map((pm) => (
                       <div key={pm.id} style={{
-                        background: 'rgba(255, 255, 255, 0.02)',
+                        background: 'var(--color-background)',
                         border: '1px solid var(--color-border)',
                         borderRadius: '10px',
                         padding: '1.25rem 1.5rem',
@@ -705,7 +639,7 @@ const AccountPage: NextPageWithAuth = () => {
                             width: '44px',
                             height: '44px',
                             borderRadius: '8px',
-                            background: pm.type === 'ach' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(168, 85, 247, 0.1)',
+                            background: pm.type === 'ach' ? 'var(--tag-info-bg)' : 'var(--tag-neutral-bg)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -754,7 +688,7 @@ const AccountPage: NextPageWithAuth = () => {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.75)',
+          background: 'var(--overlay-background)',
           backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
@@ -799,7 +733,7 @@ const AccountPage: NextPageWithAuth = () => {
                     padding: '0.65rem 0.85rem',
                     borderRadius: '8px',
                     border: '1px solid var(--color-border)',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--color-background)',
                     color: 'var(--color-text)',
                   }}
                 />
@@ -819,7 +753,7 @@ const AccountPage: NextPageWithAuth = () => {
                     padding: '0.65rem 0.85rem',
                     borderRadius: '8px',
                     border: '1px solid var(--color-border)',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--color-background)',
                     color: 'var(--color-text)',
                   }}
                 />
@@ -843,7 +777,7 @@ const AccountPage: NextPageWithAuth = () => {
                         padding: '0.65rem 0.85rem',
                         borderRadius: '8px',
                         border: '1px solid var(--color-border)',
-                        background: 'rgba(255, 255, 255, 0.04)',
+                        background: 'var(--color-background)',
                         color: 'var(--color-text)',
                       }}
                     />
@@ -864,7 +798,7 @@ const AccountPage: NextPageWithAuth = () => {
                           padding: '0.65rem 0.85rem',
                           borderRadius: '8px',
                           border: '1px solid var(--color-border)',
-                          background: 'rgba(255, 255, 255, 0.04)',
+                          background: 'var(--color-background)',
                           color: 'var(--color-text)',
                         }}
                       />
@@ -883,7 +817,7 @@ const AccountPage: NextPageWithAuth = () => {
                           padding: '0.65rem 0.85rem',
                           borderRadius: '8px',
                           border: '1px solid var(--color-border)',
-                          background: 'rgba(255, 255, 255, 0.04)',
+                          background: 'var(--color-background)',
                           color: 'var(--color-text)',
                         }}
                       />
@@ -919,7 +853,7 @@ const AccountPage: NextPageWithAuth = () => {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.75)',
+          background: 'var(--overlay-background)',
           backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
@@ -964,7 +898,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   />
@@ -984,7 +918,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   />
@@ -1005,7 +939,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   />
@@ -1024,7 +958,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   />
@@ -1047,7 +981,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   />
@@ -1067,7 +1001,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   />
@@ -1101,7 +1035,7 @@ const AccountPage: NextPageWithAuth = () => {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.75)',
+          background: 'var(--overlay-background)',
           backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
@@ -1145,7 +1079,7 @@ const AccountPage: NextPageWithAuth = () => {
                     padding: '0.65rem 0.85rem',
                     borderRadius: '8px',
                     border: '1px solid var(--color-border)',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--color-background)',
                     color: 'var(--color-text)',
                   }}
                 />
@@ -1164,7 +1098,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   >
@@ -1189,7 +1123,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   />
@@ -1210,7 +1144,7 @@ const AccountPage: NextPageWithAuth = () => {
                     padding: '0.65rem 0.85rem',
                     borderRadius: '8px',
                     border: '1px solid var(--color-border)',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--color-background)',
                     color: 'var(--color-text)',
                   }}
                 />
@@ -1243,7 +1177,7 @@ const AccountPage: NextPageWithAuth = () => {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.75)',
+          background: 'var(--overlay-background)',
           backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
@@ -1315,7 +1249,7 @@ const AccountPage: NextPageWithAuth = () => {
                         padding: '0.65rem 0.85rem',
                         borderRadius: '8px',
                         border: '1px solid var(--color-border)',
-                        background: 'rgba(255, 255, 255, 0.04)',
+                        background: 'var(--color-background)',
                         color: 'var(--color-text)',
                       }}
                     />
@@ -1335,7 +1269,7 @@ const AccountPage: NextPageWithAuth = () => {
                         padding: '0.65rem 0.85rem',
                         borderRadius: '8px',
                         border: '1px solid var(--color-border)',
-                        background: 'rgba(255, 255, 255, 0.04)',
+                        background: 'var(--color-background)',
                         color: 'var(--color-text)',
                       }}
                     />
@@ -1357,7 +1291,7 @@ const AccountPage: NextPageWithAuth = () => {
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)',
                     }}
                   />
@@ -1385,9 +1319,15 @@ const AccountPage: NextPageWithAuth = () => {
       )}
 
       <style jsx>{`
+        .account-grid-layout {
+          display: grid;
+          grid-template-columns: 240px minmax(0, 1fr);
+          gap: 2rem;
+          align-items: start;
+        }
         @media (max-width: 768px) {
           .account-grid-layout {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
