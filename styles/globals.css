@@ -1608,7 +1608,7 @@ img {
   background: var(--tag-success-bg);
   color: var(--tag-success-text);
 }
-.account-page {
+.account-page--site {
   max-width: var(--max-width);
   margin: 0 auto;
 }
