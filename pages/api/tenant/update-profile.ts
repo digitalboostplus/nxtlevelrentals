@@ -43,18 +43,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: emergencyContact.email || '',
       };
     }
+    // Free-form lists are stored as-is but capped so a client cannot bloat the profile document.
+    const MAX_LIST = 10;
     if (Array.isArray(vehicles)) {
+      if (vehicles.length > MAX_LIST) return res.status(400).json({ message: `Up to ${MAX_LIST} vehicles` });
       updatePayload.vehicles = vehicles;
     }
     if (Array.isArray(pets)) {
+      if (pets.length > MAX_LIST) return res.status(400).json({ message: `Up to ${MAX_LIST} pets` });
       updatePayload.pets = pets;
     }
     if (rentersInsurance && typeof rentersInsurance === 'object') {
+      // The link is rendered for admins as a clickable href, so only accept https.
+      const documentUrl = typeof rentersInsurance.documentUrl === 'string' ? rentersInsurance.documentUrl.trim() : '';
+      if (documentUrl && !/^https:\/\//i.test(documentUrl)) {
+        return res.status(400).json({ message: 'Insurance document link must start with https://' });
+      }
       updatePayload.rentersInsurance = {
         provider: rentersInsurance.provider || '',
         policyNumber: rentersInsurance.policyNumber || '',
         expirationDate: rentersInsurance.expirationDate || '',
-        documentUrl: rentersInsurance.documentUrl || '',
+        documentUrl,
         fileIds: rentersInsurance.fileIds || [],
         verified: false,
         status: 'pending',
