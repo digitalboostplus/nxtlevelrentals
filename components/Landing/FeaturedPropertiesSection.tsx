@@ -80,7 +80,8 @@ export default function FeaturedPropertiesSection({ properties }: Props) {
       <style jsx>{`
         .featured-properties {
           padding: clamp(3.5rem, 7vw, 5rem) 1.5rem;
-          background: var(--color-surface);
+          background: var(--color-background);
+          border-top: 1px solid var(--color-border);
         }
 
         .featured-properties__inner {
@@ -112,7 +113,7 @@ export default function FeaturedPropertiesSection({ properties }: Props) {
         }
 
         .property-card {
-          background: var(--color-surface-elevated);
+          background: var(--color-surface);
           border-radius: var(--radius-lg);
           border: 1px solid var(--color-border);
           box-shadow: var(--shadow-sm);
