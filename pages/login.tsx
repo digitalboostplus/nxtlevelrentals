@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { AuthErrorCodes } from 'firebase/auth';
 import SiteLayout from '@/components/Layout/SiteLayout';
 import { useAuth } from '@/context/AuthContext';
+import { company } from '@/data/site';
 
 const errorMap: Record<string, string> = {
   [AuthErrorCodes.INVALID_PASSWORD]: 'Incorrect email or password. Try again.',
@@ -15,16 +16,16 @@ const errorMap: Record<string, string> = {
 
 const portalHighlights = [
   {
-    title: 'Plan ahead with smart alerts',
-    description: 'Receive push, email, or SMS notifications for weather, maintenance appointments, and community news.'
+    title: 'Residents',
+    description: 'See your balance and payment history, send a repair request with photos, and find your lease documents.'
   },
   {
-    title: 'Keep documents at your fingertips',
-    description: 'Download leases, renewal offers, and inspection reports from a secure digital vault whenever you need them.'
+    title: 'Property owners',
+    description: 'Monthly statements, expenses, payouts and open work orders across your homes.'
   },
   {
-    title: 'Report issues in minutes',
-    description: 'Submit maintenance requests with photos, pick preferred times, and chat with technicians in real time.'
+    title: 'No account yet?',
+    description: 'Accounts are created by the office when you sign a lease. Call or email and we will set you up.'
   }
 ];
 
@@ -78,172 +79,130 @@ export default function LoginPage() {
           content="Access your Next Level Rentals tenant portal to view documents, submit maintenance requests, and stay informed about community updates."
         />
       </Head>
-      <div className="auth" aria-labelledby="loginHeading">
-        <section className="auth__welcome" aria-label="Resident experience highlights">
-          <div className="auth__welcome-inner">
-            <p className="auth__eyebrow">Tenant access</p>
-            <h1 id="loginHeading">Sign in to manage your home</h1>
+      <div className="owner-page auth" aria-labelledby="loginHeading">
+        <div className="auth__grid">
+          <section className="auth__welcome" aria-label="What you can do after signing in">
+            <p className="section-eyebrow">Sign in</p>
+            <h1 id="loginHeading">Welcome back.</h1>
             <p className="auth__intro">
-              Your personalized resident hub keeps payments, documents, maintenance, and neighborhood updates organized. Sign in
-              to stay connected to your property team.
+              One sign-in for residents and property owners. Use the email address the office has on file for you.
             </p>
-            <ul className="auth__highlights">
+            <ul className="owner-list auth__highlights">
               {portalHighlights.map((highlight) => (
                 <li key={highlight.title}>
-                  <strong>{highlight.title}</strong>
-                  <p>{highlight.description}</p>
+                  <div className="owner-list__text">
+                    <strong>{highlight.title}</strong>
+                    <span>{highlight.description}</span>
+                  </div>
                 </li>
               ))}
             </ul>
-            <div className="auth__support">
-              <span>Need help accessing your account?</span>
-              <Link href="mailto:support@nxtlevelrentals.com">Email resident support</Link>
-            </div>
-          </div>
-        </section>
-        <section className="auth-card" aria-label="Tenant login form">
-          <header className="auth-card__header">
-            <h2>Welcome back</h2>
-            <p>Use your registered email and password to access the tenant portal.</p>
-          </header>
-          <form onSubmit={handleSubmit} className="auth-form">
-            <label className="auth-form__label" htmlFor="email">
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              disabled={loading || submitting}
-            />
+            <p className="auth__support">
+              Trouble signing in? Call or text <a href={`tel:${company.phoneTel}`}>{company.phoneDisplay}</a> or email{' '}
+              <a href={`mailto:${company.email}`}>{company.email}</a>.
+            </p>
+          </section>
 
-            <label className="auth-form__label" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Your password"
-              disabled={loading || submitting}
-            />
-
-            {formError ? <p className="auth-form__error" role="alert">{formError}</p> : null}
-
-            <button type="submit" className="primary-button auth-form__submit" disabled={submitting || loading}>
-              {submitting ? 'Signing in...' : 'Sign in'}
-            </button>
-          </form>
-          <footer className="auth-card__footer">
-            <div>
-              <span>New to the community?</span>
-              <Link href="mailto:welcome@nxtlevelrentals.com">Request an invite</Link>
+          <section className="owner-card auth-card" aria-label="Login form">
+            <div className="owner-card__head">
+              <h2>Sign in to your portal</h2>
             </div>
-            <div>
-              <span>Looking for the resident handbook?</span>
-              <Link href="/">Return to landing page</Link>
+            <form onSubmit={handleSubmit} className="auth-form">
+              <label className="owner-field" htmlFor="email">
+                <span>Email address</span>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  disabled={loading || submitting}
+                />
+              </label>
+
+              <label className="owner-field" htmlFor="password">
+                <span>Password</span>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Your password"
+                  disabled={loading || submitting}
+                />
+              </label>
+
+              {formError ? <p className="owner-alert" role="alert">{formError}</p> : null}
+
+              <button type="submit" className="primary-button auth-form__submit" disabled={submitting || loading}>
+                {submitting ? 'Signing in...' : 'Sign in'}
+              </button>
+            </form>
+            <div className="auth-card__foot">
+              <p className="owner-note">
+                Forgot your password? Call or text <a href={`tel:${company.phoneTel}`}>{company.phoneDisplay}</a> and we will send a reset link.
+              </p>
+              <p className="owner-note">
+                Just need to report a repair? <Link href="/#maintenance">Use the public form</Link>, no sign-in needed.
+              </p>
             </div>
-          </footer>
-        </section>
+          </section>
+        </div>
       </div>
       <style jsx>{`
         .auth {
+          max-width: var(--max-width);
+          margin: 0 auto;
+          min-height: calc(100vh - var(--header-height) - 320px);
+        }
+
+        .auth__grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-          min-height: calc(100vh - 120px);
-          background: radial-gradient(circle at top right, rgba(124, 192, 255, 0.18), transparent 55%),
-            var(--color-surface-elevated);
+          grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+          gap: 3rem;
+          align-items: start;
         }
 
         .auth__welcome {
-          display: flex;
-          align-items: center;
-          padding: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 6vw, 5rem);
-        }
-
-        .auth__welcome-inner {
-          max-width: 460px;
           display: grid;
-          gap: 1.5rem;
+          gap: 1.25rem;
+          max-width: 560px;
         }
 
-        .auth__eyebrow {
-          text-transform: uppercase;
-          letter-spacing: 0.28em;
-          font-weight: 700;
-          font-size: 0.85rem;
-          color: var(--color-primary);
+        .auth__welcome h1 {
+          margin: 0;
+          font-size: clamp(2rem, 4vw, 2.75rem);
+          color: var(--color-text);
         }
 
         .auth__intro {
+          margin: 0;
           color: var(--color-muted);
           line-height: 1.7;
         }
 
-        .auth__highlights {
-          list-style: none;
-          margin: 0;
-          padding: 0;
-          display: grid;
-          gap: 1rem;
-        }
-
-        .auth__highlights li {
+        .auth__highlights > :global(li) {
           background: var(--color-surface);
-          border-radius: var(--radius-lg);
-          padding: 1.25rem 1.5rem;
-          box-shadow: var(--shadow-sm);
-          border: 1px solid var(--color-border);
-        }
-
-        .auth__highlights strong {
-          display: block;
-          font-size: 1rem;
-          color: var(--color-text);
-          margin-bottom: 0.35rem;
-        }
-
-        .auth__highlights p {
-          color: var(--color-muted);
-          line-height: 1.6;
         }
 
         .auth__support {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem 1.5rem;
-          font-size: 0.95rem;
+          margin: 0;
           color: var(--color-muted);
+          font-size: 0.95rem;
         }
 
-        .auth__support a {
+        .auth__support :global(a),
+        .auth-card__foot :global(a) {
           color: var(--color-primary);
           font-weight: 600;
         }
 
         .auth-card {
-          background: var(--color-surface);
-          padding: clamp(3rem, 5vw, 4rem);
-          display: grid;
-          gap: 2rem;
-          border-radius: 0;
-          box-shadow: none;
-        }
-
-        .auth-card__header h2 {
-          font-size: 2rem;
-          color: var(--color-text);
-        }
-
-        .auth-card__header p {
-          color: var(--color-muted);
+          gap: 1.5rem;
         }
 
         .auth-form {
@@ -251,61 +210,50 @@ export default function LoginPage() {
           gap: 1rem;
         }
 
-        .auth-form__label {
-          font-weight: 600;
-          color: var(--color-text);
-        }
-
-        .auth-form input {
-          border-radius: 12px;
+        .auth-form :global(.owner-field input) {
+          width: 100%;
+          min-height: 48px;
+          padding: 0.75rem 1rem;
+          border-radius: var(--radius-sm);
           border: 1px solid var(--color-border);
-          padding: 0.9rem 1rem;
-          font-size: 1rem;
-          transition: border 0.2s ease, box-shadow 0.2s ease;
-          background: var(--color-surface-elevated);
+          background: var(--color-background);
           color: var(--color-text);
+          font: inherit;
+          font-size: 1rem;
+          transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
 
-        .auth-form input:focus {
+        .auth-form :global(.owner-field input:focus) {
           outline: none;
           border-color: var(--color-primary);
-          box-shadow: 0 0 0 4px var(--color-primary-light);
+          box-shadow: 0 0 0 4px var(--color-accent-subtle);
         }
 
-        .auth-form input:disabled {
+        .auth-form :global(.owner-field input:disabled) {
           opacity: 0.7;
           cursor: not-allowed;
         }
 
-        .auth-form__error {
-          color: var(--color-error);
-          font-weight: 500;
-        }
-
         .auth-form__submit {
-          margin-top: 0.5rem;
+          margin-top: 0.25rem;
+          width: 100%;
         }
 
-        .auth-card__footer {
+        .auth-card__foot {
           display: grid;
-          gap: 1rem;
-          font-size: 0.95rem;
-          color: var(--color-muted);
-        }
-
-        .auth-card__footer a {
-          color: var(--color-primary);
-          font-weight: 600;
+          gap: 0.5rem;
+          padding-top: 1.25rem;
+          border-top: 1px solid var(--color-border);
         }
 
         @media (max-width: 900px) {
-          .auth {
-            min-height: auto;
+          .auth__grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
           }
 
           .auth-card {
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-            box-shadow: var(--shadow-md);
+            order: -1;
           }
         }
       `}</style>
