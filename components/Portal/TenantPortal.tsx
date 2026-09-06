@@ -6,10 +6,10 @@ import MaintenanceRequests from '@/components/Portal/MaintenanceRequests';
 import LeaseDocuments from '@/components/Portal/LeaseDocuments';
 import MaintenanceRequestForm, { type MaintenanceRequestPayload } from '@/components/Portal/MaintenanceRequestForm';
 import PayRentModal from '@/components/Portal/PayRentModal';
-import { tenantDashboard } from '@/data/portal';
 import { useAuth } from '@/context/AuthContext';
 import { usePortalData } from '@/hooks/usePortalData';
 import { formatPropertyAddress, tenantActivity, tenantAttentionItems } from '@/lib/console-home';
+import { lastRecordedPayment } from '@/lib/tenantPayments';
 
 type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
 
@@ -33,21 +33,6 @@ export default function TenantPortal() {
     const [requestSaved, setRequestSaved] = useState(false);
     const [isPayModalOpen, setIsPayModalOpen] = useState(false);
 
-    // Combine real metrics with static fallbacks where needed
-    const metrics = useMemo(
-        () => ({
-            ...tenantDashboard.metrics,
-            currentBalance: realMetrics.currentBalance,
-            autoPayEnabled: false,
-            dueDate: realMetrics.nextDueDate?.toISOString() || '',
-            leaseRenewalDate: normalizeDate(lease?.endDate)?.toISOString() || '',
-            maintenanceOpen: maintenanceRequests.filter((request) => request.status !== 'completed' && request.status !== 'cancelled').length,
-            lastPaymentDate: payments[0]?.paidAt ? (payments[0].paidAt as Date).toISOString() : tenantDashboard.metrics.lastPaymentDate,
-            lastPaymentAmount: payments[0]?.amount || tenantDashboard.metrics.lastPaymentAmount
-        }),
-        [realMetrics, lease, maintenanceRequests, payments]
-    );
-
     // Transform lease doc for UI
     const documents = (lease?.documents || []).filter(url => url.startsWith('https://')).map((url, index) => ({
         id: `lease-${index}`, title: 'Lease Agreement', updatedOn: normalizeDate(lease?.updatedAt)?.toISOString() || '', downloadUrl: url
@@ -57,18 +42,14 @@ export default function TenantPortal() {
         () => tenantAttentionItems({
             maintenanceRequests,
             lease,
-            hasRentersInsurance: Boolean(profile?.rentersInsurance),
+            hasRentersInsurance: Boolean(profile?.rentersInsurance?.provider),
             currentBalance: realMetrics.currentBalance,
             nextDueDate: realMetrics.nextDueDate,
         }),
         [maintenanceRequests, lease, profile?.rentersInsurance, realMetrics.currentBalance, realMetrics.nextDueDate]
     );
     const activity = useMemo(() => tenantActivity({ payments, maintenanceRequests }), [payments, maintenanceRequests]);
-    const lastPayment = useMemo(() => {
-        const paid = payments.find((payment) => ['paid', 'completed', 'succeeded'].includes(String(payment.status)) && payment.paidAt);
-        const date = normalizeDate(paid?.paidAt);
-        return paid && date ? { amount: paid.amount, date, method: paid.paymentMethod, receiptUrl: paid.receiptUrl } : null;
-    }, [payments]);
+    const lastPayment = useMemo(() => lastRecordedPayment(payments), [payments]);
 
     const handleRequestSubmit = async (payload: MaintenanceRequestPayload) => {
         if (!user || !profile) return;
@@ -123,7 +104,7 @@ export default function TenantPortal() {
             <TenantHome
                 name={(profile?.displayName || '').split(' ')[0] || 'there'}
                 addressLine={[formatPropertyAddress(property?.address), lease?.unit || profile?.unit].filter(Boolean).join(' · ')}
-                rentAmount={lease?.monthlyRent || lease?.rentAmount || 0}
+                rentAmount={lease?.monthlyRent ?? lease?.rentAmount ?? null}
                 currentBalance={realMetrics.currentBalance}
                 nextDueDate={realMetrics.nextDueDate}
                 daysUntilDue={realMetrics.daysUntilDue}
@@ -131,7 +112,8 @@ export default function TenantPortal() {
                 attention={attention}
                 activity={activity}
                 documents={documents}
-                hasRentersInsurance={Boolean(profile?.rentersInsurance)}
+                hasPrivateLeaseDocuments={Boolean(lease?.fileIds?.length)}
+                hasRentersInsurance={Boolean(profile?.rentersInsurance?.provider)}
                 onPayRent={() => setIsPayModalOpen(true)}
             />
             <PaymentHistory payments={payments} />
@@ -152,7 +134,7 @@ export default function TenantPortal() {
             <PayRentModal
                 isOpen={isPayModalOpen}
                 onClose={() => setIsPayModalOpen(false)}
-                currentBalance={metrics.currentBalance}
+                currentBalance={realMetrics.currentBalance}
                 propertyName={property?.name}
                 onSuccess={refresh}
             />

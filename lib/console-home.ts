@@ -83,9 +83,9 @@ export function tenantAttentionItems(input: {
       id: 'balance',
       kind: 'balance',
       title: `${formatMoney(input.currentBalance, { cents: true })} balance on your account`,
-      meta: overdue > 0 ? `Oldest charge was due ${overdue} day${overdue === 1 ? '' : 's'} ago` : 'Pay before the due date to avoid a late fee',
+      meta: overdue > 0 ? `Oldest charge was due ${overdue} day${overdue === 1 ? '' : 's'} ago` : due ? 'Review the recorded charge and its due date.' : 'No due date recorded. Contact management for details.',
       tone: overdue > 0 ? 'error' : 'warning',
-      label: overdue > 0 ? 'Past due' : 'Due soon',
+      label: overdue > 0 ? 'Past due' : due ? 'Due soon' : 'Review',
       href: '#payments',
     });
   }
@@ -99,7 +99,7 @@ export function tenantAttentionItems(input: {
         ? `Scheduled ${scheduled.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}${request.scheduledTime ? `, ${request.scheduledTime}` : ''}`
         : request.status === 'in_progress'
           ? 'Being worked on now'
-          : 'Received. We will text you when it is scheduled.';
+          : 'Received. No appointment recorded yet.';
       items.push({
         id: request.id,
         kind: 'maintenance',

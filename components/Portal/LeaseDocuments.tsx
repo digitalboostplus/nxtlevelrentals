@@ -5,6 +5,7 @@ import type { LeaseDocument } from '@/data/portal';
 import type { Lease, RentersInsuranceInfo } from '@/types/schema';
 import { formatLocalDate } from '@/lib/date';
 import { useAuth } from '@/context/AuthContext';
+import { company } from '@/data/site';
 
 type LeaseDocumentsProps = {
   documents: LeaseDocument[];
@@ -176,7 +177,7 @@ export default function LeaseDocuments({
                 </p>
               ) : (
                 <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: 'var(--color-muted)' }}>
-                  A minimum of $100,000 liability coverage is required under your lease.
+                  No insurance policy recorded. Check your signed lease for coverage requirements.
                 </p>
               )}
             </div>
@@ -193,11 +194,11 @@ export default function LeaseDocuments({
 
         {/* Documents list */}
         <div className="documents-grid">
-          {documents.length === 0 ? (
+          {documents.length === 0 && !lease?.fileIds?.length ? (
             <div className="documents-empty">
               <h3>No documents uploaded yet</h3>
               <p>Request a copy of your lease or onboarding documents from the management team.</p>
-              <a className="outline-button" href="mailto:support@nxtlevelrentals.com">
+              <a className="outline-button" href={`mailto:${company.email}`}>
                 Request documents
               </a>
             </div>

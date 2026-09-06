@@ -23,8 +23,8 @@
     "deploy:rules": "npx --yes firebase-tools@15.29.0 deploy --only firestore:rules,firestore:indexes,storage",
     "emulators": "firebase emulators:start",
     "test": "tsx --test lib/ledger.test.ts lib/date.test.ts lib/activateLease.test.ts lib/ownerFinancials.test.ts lib/stage4.test.ts lib/console-home.test.ts",
-    "test:emulators": "firebase emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"tsx --test --test-concurrency=1 tests/integrity.test.ts\"",
-    "test:browser": "firebase emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"node tests/run-browser.cjs\"",
+    "test:emulators": "npx --yes firebase-tools@15.29.0 emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"tsx --test --test-concurrency=1 tests/integrity.test.ts\"",
+    "test:browser": "npx --yes firebase-tools@15.29.0 emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"node tests/run-browser.cjs\"",
     "build:firebase": "npm run lint && next build && npm run verify:release",
     "verify:release": "node scripts/verify-release.cjs",
     "test:live": "node tests/live-smoke.cjs"

@@ -9,7 +9,7 @@ export type HomeDocument = { id: string; title: string; updatedOn: string; downl
 type TenantHomeProps = {
   name: string;
   addressLine: string;
-  rentAmount: number;
+  rentAmount: number | null;
   currentBalance: number;
   nextDueDate: Date | null;
   daysUntilDue: number | null;
@@ -17,6 +17,7 @@ type TenantHomeProps = {
   attention: AttentionItem[];
   activity: ActivityItem[];
   documents: HomeDocument[];
+  hasPrivateLeaseDocuments?: boolean;
   hasRentersInsurance: boolean;
   onPayRent: () => void;
 };
@@ -107,17 +108,18 @@ export default function TenantHome({
   attention,
   activity,
   documents,
+  hasPrivateLeaseDocuments = false,
   hasRentersInsurance,
   onPayRent,
 }: TenantHomeProps) {
   const emergency = emergencyPhone();
-  const inGoodStanding = currentBalance <= 0;
+  const hasBalanceDue = currentBalance > 0;
   const amountDue = currentBalance > 0 ? currentBalance : rentAmount;
   const dueLabel = nextDueDate
     ? `Rent due ${formatLocalDate(nextDueDate, { month: 'long', day: 'numeric' })}`
-    : rentAmount > 0
+    : rentAmount !== null
       ? 'Monthly rent'
-      : 'Rent';
+      : 'Monthly rent';
   const dueMeta =
     daysUntilDue === null
       ? null
@@ -145,9 +147,9 @@ export default function TenantHome({
             </h1>
             {addressLine ? <p className="home__address">{addressLine}</p> : null}
           </div>
-          <span className={`tag ${inGoodStanding ? 'tag--success' : 'tag--warning'} home__standing`}>
-            {inGoodStanding ? <CheckIcon /> : <AlertIcon />}
-            {inGoodStanding ? 'Your account is in good standing' : 'You have a balance due'}
+          <span className={`tag ${hasBalanceDue ? 'tag--warning' : 'tag--neutral'} home__standing`}>
+            {hasBalanceDue ? <AlertIcon /> : <CheckIcon />}
+            {hasBalanceDue ? 'Recorded balance due' : currentBalance < 0 ? 'Recorded account credit' : 'No balance recorded'}
           </span>
         </div>
 
@@ -158,12 +160,12 @@ export default function TenantHome({
               {company.onlinePaymentsEnabled ? null : <span className="tag tag--neutral">Online payments coming soon</span>}
             </div>
             <div className="home__rent-amount">
-              <span className="home__rent-value">{formatMoney(amountDue, { cents: amountDue % 1 !== 0 })}</span>
+              <span className="home__rent-value">{amountDue === null ? 'Not available' : formatMoney(amountDue, { cents: amountDue % 1 !== 0 })}</span>
               {dueMeta ? <span className="home__rent-meta">{dueMeta}</span> : null}
             </div>
             <div className="home__rent-actions">
               <button type="button" className="primary-button" onClick={onPayRent}>
-                {company.onlinePaymentsEnabled ? `Pay ${formatMoney(amountDue)}` : 'How to pay'}
+                {company.onlinePaymentsEnabled && amountDue !== null ? `Pay ${formatMoney(amountDue)}` : 'How to pay'}
               </button>
               <a className="outline-button" href="#payments">
                 Payment history
@@ -274,8 +276,9 @@ export default function TenantHome({
                   <li>
                     <div>
                       <strong>Lease agreement</strong>
-                      <span>Not uploaded yet. Ask us for a copy.</span>
+                      <span>{hasPrivateLeaseDocuments ? 'Private documents available below.' : 'No lease documents recorded. Ask us for a copy.'}</span>
                     </div>
+                    {hasPrivateLeaseDocuments ? <a href="#documents">View</a> : null}
                   </li>
                 ) : null}
                 <li className={hasRentersInsurance ? '' : 'home__docs-missing'}>
@@ -296,7 +299,7 @@ export default function TenantHome({
                   <a href={`tel:${company.phoneTel}`}>{company.phoneDisplay}</a>
                 </div>
                 <div>
-                  <span className="stat-card__label home__contact-emergency">Emergency, any hour</span>
+                  <span className="stat-card__label home__contact-emergency">Maintenance contact</span>
                   <a href={`tel:${emergency.tel}`}>{emergency.display}</a>
                 </div>
               </div>

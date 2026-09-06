@@ -1,6 +1,7 @@
 import { calculateBalance, oldestUnpaidDate } from '@/lib/ledger';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { paymentDates } from '@/lib/tenantPayments';
 import { leaseUtils } from '@/lib/leases';
 import { paymentUtils, maintenanceUtils, propertyUtils } from '@/lib/firebase-utils';
 import type { Lease, Payment, Property, MaintenanceRequest, LedgerEntry } from '@/types/schema';
@@ -67,8 +68,7 @@ export function usePortalData(): PortalData {
 
             const payments = paymentsRaw.map(p => ({
                 ...p,
-                dueDate: (p.dueDate as any)?.toDate ? (p.dueDate as any).toDate() : new Date(p.dueDate),
-                paidAt: (p.paidDate as any)?.toDate ? (p.paidDate as any).toDate() : (p.paidDate ? new Date(p.paidDate) : undefined),
+                ...paymentDates(p),
             })) as unknown as Payment[];
 
             const ledgerEntries = (ledgerRaw || []) as unknown as LedgerEntry[];

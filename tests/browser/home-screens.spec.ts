@@ -76,7 +76,7 @@ test('tenant home shows rent, attention items, activity and contact', async ({ p
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page, 'tenant', '/portal/');
   await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Browser\./ })).toBeVisible();
-  await expect(page.getByText('You have a balance due')).toBeVisible();
+  await expect(page.getByText('Recorded balance due')).toBeVisible();
   await expect(page.getByText('Needs your attention')).toBeVisible();
   await expect(page.getByRole('strong').filter({ hasText: /^Dishwasher leak$/ })).toBeVisible();
   await expect(page.getByText(/Your lease ends/)).toBeVisible();
@@ -86,6 +86,23 @@ test('tenant home shows rent, attention items, activity and contact', async ({ p
   await page.screenshot({ path: '.agent-artifacts/home-tenant.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: '.agent-artifacts/home-tenant-phone.png', fullPage: true });
+});
+
+test('empty tenant account shows missing records without sample claims', async ({ page }) => {
+  await auth.createUser({ uid: 'browser-empty', email: 'browser-empty@example.com', password }).catch(e => { if (e.code !== 'auth/uid-already-exists') throw e; });
+  await db.doc('users/browser-empty').set({ role: 'tenant', email: 'browser-empty@example.com', displayName: 'Empty Tenant', propertyIds: [] });
+  await login(page, 'empty', '/portal/');
+  await expect(page.getByText('No balance recorded', { exact: true })).toBeVisible();
+  await expect(page.getByText('Not available', { exact: true })).toBeVisible();
+  await expect(page.getByText('No payments recorded yet.', { exact: true })).toBeVisible();
+  await expect(page.getByText('No payments recorded.', { exact: true })).toBeVisible();
+  await expect(page.getByText('No insurance policy recorded. Check your signed lease for coverage requirements.')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('good standing');
+  await expect(page.locator('body')).not.toContainText('Julia Chen');
+  await expect(page.locator('body')).not.toContainText('$1,450');
+  await expect(page.locator('body')).not.toContainText('2024');
+  await expect(page.locator('body')).not.toContainText('$100,000');
+  await page.screenshot({ path: '.agent-artifacts/tenant-empty-records.png', fullPage: true });
 });
 
 test('landlord overview shows the month, decisions, chart and property table', async ({ page }) => {
