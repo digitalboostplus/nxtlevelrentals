@@ -198,3 +198,18 @@ test('landlord account page shares the owner console shell', async ({ page }) =>
   await expect(page.getByText(/maintenance events at your homes/)).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/landlord-account-notifications.png', fullPage: true });
 });
+
+test('admin account page shares the admin console shell', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page, 'admin', '/account/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Account Settings' })).toBeVisible();
+  await expect(page.getByText('Admin Menu')).toBeAttached();
+  await expect(page.getByText('Admin · Account')).toBeVisible();
+  await expect(page.getByText('Access level')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('lease agreement');
+  await expect(page.locator('body')).not.toContainText('parking permits');
+  await page.screenshot({ path: '.agent-artifacts/admin-account.png', fullPage: true });
+  await page.getByRole('button', { name: /Notifications/ }).click();
+  await expect(page.getByRole('heading', { name: 'Maintenance notifications' })).toBeVisible();
+  await page.screenshot({ path: '.agent-artifacts/admin-account-notifications.png', fullPage: true });
+});
