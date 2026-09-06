@@ -1,477 +1,332 @@
-import UploadFiles from '@/components/common/UploadFiles';
-import PrivateFile from '@/components/common/PrivateFile';
 import Head from 'next/head';
-import { useState, useRef } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import LandlordLayout from '@/components/Landlord/LandlordLayout';
 import LoadingState from '@/components/common/LoadingState';
-import Card from '@/components/common/Card';
+import UploadFiles from '@/components/common/UploadFiles';
+import PrivateFile from '@/components/common/PrivateFile';
 import { useAuth } from '@/context/AuthContext';
 import { useLandlordData } from '@/hooks/useLandlordData';
-import { landlordUtils } from '@/lib/firebase-utils';
-import type { LandlordExpense } from '@/types/schema';
+import { formatLocalDate, normalizeDate } from '@/lib/date';
+import { formatMoney } from '@/lib/console-home';
 import type { NextPageWithAuth } from '../_app';
 
 const EXPENSE_TYPES = [
-    { value: 'maintenance', label: 'Maintenance & Repairs' },
-    { value: 'utility', label: 'Utilities (Water/Trash/Power)' },
-    { value: 'insurance', label: 'Property Insurance' },
-    { value: 'tax', label: 'Property Taxes' },
-    { value: 'capital_improvement', label: 'Capital Improvements' },
-    { value: 'other', label: 'Other' }
+  { value: 'maintenance', label: 'Maintenance and repairs' },
+  { value: 'utility', label: 'Utilities' },
+  { value: 'insurance', label: 'Property insurance' },
+  { value: 'tax', label: 'Property taxes' },
+  { value: 'capital_improvement', label: 'Capital improvement' },
+  { value: 'other', label: 'Other' },
 ];
 
+const statusTag: Record<string, string> = {
+  pending: 'tag--warning',
+  approved: 'tag--info',
+  paid: 'tag--success',
+  reimbursed: 'tag--success',
+  rejected: 'tag--error',
+};
+
 const LandlordExpensesPage: NextPageWithAuth = () => {
-    const { user } = useAuth();
-    const { properties, expenses, loading, error, refresh } = useLandlordData();
+  const router = useRouter();
+  const { user } = useAuth();
+  const { properties, expenses, loading, error, refresh } = useLandlordData();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const operation = useRef('');
-    const [fileIds, setFileIds] = useState<string[]>([]);
-    const [uploading, setUploading] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const [filterProperty, setFilterProperty] = useState<string>('all');
+  const [filterProperty, setFilterProperty] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending'>('all');
+  const operation = useRef('');
+  const [fileIds, setFileIds] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
-    // Form state
-    const [propertyId, setPropertyId] = useState('');
-    const [expenseType, setExpenseType] = useState('maintenance');
-    const [category, setCategory] = useState('Plumbing');
-    const [vendor, setVendor] = useState('');
-    const [amount, setAmount] = useState('');
-    const [description, setDescription] = useState('');
-    const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-    const [invoiceNumber, setInvoiceNumber] = useState('');
-    const [taxDeductible, setTaxDeductible] = useState(true);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [propertyId, setPropertyId] = useState('');
+  const [expenseType, setExpenseType] = useState('maintenance');
+  const [category, setCategory] = useState('');
+  const [vendor, setVendor] = useState('');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [taxDeductible, setTaxDeductible] = useState(true);
 
-    const handleSubmitExpense = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) return;
-        if (!propertyId) {
-            setErrorMsg('Please select a property');
-            return;
-        }
-        const numericAmount = parseFloat(amount);
-        if (isNaN(numericAmount) || numericAmount <= 0) {
-            setErrorMsg('Please enter a valid expense amount');
-            return;
-        }
+  const activeProperties = useMemo(() => properties.filter((p) => !p.archived), [properties]);
 
-        setSubmitting(true);
-        setErrorMsg(null);
-        try {
-            operation.current ||= crypto.randomUUID();
-            const response = await fetch('/api/landlord/expense', { method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await user.getIdToken()}` },
-                body: JSON.stringify({ operationId: operation.current, propertyId, expenseType, category, vendor,
-                    amount: numericAmount, description, date, invoiceNumber, taxDeductible, fileIds }) });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || result.error || 'Unable to save expense');
-            operation.current = '';
-            setFileIds([]);
+  // Preselect the property from a link like /landlord/expenses?propertyId=...
+  useEffect(() => {
+    const fromQuery = typeof router.query.propertyId === 'string' ? router.query.propertyId : '';
+    if (fromQuery && activeProperties.some((p) => p.id === fromQuery)) {
+      setPropertyId(fromQuery);
+      setFilterProperty(fromQuery);
+    } else if (!propertyId && activeProperties[0]) {
+      setPropertyId(activeProperties[0].id);
+    }
+  }, [router.query.propertyId, activeProperties, propertyId]);
 
-            await refresh().catch(() => setErrorMsg('Expense saved. Refresh the list to see it.'));
-            setIsModalOpen(false);
-            // Reset form
-            setAmount('');
-            setVendor('');
-            setDescription('');
-            setInvoiceNumber('');
-        } catch (err: any) {
-            console.error('Failed to create expense:', err);
-            setErrorMsg(err.message || 'Failed to submit expense');
-        } finally {
-            setSubmitting(false);
-        }
-    };
+  const filtered = useMemo(
+    () =>
+      [...expenses]
+        .filter((expense) => filterProperty === 'all' || expense.propertyId === filterProperty)
+        .filter((expense) => statusFilter === 'all' || expense.status === 'pending')
+        .sort((a, b) => (normalizeDate(b.date)?.getTime() ?? 0) - (normalizeDate(a.date)?.getTime() ?? 0)),
+    [expenses, filterProperty, statusFilter]
+  );
+  const pendingCount = expenses.filter((expense) => expense.status === 'pending').length;
+  const total = filtered.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
-    const filteredExpenses = expenses.filter(e => {
-        if (filterProperty === 'all') return true;
-        return e.propertyId === filterProperty;
-    });
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!user) return;
+    setErrorMsg(null);
+    setSaved(null);
+    if (!propertyId) return setErrorMsg('Choose the property this expense belongs to.');
+    const numericAmount = parseFloat(amount);
+    if (Number.isNaN(numericAmount) || numericAmount <= 0) return setErrorMsg('Enter the amount you paid.');
+    setSubmitting(true);
+    try {
+      operation.current ||= crypto.randomUUID();
+      const response = await fetch('/api/landlord/expense', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await user.getIdToken()}` },
+        body: JSON.stringify({ operationId: operation.current, propertyId, expenseType, category: category || expenseType, vendor, amount: numericAmount, description, date, invoiceNumber, taxDeductible, fileIds }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || result.error || 'Unable to save the expense');
+      operation.current = '';
+      setFileIds([]);
+      setAmount('');
+      setVendor('');
+      setDescription('');
+      setInvoiceNumber('');
+      setSaved('Expense saved. Management reviews it before it posts to your statement.');
+      await refresh().catch(() => setSaved('Expense saved. Refresh the page to see it in the list.'));
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Unable to save the expense');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    const totalExpenseAmount = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  return (
+    <LandlordLayout title="Expenses & Invoices">
+      <Head>
+        <title>Expenses and invoices - Owner Portal</title>
+      </Head>
 
-    if (error) return <LandlordLayout title="Owner records unavailable"><p role="alert">{error} <button onClick={refresh}>Retry</button></p></LandlordLayout>;
+      <div className="owner-page">
+        <div className="owner-page__head">
+          <div>
+            <p className="section-eyebrow">Owner portal</p>
+            <h1>Expenses and invoices</h1>
+            <p className="owner-page__sub">Everything you have logged, plus repairs management billed to your account. Pending items wait on management review before they post.</p>
+          </div>
+          <div className="owner-page__actions">
+            <button type="button" className="primary-button" onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} disabled={loading || activeProperties.length === 0}>
+              Log expense
+            </button>
+          </div>
+        </div>
 
-    return (
-        <LandlordLayout title="Expenses & Invoices">
-            <Head>
-                <title>Expenses & Invoices - Owner Portal</title>
-            </Head>
-
-            <div className="expenses-container">
-                <div className="page-header">
-                    <div>
-                        <h1>Expenses & Invoices</h1>
-                        <p>Track maintenance costs, capital expenditures, taxes, and vendor receipts.</p>
-                    </div>
-
-                    <button
-                        type="button"
-                        disabled={loading || !properties.some(p => !p.archived)}
-                        onClick={() => {
-                            if (properties.length > 0 && !propertyId) {
-                                setPropertyId(properties.find(p => !p.archived)!.id);
-                            }
-                            setIsModalOpen(true);
-                        }}
-                        className="primary-button"
-                    >
-                        + Log New Expense
-                    </button>
+        {loading ? (
+          <LoadingState message="Loading your expenses..." />
+        ) : error ? (
+          <div className="owner-alert" role="alert">
+            {error}{' '}
+            <button type="button" className="owner-small-button" onClick={() => void refresh()}>
+              Retry
+            </button>
+          </div>
+        ) : (
+          <div className="owner-page__grid">
+            <div className="owner-page__stack">
+              <div className="expenses__filters">
+                <div className="owner-page__chips" role="tablist" aria-label="Filter expenses">
+                  <button type="button" role="tab" aria-selected={statusFilter === 'all'} className={`filter-chip${statusFilter === 'all' ? ' filter-chip--active' : ''}`} onClick={() => setStatusFilter('all')}>
+                    All {expenses.length}
+                  </button>
+                  <button type="button" role="tab" aria-selected={statusFilter === 'pending'} className={`filter-chip${statusFilter === 'pending' ? ' filter-chip--active' : ''}`} onClick={() => setStatusFilter('pending')}>
+                    Pending {pendingCount}
+                  </button>
                 </div>
+                <select className="owner-select" value={filterProperty} onChange={(e) => setFilterProperty(e.target.value)} aria-label="Filter by property">
+                  <option value="all">All properties ({properties.length})</option>
+                  {properties.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                {/* Filter and Summary Bar */}
-                <div className="flex flex-wrap justify-between items-center gap-4 mb-6 bg-surface p-4 rounded-xl border border-border">
-                    <div className="flex items-center gap-3">
-                        <label className="text-sm text-gray-400 font-medium">Filter by Property:</label>
-                        <select
-                            value={filterProperty}
-                            onChange={(e) => setFilterProperty(e.target.value)}
-                            className="bg-surface-elevated border border-border text-white text-sm rounded-lg px-3 py-1.5"
-                        >
-                            <option value="all">All Properties ({properties.length})</option>
-                            {properties.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <span className="text-sm text-gray-400 mr-2">Total Logged:</span>
-                        <span className="text-xl font-extrabold text-red-400">${totalExpenseAmount.toLocaleString()}</span>
-                    </div>
+              {filtered.length === 0 ? (
+                <div className="owner-card">
+                  <p className="owner-empty">{expenses.length === 0 ? 'No expenses recorded yet. Log the first one on the right.' : 'No expenses match this filter.'}</p>
                 </div>
-
-                {loading ? (
-                    <div className="p-8">
-                        <LoadingState message="Loading your logged expenses..." />
-                    </div>
-                ) : filteredExpenses.length === 0 ? (
-                    <div className="empty-box">
-                        <p className="text-gray-400 mb-3">No expenses recorded for this filter.</p>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                if (properties.length > 0 && !propertyId) setPropertyId(properties.find(p => !p.archived)!.id);
-                                setIsModalOpen(true);
-                            }}
-                            className="outline-button text-sm"
-                        >
-                            Log Your First Expense
-                        </button>
-                    </div>
-                ) : (
-                    <Card title={`Expense Records (${filteredExpenses.length})`}>
-                        <div className="overflow-x-auto">
-                            <table className="table w-full">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Property</th>
-                                        <th>Category</th>
-                                        <th>Vendor</th>
-                                        <th>Description</th>
-                                        <th>Status</th>
-                                        <th>Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredExpenses.map((expense) => {
-                                        const propName = properties.find(p => p.id === expense.propertyId)?.name || 'Property';
-                                        return (
-                                            <tr key={expense.id}>
-                                                <td className="whitespace-nowrap">
-                                                    {expense.date ? new Date(expense.date as string).toLocaleDateString() : 'N/A'}
-                                                </td>
-                                                <td className="font-semibold text-white">{propName}</td>
-                                                <td>
-                                                    <span className="tag tag--neutral capitalize">
-                                                        {expense.category || expense.expenseType}
-                                                    </span>
-                                                </td>
-                                                <td>{expense.vendor || 'Independent'}</td>
-                                                <td className="text-gray-300 max-w-xs truncate">{expense.description}{expense.fileIds?.map(id => <PrivateFile key={id} id={id} />)}</td>
-                                                <td>
-                                                    <span className={`tag ${expense.status === 'approved' || expense.status === 'paid' ? 'tag--success' : 'tag--warning'}`}>
-                                                        {expense.status}
-                                                    </span>
-                                                </td>
-                                                <td className="font-bold text-red-400">-${(expense.amount || 0).toLocaleString()}</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
-                )}
-
-                {/* Add Expense Modal */}
-                {isModalOpen && (
-                    <div className="modal-backdrop" onClick={() => setIsModalOpen(false)}>
-                        <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h3>Log Property Expense</h3>
-                                <button type="button" className="close-btn" onClick={() => setIsModalOpen(false)}>✕</button>
-                            </div>
-
-                            <form onSubmit={handleSubmitExpense} className="space-y-4 p-6">
-                                <UploadFiles kind="expense" propertyId={propertyId} ids={fileIds} onChange={setFileIds} onBusy={setUploading} />
-                                {errorMsg && (
-                                    <div className="p-3 bg-red-900/30 border border-red-800 text-red-400 text-sm rounded">
-                                        {errorMsg}
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="input-label">Select Property *</label>
-                                    <select
-                                        value={propertyId}
-                                        onChange={(e) => setPropertyId(e.target.value)}
-                                        required
-                                        className="form-input"
-                                    >
-                                        <option value="" disabled>Select property...</option>
-                                        {properties.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="input-label">Expense Type *</label>
-                                        <select
-                                            value={expenseType}
-                                            onChange={(e) => setExpenseType(e.target.value)}
-                                            className="form-input"
-                                        >
-                                            {EXPENSE_TYPES.map(t => (
-                                                <option key={t.value} value={t.value}>{t.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="input-label">Category</label>
-                                        <input
-                                            type="text"
-                                            value={category}
-                                            onChange={(e) => setCategory(e.target.value)}
-                                            placeholder="e.g. Plumbing, HVAC, Taxes"
-                                            className="form-input"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="input-label">Vendor / Payee</label>
-                                        <input
-                                            type="text"
-                                            value={vendor}
-                                            onChange={(e) => setVendor(e.target.value)}
-                                            placeholder="e.g. Apex Electric LLC"
-                                            className="form-input"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="input-label">Amount ($) *</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={amount}
-                                            onChange={(e) => setAmount(e.target.value)}
-                                            placeholder="0.00"
-                                            className="form-input"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="input-label">Date of Expense</label>
-                                        <input
-                                            type="date"
-                                            value={date}
-                                            onChange={(e) => setDate(e.target.value)}
-                                            className="form-input"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="input-label">Invoice / Receipt #</label>
-                                        <input
-                                            type="text"
-                                            value={invoiceNumber}
-                                            onChange={(e) => setInvoiceNumber(e.target.value)}
-                                            placeholder="Optional invoice #"
-                                            className="form-input"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="input-label">Description / Scope of Work</label>
-                                    <textarea
-                                        rows={3}
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Describe the repair or cost incurred..."
-                                        className="form-input"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="taxDed"
-                                        checked={taxDeductible}
-                                        onChange={(e) => setTaxDeductible(e.target.checked)}
-                                        className="h-4 w-4 accent-primary"
-                                    />
-                                    <label htmlFor="taxDed" className="text-sm text-gray-300">
-                                        Tax Deductible Operating Expense
-                                    </label>
-                                </div>
-
-                                <div className="modal-actions pt-4 border-t border-border flex justify-end gap-3">
-                                    <button
-                                        type="button"
-                                        className="ghost-button"
-                                        onClick={() => setIsModalOpen(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={submitting || uploading}
-                                        className="primary-button"
-                                    >
-                                        {submitting ? 'Saving...' : 'Record Expense'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
+              ) : (
+                <div className="table-wrapper owner-table">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Property</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Vendor</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((expense) => (
+                        <tr key={expense.id}>
+                          <th scope="row">{formatLocalDate(expense.date, { month: 'short', day: 'numeric', year: 'numeric' }) || 'Not recorded'}</th>
+                          <td>{properties.find((p) => p.id === expense.propertyId)?.name || expense.propertyName || 'Property'}</td>
+                          <td style={{ textTransform: 'capitalize' }}>{(expense.category || expense.expenseType || 'other').replace(/_/g, ' ')}</td>
+                          <td>{expense.vendor || '—'}</td>
+                          <td>
+                            {expense.description || '—'}
+                            {expense.fileIds?.length ? (
+                              <span className="expenses__files">
+                                {expense.fileIds.map((id) => (
+                                  <PrivateFile key={id} id={id} />
+                                ))}
+                              </span>
+                            ) : null}
+                          </td>
+                          <td>
+                            <span className={`tag ${statusTag[expense.status] || 'tag--neutral'}`}>{expense.status}</span>
+                          </td>
+                          <td>{formatMoney(expense.amount || 0, { cents: true })}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="owner-table__foot">
+                    {filtered.length} record{filtered.length === 1 ? '' : 's'} · {formatMoney(total, { cents: true })} total
+                  </div>
+                </div>
+              )}
             </div>
 
-            <style jsx>{`
-                .expenses-container {
-                    padding: 2rem;
-                    max-width: var(--max-width);
-                    margin: 0 auto;
-                }
+            <div className="owner-card" ref={formRef}>
+              <h2>Log an expense</h2>
+              {activeProperties.length === 0 ? (
+                <p className="owner-empty">Expenses can be logged once a property is linked to your account.</p>
+              ) : (
+                <form onSubmit={handleSubmit} className="owner-form">
+                  <label className="owner-field owner-field--wide">
+                    <span>Property *</span>
+                    <select value={propertyId} onChange={(e) => setPropertyId(e.target.value)} required>
+                      {activeProperties.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="owner-field">
+                    <span>Expense type *</span>
+                    <select value={expenseType} onChange={(e) => setExpenseType(e.target.value)}>
+                      {EXPENSE_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="owner-field">
+                    <span>Category</span>
+                    <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Plumbing, roofing, HVAC..." />
+                  </label>
+                  <label className="owner-field">
+                    <span>Vendor or payee</span>
+                    <input type="text" value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="Who you paid" />
+                  </label>
+                  <label className="owner-field">
+                    <span>Amount *</span>
+                    <input type="number" step="0.01" min="0" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" required />
+                  </label>
+                  <label className="owner-field">
+                    <span>Date of expense</span>
+                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+                  </label>
+                  <label className="owner-field">
+                    <span>Invoice or receipt #</span>
+                    <input type="text" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Optional" />
+                  </label>
+                  <label className="owner-field owner-field--wide">
+                    <span>Description or scope of work</span>
+                    <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What was done and why" required />
+                  </label>
+                  <div className="owner-field owner-field--wide">
+                    <span>Receipt or invoice</span>
+                    <UploadFiles kind="expense" propertyId={propertyId} ids={fileIds} onChange={setFileIds} onBusy={setUploading} />
+                  </div>
+                  <label className="owner-check owner-field--wide">
+                    <input type="checkbox" checked={taxDeductible} onChange={(e) => setTaxDeductible(e.target.checked)} />
+                    Tax-deductible operating expense
+                  </label>
+                  {errorMsg ? (
+                    <p className="owner-alert owner-field--wide" role="alert">
+                      {errorMsg}
+                    </p>
+                  ) : null}
+                  {saved ? (
+                    <p className="expenses__saved owner-field--wide" role="status">
+                      {saved}
+                    </p>
+                  ) : null}
+                  <div className="expenses__submit owner-field--wide">
+                    <button type="submit" className="primary-button" disabled={submitting || uploading}>
+                      {submitting ? 'Saving...' : 'Submit for review'}
+                    </button>
+                    <span className="owner-note">Management reviews before it posts to your statement.</span>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
-                .page-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    flex-wrap: wrap;
-                    gap: 1rem;
-                    margin-bottom: 2rem;
-                }
+      <style jsx>{`
+        .expenses__filters {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
 
-                h1 {
-                    font-size: 2rem;
-                    font-weight: 800;
-                    color: var(--color-text);
-                    margin: 0 0 0.25rem;
-                }
+        .expenses__files {
+          display: block;
+          margin-top: 0.25rem;
+        }
 
-                p {
-                    color: var(--color-muted);
-                    margin: 0;
-                }
+        .expenses__saved {
+          margin: 0;
+          padding: 0.85rem 1rem;
+          border-radius: var(--radius-md);
+          background: var(--tag-success-bg);
+          color: var(--color-text);
+          font-size: 0.9rem;
+        }
 
-                .modal-backdrop {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.75);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 100;
-                    padding: 1rem;
-                }
-
-                .modal-card {
-                    background: var(--color-surface);
-                    border: 1px solid var(--color-border);
-                    border-radius: var(--radius-lg);
-                    width: 100%;
-                    max-width: 540px;
-                    overflow: hidden;
-                    box-shadow: var(--shadow-xl);
-                }
-
-                .modal-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 1.25rem 1.5rem;
-                    border-bottom: 1px solid var(--color-border);
-                }
-
-                .modal-header h3 {
-                    margin: 0;
-                    font-size: 1.25rem;
-                    font-weight: 700;
-                    color: var(--color-text);
-                }
-
-                .close-btn {
-                    background: transparent;
-                    border: none;
-                    color: var(--color-muted);
-                    font-size: 1.25rem;
-                    cursor: pointer;
-                }
-
-                .input-label {
-                    display: block;
-                    font-size: 0.813rem;
-                    font-weight: 600;
-                    color: var(--color-text-secondary);
-                    margin-bottom: 0.35rem;
-                }
-
-                .form-input {
-                    width: 100%;
-                    padding: 0.65rem 0.85rem;
-                    background: var(--color-surface-elevated);
-                    border: 1px solid var(--color-border);
-                    border-radius: var(--radius-md);
-                    color: var(--color-text);
-                    font-size: 0.875rem;
-                }
-
-                .form-input:focus {
-                    outline: none;
-                    border-color: var(--color-primary);
-                }
-
-                .empty-box {
-                    text-align: center;
-                    padding: 4rem 2rem;
-                    background: var(--color-surface);
-                    border: 1px dashed var(--color-border);
-                    border-radius: var(--radius-lg);
-                }
-            `}</style>
-        </LandlordLayout>
-    );
+        .expenses__submit {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+      `}</style>
+    </LandlordLayout>
+  );
 };
 
 LandlordExpensesPage.requireAuth = true;
-LandlordExpensesPage.allowedRoles = ['landlord', 'admin', 'super-admin'];
+LandlordExpensesPage.allowedRoles = ['landlord'];
 
 export default LandlordExpensesPage;

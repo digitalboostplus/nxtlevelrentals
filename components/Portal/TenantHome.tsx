@@ -524,7 +524,7 @@ export default function TenantHome({
 
         .home__actions :global(.home__action:hover) {
           transform: translateY(-2px);
-          border-color: rgba(59, 155, 255, 0.45);
+          border-color: rgba(124, 192, 255, 0.45);
           color: var(--color-text);
         }
 
@@ -630,7 +630,7 @@ export default function TenantHome({
 
         .home__docs-missing {
           border-style: dashed;
-          border-color: rgba(59, 155, 255, 0.45);
+          border-color: rgba(124, 192, 255, 0.45);
           background: var(--color-accent-subtle);
         }
 

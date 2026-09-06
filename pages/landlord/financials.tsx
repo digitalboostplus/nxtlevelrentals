@@ -1,145 +1,204 @@
-import { useState } from 'react';
 import Head from 'next/head';
+import { useMemo, useState } from 'react';
 import LandlordLayout from '@/components/Landlord/LandlordLayout';
-import Card from '@/components/common/Card';
+import NetIncomeChart from '@/components/Landlord/NetIncomeChart';
+import LoadingState from '@/components/common/LoadingState';
 import { useLandlordData } from '@/hooks/useLandlordData';
 import { ownerStatement, type OwnerPeriod } from '@/lib/ownerFinancials';
+import { formatLocalDate } from '@/lib/date';
+import { formatMoney, monthlyNet } from '@/lib/console-home';
 import type { NextPageWithAuth } from '../_app';
-const money = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+
+const PERIODS: [OwnerPeriod, string][] = [
+  ['year-to-date', 'Year to date'],
+  ['last-month', 'Last month'],
+  ['all-time', 'All time'],
+];
+
 const Financials: NextPageWithAuth = () => {
   const { properties, ledger, expenses, managementFee, loading, error, refresh } = useLandlordData();
   const [period, setPeriod] = useState<OwnerPeriod>('year-to-date');
-  const statement = ownerStatement(ledger, expenses, period);
-  const feeTerms = managementFee ? managementFee.type === 'percentage' ? `${managementFee.amount}% of collected rent`
-    : `${money(managementFee.amount)} ${managementFee.type === 'flat_per_unit' ? 'per unit per month' : 'per month'}` : 'Not configured';
+  const now = useMemo(() => new Date(), []);
+  const statement = ownerStatement(ledger, expenses, period, now);
+  const series = useMemo(() => monthlyNet(ledger, expenses, now, 6), [ledger, expenses, now]);
+
+  const periodLabel =
+    period === 'year-to-date'
+      ? `Jan 1 to ${formatLocalDate(now, { month: 'short', day: 'numeric', year: 'numeric' })}`
+      : period === 'last-month'
+        ? formatLocalDate(new Date(now.getFullYear(), now.getMonth() - 1, 1), { month: 'long', year: 'numeric' })
+        : `All time through ${formatLocalDate(now, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+
+  const feeTerms = managementFee
+    ? managementFee.type === 'percentage'
+      ? `${managementFee.amount}% of collected rent`
+      : `${formatMoney(managementFee.amount)} ${managementFee.type === 'flat_per_unit' ? 'per unit per month' : 'per month'}`
+    : 'not configured';
+
+  const money = (value: number) => formatMoney(value, { cents: true });
+
   return (
     <LandlordLayout title="Financials & Statements">
-      <Head><title>Financial statements - Owner Portal</title></Head>
-      <div className="financials-container">
-        <div className="page-header">
-          <div><h1>Financial statements</h1><p>Recorded rent receipts and paid expenses. Calendar periods use UTC.</p></div>
-          <label>Period <select value={period} onChange={e => setPeriod(e.target.value as OwnerPeriod)}>
-            <option value="year-to-date">Year to date</option><option value="last-month">Last month</option><option value="all-time">All time through today</option>
-          </select></label>
-          <button type="button" onClick={() => window.print()} disabled={loading || !!error}>Print statement</button>
+      <Head>
+        <title>Financial statements - Owner Portal</title>
+      </Head>
+
+      <div className="owner-page">
+        <div className="owner-page__head">
+          <div>
+            <p className="section-eyebrow">Owner portal</p>
+            <h1>Financial statements</h1>
+            <p className="owner-page__sub">Recorded rent receipts and paid expenses. Calendar periods use UTC. Management fee: {feeTerms}.</p>
+          </div>
+          <div className="owner-page__actions">
+            <button type="button" className="primary-button" onClick={() => window.print()} disabled={loading || Boolean(error)}>
+              Print statement
+            </button>
+          </div>
         </div>
-        {loading ? <p role="status">Loading financial records...</p> : error ? <p role="alert">{error} <button onClick={refresh}>Retry</button></p> : <>
-          <p>Configured management fee: {feeTerms}. Only recorded paid management-fee expenses are deducted below.</p>
-          {!statement.managementFees && <p>No paid management-fee records exist in this period. The recorded net does not include unposted fees.</p>}
-          <Card title="Recorded cash statement">
-            <div className="statement-row"><span>Rent collected</span><strong>{money(statement.rent)}</strong></div>
-            {Object.entries(statement.categories).map(([category, amount]) => <div className="statement-row" key={category}><span>{category.replace(/_/g, ' ')}</span><span>{money(amount)}</span></div>)}
-            <div className="statement-row total-row"><span>Total paid expenses (including management fees)</span><strong>{money(statement.totalExpenses)}</strong></div>
-            <div className="statement-row grand-total"><span>Recorded net</span><strong>{money(statement.net)}</strong></div>
-            <p>Pending, approved-but-unpaid, rejected expenses and unsettled payments are excluded. Security deposits are excluded from rent income.</p>
-          </Card>
-          <Card title="Property breakdown">
-            {properties.length === 0 ? <p>No properties assigned.</p> : <div style={{ overflowX: 'auto' }}><table className="table"><thead><tr><th>Property</th><th>Rent</th><th>Operating expenses</th><th>Management fees</th><th>Net</th></tr></thead><tbody>
-              {properties.map(p => { const row = statement.byProperty[p.id] || { rent: 0, expenses: 0, fees: 0, net: 0 }; return <tr key={p.id}><td>{p.name}</td><td>{money(row.rent)}</td><td>{money(row.expenses)}</td><td>{money(row.fees)}</td><td>{money(row.net)}</td></tr>; })}
-            </tbody></table></div>}
-          </Card>
-        </>}
+
+        {loading ? (
+          <LoadingState message="Loading financial records..." />
+        ) : error ? (
+          <div className="owner-alert" role="alert">
+            {error}{' '}
+            <button type="button" className="owner-small-button" onClick={() => void refresh()}>
+              Retry
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="owner-page__chips" role="tablist" aria-label="Statement period">
+              {PERIODS.map(([key, label]) => (
+                <button key={key} type="button" role="tab" aria-selected={period === key} className={`filter-chip${period === key ? ' filter-chip--active' : ''}`} onClick={() => setPeriod(key)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="owner-page__grid">
+              <div className="owner-card">
+                <h2>Statement, {periodLabel}</h2>
+                <div className="fin__rows">
+                  <div className="fin__row fin__row--strong">
+                    <span>Rent collected</span>
+                    <span>{money(statement.rent)}</span>
+                  </div>
+                  {Object.entries(statement.categories).map(([category, amount]) => (
+                    <div className="fin__row" key={category}>
+                      <span style={{ textTransform: 'capitalize' }}>{category.replace(/_/g, ' ')}</span>
+                      <span>&minus;{money(amount)}</span>
+                    </div>
+                  ))}
+                  <div className="fin__row fin__row--strong">
+                    <span>Total paid expenses</span>
+                    <span>&minus;{money(statement.totalExpenses)}</span>
+                  </div>
+                  <div className="fin__row fin__row--net">
+                    <span>Net to owner</span>
+                    <span>{money(statement.net)}</span>
+                  </div>
+                </div>
+                <p className="owner-note">
+                  Pending, approved-but-unpaid and rejected expenses and unsettled payments are excluded. Security deposits are not income.
+                  {!statement.managementFees ? ' No paid management-fee records exist in this period, so the net does not include unposted fees.' : ''}
+                </p>
+              </div>
+
+              <NetIncomeChart series={series} />
+            </div>
+
+            <div className="owner-page__section-head">
+              <h2>By property</h2>
+            </div>
+            {properties.length === 0 ? (
+              <div className="owner-card">
+                <p className="owner-empty">No properties are linked to your account yet.</p>
+              </div>
+            ) : (
+              <div className="table-wrapper owner-table">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Property</th>
+                      <th scope="col">Rent</th>
+                      <th scope="col">Operating expenses</th>
+                      <th scope="col">Management fees</th>
+                      <th scope="col">Net</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {properties.map((p) => {
+                      const row = statement.byProperty[p.id] || { rent: 0, expenses: 0, fees: 0, net: 0 };
+                      return (
+                        <tr key={p.id}>
+                          <th scope="row">{p.name}</th>
+                          <td>{money(row.rent)}</td>
+                          <td>{money(row.expenses)}</td>
+                          <td>{money(row.fees)}</td>
+                          <td>{money(row.net)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
       </div>
-            <style jsx>{`
-                .financials-container {
-                    padding: 2rem;
-                    max-width: var(--max-width);
-                    margin: 0 auto;
-                }
 
-                .page-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    flex-wrap: wrap;
-                    gap: 1rem;
-                    margin-bottom: 2rem;
-                }
+      <style jsx>{`
+        .fin__rows {
+          display: grid;
+        }
 
-                h1 {
-                    font-size: 2rem;
-                    font-weight: 800;
-                    color: var(--color-text);
-                    margin: 0 0 0.25rem;
-                }
+        .fin__row {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.75rem 0;
+          border-bottom: 1px solid var(--color-border);
+          font-size: 0.95rem;
+          color: var(--color-muted);
+        }
 
-                p {
-                    color: var(--color-muted);
-                    margin: 0;
-                }
+        .fin__row span:last-child {
+          color: var(--color-text);
+          font-weight: 600;
+        }
 
-                .stat-card {
-                    background: var(--color-surface);
-                    border: 1px solid var(--color-border);
-                    border-radius: var(--radius-md);
-                    padding: 1.25rem;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.25rem;
-                }
+        .fin__row--strong span:first-child {
+          color: var(--color-text);
+          font-weight: 600;
+        }
 
-                .stat-lbl {
-                    font-size: 0.75rem;
-                    color: var(--color-muted);
-                    text-transform: uppercase;
-                    font-weight: 600;
-                }
+        .fin__row--net {
+          border-bottom: none;
+          padding-top: 1rem;
+          font-size: 1.15rem;
+        }
 
-                .stat-val {
-                    font-size: 1.5rem;
-                    font-weight: 800;
-                }
+        .fin__row--net span {
+          color: var(--color-text);
+          font-weight: 700;
+        }
 
-                .stat-sub {
-                    font-size: 0.75rem;
-                    color: var(--color-muted);
-                }
-
-                .statement-table {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .statement-row {
-                    display: flex;
-                    justify-content: space-between;
-                    padding: 0.75rem 0;
-                    border-bottom: 1px solid var(--color-border);
-                    font-size: 0.938rem;
-                    color: var(--color-text);
-                }
-
-                .header-row {
-                    font-weight: 700;
-                    color: var(--color-muted);
-                    text-transform: uppercase;
-                    font-size: 0.813rem;
-                    border-bottom: 2px solid var(--color-border);
-                }
-
-                .indent {
-                    padding-left: 1.5rem;
-                    color: var(--color-text-secondary);
-                }
-
-                .total-row {
-                    font-weight: 700;
-                    border-top: 1px solid var(--color-border);
-                    border-bottom: 2px solid var(--color-border);
-                }
-
-                .grand-total {
-                    background: var(--color-surface-elevated);
-                    padding: 1rem;
-                    border-radius: var(--radius-md);
-                    font-weight: 800;
-                    border: 1px solid var(--color-border);
-                    margin-top: 1rem;
-                }
-            `}</style>
+        @media print {
+          :global(.landlord-sidebar),
+          :global(.site-header),
+          :global(.site-footer),
+          .owner-page__actions,
+          .owner-page__chips {
+            display: none !important;
+          }
+        }
+      `}</style>
     </LandlordLayout>
   );
 };
+
 Financials.requireAuth = true;
 Financials.allowedRoles = ['landlord'];
+
 export default Financials;

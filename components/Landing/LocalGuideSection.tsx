@@ -126,7 +126,7 @@ export default function LocalGuideSection() {
         }
 
         .guide__tabs :global(.filter-chip--active) {
-          background: rgba(19, 127, 236, 0.12);
+          background: rgba(124, 192, 255, 0.12);
         }
 
         .guide__grid {

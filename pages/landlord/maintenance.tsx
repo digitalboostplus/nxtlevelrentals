@@ -1,127 +1,218 @@
 import Head from 'next/head';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import LandlordLayout from '@/components/Landlord/LandlordLayout';
 import LoadingState from '@/components/common/LoadingState';
-import Card from '@/components/common/Card';
-import MaintenanceRequests from '@/components/Portal/MaintenanceRequests';
+import PrivateFile from '@/components/common/PrivateFile';
+import { company } from '@/data/site';
 import { useLandlordData } from '@/hooks/useLandlordData';
+import { formatLocalDate, normalizeDate } from '@/lib/date';
+import { formatMoney, isOpenRequest, sortOpenWorkOrders } from '@/lib/console-home';
 import type { NextPageWithAuth } from '../_app';
 
-type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
+type Filter = 'all' | 'decision' | 'open' | 'resolved';
 
-const LandlordMaintenanceOversightPage: NextPageWithAuth = () => {
-    const { maintenanceRequests, properties, loading, error, refresh } = useLandlordData();
-    const [statusFilter, setStatusFilter] = useState<MaintenanceStatusFilter>('All');
-    const [selectedPropertyId, setSelectedPropertyId] = useState<string>('all');
-
-    const filtered = maintenanceRequests.filter((req) => {
-        if (selectedPropertyId !== 'all' && req.propertyId !== selectedPropertyId) {
-            return false;
-        }
-        return true;
-    });
-
-    const openCount = maintenanceRequests.filter(r => r.status === 'submitted').length;
-    const inProgressCount = maintenanceRequests.filter(r => r.status === 'in_progress').length;
-    const resolvedCount = maintenanceRequests.filter(r => r.status === 'completed').length;
-
-    if (error) return <LandlordLayout title="Owner records unavailable"><p role="alert">{error} <button onClick={refresh}>Retry</button></p></LandlordLayout>;
-
-    return (
-        <LandlordLayout title="Maintenance Oversight">
-            <Head>
-                <title>Maintenance Oversight - Owner Portal</title>
-            </Head>
-
-            <div className="maintenance-container">
-                <div className="page-header">
-                    <div>
-                        <h1>Maintenance Oversight</h1>
-                        <p>Real-time repair requests, technician assignments, and work order costs.</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <span className="tag tag--neutral">Open: {openCount}</span>
-                        <span className="tag tag--info">In Progress: {inProgressCount}</span>
-                        <span className="tag tag--success">Resolved: {resolvedCount}</span>
-                    </div>
-                </div>
-
-                {/* Filter Controls */}
-                <div className="mb-6 flex flex-wrap gap-4 items-center justify-between bg-surface p-4 rounded-xl border border-border">
-                    <div className="flex items-center gap-3">
-                        <label className="text-sm text-gray-400 font-medium">Filter by Property:</label>
-                        <select
-                            value={selectedPropertyId}
-                            onChange={(e) => setSelectedPropertyId(e.target.value)}
-                            className="bg-surface-elevated border border-border text-white text-sm rounded-lg px-3 py-1.5"
-                        >
-                            <option value="all">All Properties ({properties.length})</option>
-                            {properties.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {loading ? (
-                    <div className="p-8">
-                        <LoadingState message="Loading work orders..." />
-                    </div>
-                ) : filtered.length === 0 ? (
-                    <div className="empty-box">
-                        <p className="text-gray-400">No maintenance tickets reported for this selection.</p>
-                    </div>
-                ) : (
-                    <MaintenanceRequests
-                        requests={filtered}
-                        activeStatus={statusFilter}
-                        onStatusChange={setStatusFilter}
-                    />
-                )}
-            </div>
-
-            <style jsx>{`
-                .maintenance-container {
-                    padding: 2rem;
-                    max-width: var(--max-width);
-                    margin: 0 auto;
-                }
-
-                .page-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    flex-wrap: wrap;
-                    gap: 1rem;
-                    margin-bottom: 2rem;
-                }
-
-                h1 {
-                    font-size: 2rem;
-                    font-weight: 800;
-                    color: var(--color-text);
-                    margin: 0 0 0.25rem;
-                }
-
-                p {
-                    color: var(--color-muted);
-                    margin: 0;
-                }
-
-                .empty-box {
-                    text-align: center;
-                    padding: 4rem 2rem;
-                    background: var(--color-surface);
-                    border: 1px dashed var(--color-border);
-                    border-radius: var(--radius-lg);
-                }
-            `}</style>
-        </LandlordLayout>
-    );
+const priorityTag: Record<string, string> = {
+  emergency: 'tag--error',
+  urgent: 'tag--error',
+  high: 'tag--warning',
+  medium: 'tag--info',
+  low: 'tag--neutral',
 };
 
-LandlordMaintenanceOversightPage.requireAuth = true;
-LandlordMaintenanceOversightPage.allowedRoles = ['landlord', 'admin', 'super-admin'];
+const statusLabel: Record<string, string> = {
+  submitted: 'Submitted',
+  in_progress: 'In progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
 
-export default LandlordMaintenanceOversightPage;
+const LandlordMaintenancePage: NextPageWithAuth = () => {
+  const { maintenanceRequests, properties, loading, error, refresh } = useLandlordData();
+  const [filter, setFilter] = useState<Filter>('all');
+  const [propertyFilter, setPropertyFilter] = useState('all');
+
+  const propertyName = (id: string) => properties.find((p) => p.id === id)?.name || 'Property';
+  const needsDecision = useMemo(() => maintenanceRequests.filter((r) => isOpenRequest(r) && r.estimatedCost && !r.actualCost), [maintenanceRequests]);
+
+  const rows = useMemo(() => {
+    const scoped = maintenanceRequests.filter((r) => propertyFilter === 'all' || r.propertyId === propertyFilter);
+    const open = sortOpenWorkOrders(scoped);
+    const resolved = scoped
+      .filter((r) => !isOpenRequest(r))
+      .sort((a, b) => (normalizeDate(b.updatedAt)?.getTime() ?? 0) - (normalizeDate(a.updatedAt)?.getTime() ?? 0));
+    if (filter === 'open') return open;
+    if (filter === 'resolved') return resolved;
+    if (filter === 'decision') return open.filter((r) => r.estimatedCost && !r.actualCost);
+    return [...open, ...resolved];
+  }, [maintenanceRequests, propertyFilter, filter]);
+
+  const counts = {
+    all: maintenanceRequests.length,
+    decision: needsDecision.length,
+    open: maintenanceRequests.filter(isOpenRequest).length,
+    resolved: maintenanceRequests.filter((r) => !isOpenRequest(r)).length,
+  };
+
+  return (
+    <LandlordLayout title="Maintenance">
+      <Head>
+        <title>Maintenance - Owner Portal</title>
+      </Head>
+
+      <div className="owner-page">
+        <div className="owner-page__head">
+          <div>
+            <p className="section-eyebrow">Owner portal</p>
+            <h1>Maintenance</h1>
+            <p className="owner-page__sub">Repair requests across your homes, who is on them, and what they cost. Estimates wait here for your decision.</p>
+          </div>
+          <div className="owner-page__actions">
+            <a href={`mailto:${company.email}?subject=${encodeURIComponent('Work request from owner')}`} className="outline-button">
+              Request work
+            </a>
+          </div>
+        </div>
+
+        {loading ? (
+          <LoadingState message="Loading work orders..." />
+        ) : error ? (
+          <div className="owner-alert" role="alert">
+            {error}{' '}
+            <button type="button" className="owner-small-button" onClick={() => void refresh()}>
+              Retry
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="maint__filters">
+              <div className="owner-page__chips" role="tablist" aria-label="Filter maintenance">
+                {(
+                  [
+                    ['all', `All ${counts.all}`],
+                    ['decision', `Needs decision ${counts.decision}`],
+                    ['open', `Open ${counts.open}`],
+                    ['resolved', `Resolved ${counts.resolved}`],
+                  ] as [Filter, string][]
+                ).map(([key, label]) => (
+                  <button key={key} type="button" role="tab" aria-selected={filter === key} className={`filter-chip${filter === key ? ' filter-chip--active' : ''}`} onClick={() => setFilter(key)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <select className="owner-select" value={propertyFilter} onChange={(e) => setPropertyFilter(e.target.value)} aria-label="Filter by property">
+                <option value="all">All properties ({properties.length})</option>
+                {properties.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {needsDecision.length > 0 && filter !== 'resolved' ? (
+              <div className="owner-card">
+                <h2>Needs your decision</h2>
+                <ul className="owner-list">
+                  {needsDecision.map((request) => (
+                    <li key={request.id}>
+                      <div className="owner-list__text">
+                        <strong>
+                          Approve repair estimate: {formatMoney(request.estimatedCost || 0)} {request.title.toLowerCase()}
+                        </strong>
+                        <span>
+                          {propertyName(request.propertyId)}
+                          {request.assignedVendorName ? ` · Quote from ${request.assignedVendorName}` : ''}
+                        </span>
+                      </div>
+                      <a
+                        className="owner-small-button owner-small-button--primary"
+                        href={`mailto:${company.email}?subject=${encodeURIComponent(`Approved: ${request.title} at ${propertyName(request.propertyId)} (${formatMoney(request.estimatedCost || 0)})`)}`}
+                      >
+                        Approve by email
+                      </a>
+                      <a className="owner-small-button" href={`mailto:${company.email}?subject=${encodeURIComponent(`Question about: ${request.title} at ${propertyName(request.propertyId)}`)}`}>
+                        Ask a question
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <p className="owner-note">Approvals are confirmed by management and recorded on the ticket. Call {company.phoneDisplay} for anything urgent.</p>
+              </div>
+            ) : null}
+
+            {rows.length === 0 ? (
+              <div className="owner-card">
+                <p className="owner-empty">{maintenanceRequests.length === 0 ? 'No maintenance requests have been recorded for your homes.' : 'No tickets match this filter.'}</p>
+              </div>
+            ) : (
+              <div className="table-wrapper owner-table">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Ticket</th>
+                      <th scope="col">Property</th>
+                      <th scope="col">Priority</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Vendor</th>
+                      <th scope="col">Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((request) => (
+                      <tr key={request.id}>
+                        <th scope="row">
+                          {request.title}
+                          {request.fileIds?.length ? (
+                            <span className="maint__files">
+                              {request.fileIds.map((id) => (
+                                <PrivateFile key={id} id={id} />
+                              ))}
+                            </span>
+                          ) : null}
+                        </th>
+                        <td>{propertyName(request.propertyId)}</td>
+                        <td>
+                          <span className={`tag ${priorityTag[String(request.priority).toLowerCase()] || 'tag--neutral'}`}>{String(request.priority)}</span>
+                        </td>
+                        <td>
+                          {request.estimatedCost && !request.actualCost && isOpenRequest(request)
+                            ? 'Awaiting your approval'
+                            : statusLabel[request.status] || request.status}
+                          {request.scheduledDate ? ` · ${formatLocalDate(request.scheduledDate, { month: 'short', day: 'numeric' })}${request.scheduledTime ? ` ${request.scheduledTime}` : ''}` : ''}
+                          {!isOpenRequest(request) && request.updatedAt ? ` · ${formatLocalDate(request.updatedAt, { month: 'short', day: 'numeric' })}` : ''}
+                        </td>
+                        <td>{request.assignedVendorName || '—'}</td>
+                        <td>{request.actualCost ? formatMoney(request.actualCost) : request.estimatedCost ? `${formatMoney(request.estimatedCost)} est.` : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <style jsx>{`
+        .maint__filters {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+
+        .maint__files {
+          display: block;
+          font-weight: 400;
+          margin-top: 0.25rem;
+        }
+      `}</style>
+    </LandlordLayout>
+  );
+};
+
+LandlordMaintenancePage.requireAuth = true;
+LandlordMaintenancePage.allowedRoles = ['landlord', 'admin', 'super-admin'];
+
+export default LandlordMaintenancePage;

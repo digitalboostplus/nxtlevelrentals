@@ -74,11 +74,11 @@ test('admin schedules work and archives/restores idle inventory', async ({ page 
 });
 test('owner sees owned inventory and can submit an expense with private receipt', async ({ page }) => {
   await login(page, 'landlord', '/landlord/expenses/');
-  await page.getByRole('button', { name: /Log New Expense/ }).click();
+  await page.getByRole('button', { name: /Log expense/ }).click();
   await page.locator('form select').first().selectOption('browser-property');
   await page.locator('form input[type=file]').setInputFiles({ name: 'receipt.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 Browser receipt') });
   await expect(page.getByRole('button', { name: 'Discard upload' })).toBeVisible();
-  await page.getByPlaceholder('e.g. Apex Electric LLC').fill('Browser Vendor');
+  await page.getByPlaceholder('Who you paid').fill('Browser Vendor');
   await page.locator('form input[type=number]').fill('75');
   await page.locator('form textarea').fill('Browser expense receipt');
   await page.locator('form button[type=submit]').click();
