@@ -117,7 +117,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
 
   const breadcrumbs = pathSegments.map((segment, index) => {
     const label = breadcrumbLabels[segment]
-      ?? (segment.length > 10 ? `Record ${segment.slice(0, 6).toUpperCase()}` : segment.replace(/-/g, ' '));
+      ?? (segment.length > 10 || index === pathSegments.length - 1 && index > 1 ? 'Details' : segment.replace(/-/g, ' '));
     return {
       label: label.charAt(0).toUpperCase() + label.slice(1),
       href: `/${pathSegments.slice(0, index + 1).join('/')}`

@@ -5,7 +5,6 @@ import { useRouter } from 'next/router';
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/Admin/AdminLayout';
 import LoadingState from '@/components/common/LoadingState';
-import Card from '@/components/common/Card';
 import RecordPaymentModal from '@/components/Admin/RecordPaymentModal';
 import { userUtils, maintenanceUtils, paymentUtils } from '@/lib/firebase-utils';
 import { leaseUtils } from '@/lib/leases';
@@ -54,8 +53,8 @@ const Tenant360ProfilePage: NextPageWithAuth = () => {
 
     if (loading) {
         return (
-            <AdminLayout title="Tenant Profile">
-                <div className="p-8">
+            <AdminLayout title="Tenant">
+                <div className="owner-page">
                     <LoadingState message="Loading tenant profile..." />
                 </div>
             </AdminLayout>
@@ -64,247 +63,189 @@ const Tenant360ProfilePage: NextPageWithAuth = () => {
 
     if (!tenant) {
         return (
-            <AdminLayout title="Tenant Not Found">
-                <div className="p-8 text-center">
-                    <h2>Tenant Not Found</h2>
-                    <p className="text-gray-500 mb-4">No user record matches this ID.</p>
-                    <Link href="/admin/tenants" className="primary-button">
-                        Back to Tenants
-                    </Link>
+            <AdminLayout title="Tenant not found">
+                <div className="owner-page">
+                    <div className="owner-empty-state">
+                        <h2>Tenant not found</h2>
+                        <p className="owner-empty">No user record matches this ID.</p>
+                        <Link href="/admin/tenants" className="primary-button">
+                            Back to tenants
+                        </Link>
+                    </div>
                 </div>
             </AdminLayout>
         );
     }
 
-    // Calculate real ledger balance
     const currentBalance = calculateBalance(ledgerEntries);
+    const leaseDate = (value: unknown) => {
+        if (!value) return 'Not set';
+        const d = typeof value === 'object' && value !== null && 'toDate' in value ? (value as { toDate: () => Date }).toDate() : new Date(value as string);
+        return Number.isNaN(d.getTime()) ? 'Not set' : d.toLocaleDateString();
+    };
 
     return (
-        <AdminLayout title={tenant.displayName || 'Tenant Profile'}>
+        <AdminLayout title={tenant.displayName || 'Tenant profile'}>
             <Head>
-                <title>{tenant.displayName || 'Tenant'} - Resident 360 Profile</title>
+                <title>{tenant.displayName || 'Tenant'} - Admin</title>
             </Head>
 
-            <div className="tenant-profile-page">
-                {/* Header */}
-                <div className="profile-header">
-                    <div className="profile-header__info">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="tag tag--success">Active Resident</span>
-                            <span className="text-xs text-gray-400">UID: {tenant.uid || tenantId}</span>
-                        </div>
-                        <h1 className="text-3xl font-extrabold text-white">{tenant.displayName || 'Resident'}</h1>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-300 mt-2">
-                            <span>📧 {tenant.email}</span>
-                            {tenant.phoneNumber && <span>📱 {tenant.phoneNumber}</span>}
-                            <span>🏠 Assigned Unit: <strong>{tenant.unit || 'Main'}</strong></span>
+            <div className="owner-page">
+                <div className="owner-page__head">
+                    <div>
+                        <p className="section-eyebrow">Admin · Tenant</p>
+                        <h1>{tenant.displayName || 'Resident'}</h1>
+                        <div className="owner-meta">
+                            <span className="tag tag--success">Active resident</span>
+                            <span>{tenant.email}</span>
+                            {tenant.phoneNumber ? <span>{tenant.phoneNumber}</span> : null}
+                            <span>Unit: <strong>{tenant.unit || 'Main'}</strong></span>
                         </div>
                     </div>
-
-                    <div className="profile-header__actions">
-                        <button
-                            type="button"
-                            onClick={() => setIsPaymentModalOpen(true)}
-                            className="primary-button"
-                        >
-                            Record Payment
-                        </button>
-                        <Link href={`/admin/ledger/${tenantId}`} className="secondary-button">
-                            View Full Ledger
+                    <div className="owner-page__actions">
+                        <Link href={`/admin/ledger/${tenantId}`} className="outline-button">
+                            View full ledger
                         </Link>
+                        <button type="button" onClick={() => setIsPaymentModalOpen(true)} className="primary-button">
+                            Record payment
+                        </button>
                     </div>
                 </div>
 
-                {/* Financial Health & Overview */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div className="owner-page__stats owner-page__stats--3">
                     <div className="stat-card">
-                        <span className="stat-lbl">Outstanding Balance</span>
-                        <span className={`stat-val ${currentBalance > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                            ${currentBalance.toLocaleString()}
-                        </span>
-                        <span className="stat-sub">{currentBalance > 0 ? 'Payment Overdue / Due' : 'Account Current'}</span>
+                        <div className="stat-card__label">Outstanding balance</div>
+                        <div className={`stat-card__value ${currentBalance > 0 ? 'stat-card__value--bad' : 'stat-card__value--good'}`}>${currentBalance.toLocaleString()}</div>
+                        <div className="stat-card__meta">{currentBalance > 0 ? 'Payment due' : 'Account current'}</div>
                     </div>
                     <div className="stat-card">
-                        <span className="stat-lbl">Monthly Contract Rent</span>
-                        <span className="stat-val text-white">
-                            ${activeLease?.monthlyRent ? activeLease.monthlyRent.toLocaleString() : 'N/A'}
-                        </span>
-                        <span className="stat-sub">Due on 1st of month</span>
+                        <div className="stat-card__label">Monthly contract rent</div>
+                        <div className="stat-card__value">{activeLease?.monthlyRent ? `$${activeLease.monthlyRent.toLocaleString()}` : 'No lease'}</div>
+                        <div className="stat-card__meta">{activeLease ? `Due on day ${activeLease.paymentDueDay || 1} of the month` : 'Assign a lease to set rent'}</div>
                     </div>
                     <div className="stat-card">
-                        <span className="stat-lbl">Security Deposit Held</span>
-                        <span className="stat-val text-primary">
-                            ${activeLease?.securityDeposit ? activeLease.securityDeposit.toLocaleString() : 'N/A'}
-                        </span>
-                        <span className="stat-sub">Held in escrow account</span>
+                        <div className="stat-card__label">Security deposit held</div>
+                        <div className="stat-card__value">{activeLease?.securityDeposit ? `$${activeLease.securityDeposit.toLocaleString()}` : 'None'}</div>
+                        <div className="stat-card__meta">Held in escrow</div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    {/* Left Column: Lease & Maintenance */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <Card title="Active Lease Agreement">
+                <div className="owner-page__grid">
+                    <div className="owner-page__stack">
+                        <section className="owner-card">
+                            <div className="owner-card__head">
+                                <h2>Active lease</h2>
+                                {activeLease?.propertyId ? <Link href={`/admin/properties/${activeLease.propertyId}`} className="owner-small-button">View property</Link> : null}
+                            </div>
                             {activeLease ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <span className="text-xs text-gray-500 uppercase block">Property</span>
-                                            <span className="text-base font-semibold text-white">{activeLease.propertyName || 'Property'}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-500 uppercase block">Unit</span>
-                                            <span className="text-base font-semibold text-white">{activeLease.unit || 'Main'}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-500 uppercase block">Start Date</span>
-                                            <span className="text-sm text-gray-300">
-                                                {new Date(activeLease.startDate as string).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-500 uppercase block">End Date</span>
-                                            <span className="text-sm text-gray-300">
-                                                {new Date(activeLease.endDate as string).toLocaleDateString()}
-                                            </span>
-                                        </div>
+                                <div className="owner-kv">
+                                    <div><span>Property</span><span>{activeLease.propertyName || 'Property'}</span></div>
+                                    <div><span>Unit</span><span>{activeLease.unit || 'Main'}</span></div>
+                                    <div><span>Start date</span><span>{leaseDate(activeLease.startDate)}</span></div>
+                                    <div><span>End date</span><span>{leaseDate(activeLease.endDate)}</span></div>
+                                    {activeLease.documents && activeLease.documents.length > 0 ? (
+                                        <div><span>Signed lease</span><span><a href={activeLease.documents[0]} target="_blank" rel="noopener noreferrer">Download PDF</a></span></div>
+                                    ) : null}
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="owner-empty">No active lease found for this resident.</p>
+                                    <div>
+                                        <Link href="/admin/leases/new" className="owner-small-button">Assign lease</Link>
                                     </div>
-
-                                    {activeLease.documents && activeLease.documents.length > 0 && (
-                                        <div className="pt-4 border-t border-border">
-                                            <a
-                                                href={activeLease.documents[0]}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-primary hover:underline text-sm font-semibold"
-                                            >
-                                                📄 Download Signed Lease PDF
-                                            </a>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="text-center py-6">
-                                    <p className="text-gray-400 text-sm mb-3">No active lease found for this resident.</p>
-                                    <Link href="/admin/leases/new" className="outline-button text-xs">
-                                        + Assign Lease Agreement
-                                    </Link>
-                                </div>
+                                </>
                             )}
-                        </Card>
+                        </section>
 
-                        {/* Recent Maintenance Requests */}
-                        <Card title={`Maintenance Requests (${maintenanceList.length})`}>
+                        <section className="owner-card">
+                            <div className="owner-card__head">
+                                <h2>Maintenance requests ({maintenanceList.length})</h2>
+                                <Link href="/admin/maintenance" className="owner-small-button">Open queue</Link>
+                            </div>
                             {maintenanceList.length > 0 ? (
-                                <div className="divide-y divide-border">
+                                <ul className="owner-list">
                                     {maintenanceList.slice(0, 5).map((m) => (
-                                        <div key={m.id} className="py-3 flex justify-between items-start gap-4">
-                                            <div>
-                                                <h4 className="font-bold text-white text-sm">{m.title}</h4>
-                                                <p className="text-xs text-gray-400 mt-0.5">{m.description}</p>
+                                        <li key={m.id}>
+                                            <div className="owner-list__text">
+                                                <strong>{m.title}</strong>
+                                                <span>{m.description}</span>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <span className={`tag text-xs ${m.status === 'completed' ? 'tag--success' : 'tag--info'}`}>
-                                                    {m.status}
-                                                </span>
-                                            </div>
-                                        </div>
+                                            <span className={`tag ${m.status === 'completed' ? 'tag--success' : 'tag--info'}`}>{m.status.replace('_', ' ')}</span>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
                             ) : (
-                                <p className="text-gray-500 text-sm text-center py-4">No maintenance tickets submitted.</p>
+                                <p className="owner-empty">No maintenance tickets submitted.</p>
                             )}
-                        </Card>
+                        </section>
                     </div>
 
-                    {/* Right Column: Emergency Contacts, Vehicles, Insurance, Pets */}
-                    <div className="space-y-6">
-                        {/* Emergency Contact */}
-                        <Card title="Emergency Contact">
+                    <div className="owner-page__stack">
+                        <section className="owner-card">
+                            <div className="owner-card__head"><h2>Emergency contact</h2></div>
                             {tenant.emergencyContact ? (
-                                <div className="space-y-2 text-sm">
-                                    <div>
-                                        <span className="text-gray-500 block text-xs uppercase">Name</span>
-                                        <span className="text-white font-semibold">{tenant.emergencyContact.name}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block text-xs uppercase">Relationship</span>
-                                        <span className="text-gray-300">{tenant.emergencyContact.relationship}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block text-xs uppercase">Phone</span>
-                                        <span className="text-primary font-mono">{tenant.emergencyContact.phone}</span>
-                                    </div>
+                                <div className="owner-kv">
+                                    <div><span>Name</span><span>{tenant.emergencyContact.name}</span></div>
+                                    <div><span>Relationship</span><span>{tenant.emergencyContact.relationship}</span></div>
+                                    <div><span>Phone</span><span>{tenant.emergencyContact.phone}</span></div>
                                 </div>
                             ) : (
-                                <p className="text-gray-500 text-sm italic">No emergency contact registered.</p>
+                                <p className="owner-empty">No emergency contact registered.</p>
                             )}
-                        </Card>
+                        </section>
 
-                        {/* Renter's Insurance */}
-                        <Card title="Renter's Insurance Status">
+                        <section className="owner-card">
+                            <div className="owner-card__head"><h2>Renter&apos;s insurance</h2></div>
                             {tenant.rentersInsurance ? (
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-500 text-xs uppercase">Policy Status</span>
-                                        <span className={`tag text-xs ${tenant.rentersInsurance.status === 'active' ? 'tag--success' : 'tag--error'}`}>
-                                            {tenant.rentersInsurance.status}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block text-xs uppercase">Provider</span>
-                                        <span className="text-white font-medium">{tenant.rentersInsurance.provider}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block text-xs uppercase">Policy Number</span>
-                                        <span className="text-gray-300 font-mono">{tenant.rentersInsurance.policyNumber}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block text-xs uppercase">Expires On</span>
-                                        <span className="text-amber-400">{tenant.rentersInsurance.expirationDate}</span>
-                                    </div>
+                                <div className="owner-kv">
+                                    <div><span>Policy status</span><span><span className={`tag ${tenant.rentersInsurance.status === 'active' ? 'tag--success' : 'tag--error'}`}>{tenant.rentersInsurance.status}</span></span></div>
+                                    <div><span>Provider</span><span>{tenant.rentersInsurance.provider}</span></div>
+                                    <div><span>Policy number</span><span className="owner-mono">{tenant.rentersInsurance.policyNumber}</span></div>
+                                    <div><span>Expires</span><span>{tenant.rentersInsurance.expirationDate}</span></div>
                                 </div>
                             ) : (
-                                <div className="p-3 bg-amber-950/30 border border-amber-800/50 rounded text-xs text-amber-300">
-                                    ⚠️ Proof of renter&apos;s insurance pending submission.
-                                </div>
+                                <p className="owner-note-warn">Proof of renter&apos;s insurance has not been submitted.</p>
                             )}
-                        </Card>
+                        </section>
 
-                        {/* Vehicles / Parking */}
-                        <Card title="Registered Vehicles">
+                        <section className="owner-card">
+                            <div className="owner-card__head"><h2>Registered vehicles</h2></div>
                             {tenant.vehicles && tenant.vehicles.length > 0 ? (
-                                <div className="space-y-3">
+                                <ul className="owner-list">
                                     {tenant.vehicles.map((v, i) => (
-                                        <div key={i} className="p-3 bg-gray-900 rounded border border-gray-800 text-sm">
-                                            <span className="font-bold text-white block">{v.year || ''} {v.make} {v.model}</span>
-                                            <span className="text-xs text-gray-400">Plate: <strong className="text-primary">{v.licensePlate}</strong> ({v.state || 'State'})</span>
-                                        </div>
+                                        <li key={i}>
+                                            <div className="owner-list__text">
+                                                <strong>{[v.year, v.make, v.model].filter(Boolean).join(' ')}</strong>
+                                                <span>Plate {v.licensePlate}{v.state ? ` (${v.state})` : ''}</span>
+                                            </div>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
                             ) : (
-                                <p className="text-gray-500 text-sm italic">No registered vehicles on file.</p>
+                                <p className="owner-empty">No registered vehicles on file.</p>
                             )}
-                        </Card>
+                        </section>
 
-                        {/* Pets */}
-                        <Card title="Authorized Pets">
+                        <section className="owner-card">
+                            <div className="owner-card__head"><h2>Authorized pets</h2></div>
                             {tenant.pets && tenant.pets.length > 0 ? (
-                                <div className="space-y-2">
+                                <ul className="owner-list">
                                     {tenant.pets.map((pet, i) => (
-                                        <div key={i} className="flex justify-between items-center text-sm p-2 bg-gray-900 rounded border border-gray-800">
-                                            <span className="text-white font-medium">🐾 {pet.name} ({pet.type})</span>
-                                            <span className="text-xs text-gray-400">{pet.breed || ''} {pet.weight ? `(${pet.weight} lbs)` : ''}</span>
-                                        </div>
+                                        <li key={i}>
+                                            <div className="owner-list__text">
+                                                <strong>{pet.name} ({pet.type})</strong>
+                                                <span>{[pet.breed, pet.weight ? `${pet.weight} lbs` : ''].filter(Boolean).join(' · ')}</span>
+                                            </div>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
                             ) : (
-                                <p className="text-gray-500 text-sm italic">No pets declared.</p>
+                                <p className="owner-empty">No pets declared.</p>
                             )}
-                        </Card>
+                        </section>
                     </div>
                 </div>
 
-                {/* Record Payment Modal */}
                 <RecordPaymentModal
                     isOpen={isPaymentModalOpen}
                     onClose={() => setIsPaymentModalOpen(false)}
@@ -317,53 +258,18 @@ const Tenant360ProfilePage: NextPageWithAuth = () => {
             </div>
 
             <style jsx>{`
-                .tenant-profile-page {
-                    padding: 2rem;
-                    max-width: var(--max-width);
-                    margin: 0 auto;
-                }
-
-                .profile-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    flex-wrap: wrap;
-                    gap: 1.5rem;
-                    margin-bottom: 2rem;
-                    padding-bottom: 1.5rem;
-                    border-bottom: 1px solid var(--color-border);
-                }
-
-                .profile-header__actions {
-                    display: flex;
+                .owner-empty-state {
+                    display: grid;
                     gap: 1rem;
+                    justify-items: start;
                 }
-
-                .stat-card {
-                    background: var(--color-surface);
-                    border: 1px solid var(--color-border);
+                .owner-note-warn {
+                    margin: 0;
+                    padding: 0.85rem 1rem;
                     border-radius: var(--radius-md);
-                    padding: 1.25rem;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.25rem;
-                }
-
-                .stat-lbl {
-                    font-size: 0.75rem;
-                    color: var(--color-muted);
-                    text-transform: uppercase;
-                    font-weight: 600;
-                }
-
-                .stat-val {
-                    font-size: 1.5rem;
-                    font-weight: 800;
-                }
-
-                .stat-sub {
-                    font-size: 0.75rem;
-                    color: var(--color-muted);
+                    background: var(--tag-warning-bg);
+                    color: var(--tag-warning-text);
+                    font-size: 0.9rem;
                 }
             `}</style>
         </AdminLayout>

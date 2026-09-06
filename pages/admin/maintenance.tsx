@@ -106,38 +106,42 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         <title>Maintenance Requests - Admin - Next Level Rentals</title>
       </Head>
 
-      <div className="page-header">
-        <h1>Maintenance Requests</h1>
-        <p>Manage and respond to tenant maintenance requests</p>
+      <div className="owner-page">
+      <div className="owner-page__head">
+        <div>
+          <p className="section-eyebrow">Admin · Maintenance</p>
+          <h1>Maintenance Requests</h1>
+          <p className="owner-page__sub">Manage and respond to tenant maintenance requests</p>
+        </div>
       </div>
 
-      <div className="filter-tabs">
+      <div className="owner-page__chips" role="tablist" aria-label="Filter requests">
         <button
-          className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
+          type="button" role="tab" aria-selected={filter === 'all'} className={`filter-chip${filter === 'all' ? ' filter-chip--active' : ''}`}
           onClick={() => setFilter('all')}
         >
           All ({statusCounts.all})
         </button>
         <button
-          className={`filter-tab ${filter === 'submitted' ? 'active' : ''}`}
+          type="button" role="tab" aria-selected={filter === 'submitted'} className={`filter-chip${filter === 'submitted' ? ' filter-chip--active' : ''}`}
           onClick={() => setFilter('submitted')}
         >
           Submitted ({statusCounts.submitted})
         </button>
         <button
-          className={`filter-tab ${filter === 'in_progress' ? 'active' : ''}`}
+          type="button" role="tab" aria-selected={filter === 'in_progress'} className={`filter-chip${filter === 'in_progress' ? ' filter-chip--active' : ''}`}
           onClick={() => setFilter('in_progress')}
         >
           In Progress ({statusCounts.in_progress})
         </button>
         <button
-          className={`filter-tab ${filter === 'completed' ? 'active' : ''}`}
+          type="button" role="tab" aria-selected={filter === 'completed'} className={`filter-chip${filter === 'completed' ? ' filter-chip--active' : ''}`}
           onClick={() => setFilter('completed')}
         >
           Completed ({statusCounts.completed})
         </button>
         <button
-          className={`filter-tab ${filter === 'cancelled' ? 'active' : ''}`}
+          type="button" role="tab" aria-selected={filter === 'cancelled'} className={`filter-chip${filter === 'cancelled' ? ' filter-chip--active' : ''}`}
           onClick={() => setFilter('cancelled')}
         >
           Cancelled ({statusCounts.cancelled})
@@ -209,6 +213,7 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
           </div>
         )}
       </div>
+      </div>
 
       {selectedRequest && (
         <MaintenanceStatusModal
@@ -220,57 +225,8 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
       )}
 
       <style jsx>{`
-        .page-header {
-          padding: 2rem;
-          border-bottom: 1px solid var(--color-border);
-        }
-
-        .page-header h1 {
-          margin: 0 0 0.5rem;
-          font-size: 2rem;
-          color: var(--color-text-secondary);
-        }
-
-        .page-header p {
-          margin: 0;
-          color: var(--color-muted);
-          font-size: 1rem;
-        }
-
-        .filter-tabs {
-          display: flex;
-          gap: 0.5rem;
-          padding: 1rem 2rem;
-          border-bottom: 2px solid var(--color-border);
-          overflow-x: auto;
-        }
-
-        .filter-tab {
-          padding: 0.75rem 1.25rem;
-          background: none;
-          border: none;
-          font-size: 0.938rem;
-          font-weight: 500;
-          color: var(--color-muted);
-          cursor: pointer;
-          border-bottom: 2px solid transparent;
-          margin-bottom: -2px;
-          transition: all 0.2s;
-          white-space: nowrap;
-        }
-
-        .filter-tab:hover {
-          color: var(--color-text);
-        }
-
-        .filter-tab.active {
-          color: var(--color-primary);
-          border-bottom-color: var(--color-primary);
-        }
-
         .requests-content {
-          padding: 2rem;
-          min-height: 400px;
+          min-height: 200px;
         }
 
         .loading-state,
@@ -326,7 +282,7 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
           background: var(--color-surface);
           border-radius: 12px;
           overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 1px solid var(--color-border);
         }
 
         thead {

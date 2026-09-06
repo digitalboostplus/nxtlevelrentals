@@ -291,9 +291,7 @@ export default function MonthlyPaymentGrid({ properties, onRecordPayment }: Mont
           text-transform: uppercase;
           letter-spacing: 0.05em;
           white-space: nowrap;
-          position: sticky;
-          top: var(--header-height);
-          z-index: 2;
+          position: static;
           background: var(--color-surface-elevated);
         }
 

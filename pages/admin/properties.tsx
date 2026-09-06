@@ -83,21 +83,22 @@ const PropertiesPage: NextPageWithAuth = () => {
         <title>Properties - Admin Portal</title>
       </Head>
 
-      <div className="admin-container">
-        <header className="admin-header">
+      <div className="owner-page">
+        <div className="owner-page__head">
           <div>
+            <p className="section-eyebrow">Admin · Properties</p>
             <h1>Properties & Units</h1>
-            <p>Portfolio overview, unit status, and GoHighLevel sync.</p>
+            <p className="owner-page__sub">Portfolio overview, unit status, and GoHighLevel sync.</p>
           </div>
-          <div className="header-actions">
-            <button className="secondary-button" onClick={handleSyncFromGHL} disabled={syncing}>
+          <div className="owner-page__actions">
+            <button type="button" className="outline-button" onClick={handleSyncFromGHL} disabled={syncing}>
               {syncing ? 'Syncing…' : 'Sync from GHL'}
             </button>
             {ALLOW_MANUAL_PROPERTY && (
-              <button className="primary-button" onClick={handleAddProperty}>+ Add Property</button>
+              <button type="button" className="primary-button" onClick={handleAddProperty}>Add property</button>
             )}
           </div>
-        </header>
+        </div>
 
 
         {syncMessage && <div className="sync-banner">{syncMessage}</div>}
@@ -128,9 +129,10 @@ const PropertiesPage: NextPageWithAuth = () => {
                   {property.source === 'ghl' && <span className="ghl-badge">Synced from GHL</span>}
                   <p className="address">{property.address}</p>
                   <div className="property-details">
-                    <span>{property.bedrooms} Bed</span>
-                    <span>{property.bathrooms} Bath</span>
-                    <span>{property.squareFeet} SqFt</span>
+                    {property.bedrooms ? <span>{property.bedrooms} bed</span> : null}
+                    {property.bathrooms ? <span>{property.bathrooms} bath</span> : null}
+                    {property.squareFeet ? <span>{property.squareFeet.toLocaleString()} sq ft</span> : null}
+                    {!property.bedrooms && !property.bathrooms && !property.squareFeet ? <span>Details not recorded</span> : null}
                   </div>
                   <div className="property-footer">
                     <span className="rent">${property.rent}/mo</span>
@@ -152,24 +154,6 @@ const PropertiesPage: NextPageWithAuth = () => {
       )}
 
       <style jsx>{`
-        .admin-container {
-          padding: 2rem;
-          max-width: var(--max-width);
-          margin: 0 auto;
-        }
-
-        .admin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-        }
-
-        .header-actions {
-          display: flex;
-          gap: 0.75rem;
-          align-items: center;
-        }
 
         .sync-banner {
           background: var(--color-surface-elevated);
@@ -194,8 +178,6 @@ const PropertiesPage: NextPageWithAuth = () => {
           color: var(--color-primary);
         }
 
-        h1 { font-size: 2rem; color: var(--color-text-secondary); margin: 0; }
-        p { color: var(--color-muted); margin: 0.5rem 0 0; }
 
         .property-grid {
           display: grid;

@@ -48,18 +48,6 @@ export default function Card({
           box-shadow: var(--shadow-sm);
           transition: box-shadow var(--transition-base);
           overflow: hidden;
-          animation: fadeInCard 0.3s ease-out;
-        }
-
-        @keyframes fadeInCard {
-          from {
-            opacity: 0;
-            transform: translateY(8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
         }
 
         .card:hover,
@@ -173,7 +161,6 @@ export default function Card({
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .card,
           .spinner {
             animation: none !important;
           }
