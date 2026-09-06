@@ -88,30 +88,33 @@ const TenantsPage: NextPageWithAuth = () => {
                 <title>Tenants - Admin Portal</title>
             </Head>
 
-            <div className="admin-container">
-                <header className="admin-header">
+            <div className="owner-page">
+                <div className="owner-page__head">
                     <div>
+                        <p className="section-eyebrow">Admin · Tenants</p>
                         <h1>Tenants</h1>
-                        <p>Manage your residents and view their payment history.</p>
+                        <p className="owner-page__sub">Manage your residents and view their payment history.</p>
                     </div>
-                    <div className="header-actions">
-                        {syncMessage && <span className="sync-message">{syncMessage}</span>}
+                    <div className="owner-page__actions">
                         <button
-                            className="sync-button sync-button--secondary"
+                            type="button"
+                            className="outline-button"
                             onClick={handleImport}
                             disabled={importing || syncing !== null}
                         >
                             {importing ? 'Importing…' : 'Import active from GHL'}
                         </button>
                         <button
-                            className="sync-button"
+                            type="button"
+                            className="primary-button"
                             onClick={() => handleSync()}
                             disabled={importing || syncing !== null}
                         >
                             {syncing === 'all' ? 'Syncing…' : 'Sync all from GHL'}
                         </button>
                     </div>
-                </header>
+                </div>
+                {syncMessage && <p className="owner-note" role="status">{syncMessage}</p>}
 
                 {loading ? (
                     <div className="loading-state">Loading tenants...</div>
@@ -143,10 +146,11 @@ const TenantsPage: NextPageWithAuth = () => {
                                             <span className="tag tag--success">Active</span>
                                         </td>
                                         <td>
-                                            <Link href={`/admin/tenants/${tenant.id}`} className="view-link mr-3">
+                                            <div className="owner-page__chips">
+                                            <Link href={`/admin/tenants/${tenant.id}`} className="view-link">
                                                 Profile
                                             </Link>
-                                            <Link href={`/admin/ledger/${tenant.id}`} className="view-link mr-3">
+                                            <Link href={`/admin/ledger/${tenant.id}`} className="view-link">
                                                 Ledger
                                             </Link>
                                             <button
@@ -156,6 +160,7 @@ const TenantsPage: NextPageWithAuth = () => {
                                             >
                                                 {syncing === tenant.id ? 'Syncing…' : 'Sync GHL'}
                                             </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -166,30 +171,6 @@ const TenantsPage: NextPageWithAuth = () => {
             </div>
 
             <style jsx>{`
-        .admin-container {
-          padding: 2rem;
-          max-width: var(--max-width);
-          margin: 0 auto;
-        }
-
-        .admin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-        }
-
-        h1 {
-          font-size: 2rem;
-          font-weight: 700;
-          color: var(--color-text-secondary);
-          margin: 0;
-        }
-
-        p {
-          color: var(--color-muted);
-          margin: 0.5rem 0 0;
-        }
 
         .tenant-name {
           font-weight: 600;

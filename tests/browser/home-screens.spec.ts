@@ -151,4 +151,23 @@ test('admin dashboard shows rent status, the queue, public requests and work ord
   await expect(page.getByText('Unmatched').first()).toBeVisible();
   await expect(page.getByRole('row').filter({ hasText: 'Dishwasher leak' })).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/home-admin.png', fullPage: true });
+
+  // Every inner admin page shares the shell and renders with seeded data.
+  const inner: [string, RegExp, string][] = [
+    ['/admin/properties/', /Properties/, 'admin-properties'],
+    ['/admin/properties/browser-property/', /Browser Property/, 'admin-property'],
+    ['/admin/tenants/', /Tenants/, 'admin-tenants'],
+    ['/admin/tenants/browser-tenant/', /Browser tenant/, 'admin-tenant'],
+    ['/admin/rent-payments/', /Rent Payment Tracking/, 'admin-rent-payments'],
+    ['/admin/maintenance/', /Maintenance Requests/, 'admin-maintenance'],
+    ['/admin/ledger/browser-tenant/', /Browser tenant/, 'admin-ledger'],
+    ['/admin/leases/new/', /Create Lease Agreement/, 'admin-lease-new'],
+    ['/admin/operations/', /Delivery and upload operations/, 'admin-operations'],
+  ];
+  for (const [path, heading, shot] of inner) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+    await expect(page.getByText(/^Loading/)).toHaveCount(0);
+    await page.screenshot({ path: `.agent-artifacts/${shot}.png`, fullPage: true });
+  }
 });

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Head from 'next/head';
 import AdminLayout from '@/components/Admin/AdminLayout';
-import PageHeader from '@/components/common/PageHeader';
 import LoadingState from '@/components/common/LoadingState';
 import EmptyState from '@/components/common/EmptyState';
 import PaymentSummaryStats from '@/components/Admin/RentTracking/PaymentSummaryStats';
@@ -115,20 +114,19 @@ const RentPaymentsPage: NextPageWithAuth = () => {
                 <title>Rent Payments - Admin - Next Level Rentals</title>
             </Head>
 
-            <div className="page-container">
-            <PageHeader
-                title="Rent Payment Tracking"
-                subtitle="Monitor rent payments across all properties"
-                actions={
-                    <button
-                        className="refresh-btn"
-                        onClick={fetchData}
-                        disabled={loading}
-                    >
-                        🔄 Refresh
+            <div className="owner-page">
+            <div className="owner-page__head">
+                <div>
+                    <p className="section-eyebrow">Admin · Rent</p>
+                    <h1>Rent Payment Tracking</h1>
+                    <p className="owner-page__sub">Who has paid this month, who has not, and what is still expected.</p>
+                </div>
+                <div className="owner-page__actions">
+                    <button type="button" className="outline-button" onClick={fetchData} disabled={loading}>
+                        {loading ? 'Refreshing...' : 'Refresh'}
                     </button>
-                }
-            />
+                </div>
+            </div>
 
             {summary && <PaymentSummaryStats summary={summary} loading={loading} />}
 
@@ -182,31 +180,9 @@ const RentPaymentsPage: NextPageWithAuth = () => {
             />
 
             <style jsx>{`
-        .refresh-btn {
-          padding: 0.75rem 1.5rem;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
-          font-size: 0.938rem;
-          font-weight: 600;
-          color: var(--color-text-secondary);
-          cursor: pointer;
-          transition: all var(--transition-fast);
-        }
-
-        .refresh-btn:hover:not(:disabled) {
-          background: var(--color-background);
-          border-color: var(--color-primary);
-          color: var(--color-text);
-        }
-
-        .refresh-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
 
         .content-section {
-          padding: 0 2rem 2rem;
+          padding: 0;
         }
 
         .properties-grid {
@@ -220,9 +196,6 @@ const RentPaymentsPage: NextPageWithAuth = () => {
             grid-template-columns: 1fr;
           }
 
-          .content-section {
-            padding: 0 1rem 1rem;
-          }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -231,20 +204,6 @@ const RentPaymentsPage: NextPageWithAuth = () => {
           }
         }
 
-        .page-container {
-          animation: pageEnter 0.3s ease-out;
-        }
-
-        @keyframes pageEnter {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
 
         @media (prefers-reduced-motion: reduce) {
           .page-container {

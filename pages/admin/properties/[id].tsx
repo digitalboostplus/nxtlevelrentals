@@ -5,7 +5,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useState, useCallback } from 'react';
 import AdminLayout from '@/components/Admin/AdminLayout';
 import LoadingState from '@/components/common/LoadingState';
-import Card from '@/components/common/Card';
 import MaintenanceStatusModal from '@/components/Admin/MaintenanceStatusModal';
 import { propertyUtils, maintenanceUtils, paymentUtils } from '@/lib/firebase-utils';
 import { leaseUtils } from '@/lib/leases';
@@ -66,8 +65,8 @@ const AdminPropertyDetailPage: NextPageWithAuth = () => {
 
     if (loading) {
         return (
-            <AdminLayout title="Property Control Center">
-                <div className="p-8">
+            <AdminLayout title="Property">
+                <div className="owner-page">
                     <LoadingState message="Loading property details..." />
                 </div>
             </AdminLayout>
@@ -76,13 +75,15 @@ const AdminPropertyDetailPage: NextPageWithAuth = () => {
 
     if (!property) {
         return (
-            <AdminLayout title="Property Not Found">
-                <div className="p-8 text-center">
-                    <h2>Property Not Found</h2>
-                    <p className="text-gray-500 mb-4">The property ID does not exist in Firestore.</p>
-                    <Link href="/admin/properties" className="primary-button">
-                        Back to Properties
-                    </Link>
+            <AdminLayout title="Property not found">
+                <div className="owner-page">
+                    <div className="owner-empty-state">
+                        <h2>Property not found</h2>
+                        <p className="owner-empty">No property matches this ID.</p>
+                        <Link href="/admin/properties" className="primary-button">
+                            Back to properties
+                        </Link>
+                    </div>
                 </div>
             </AdminLayout>
         );
@@ -93,62 +94,75 @@ const AdminPropertyDetailPage: NextPageWithAuth = () => {
         .reduce((sum, p) => sum + (p.amount || 0), 0);
 
     const openTickets = maintenanceList.filter((m) => m.status !== 'completed' && m.status !== 'cancelled');
+    const rent = property.defaultRentAmount || property.rent || 0;
+    const occupied = property.status === 'occupied';
+    const tabs: [typeof activeTab, string][] = [
+        ['overview', 'Overview & specs'],
+        ['units', `Units (${property.units?.length || 1})`],
+        ['lease', 'Lease & tenant'],
+        ['maintenance', `Maintenance (${maintenanceList.length})`],
+        ['financials', 'Payment ledger'],
+    ];
+    const paidAt = (p: Payment) => {
+        const raw = p.paidAt as unknown;
+        if (!raw) return 'Pending';
+        const d = typeof raw === 'object' && raw !== null && 'toDate' in raw ? (raw as { toDate: () => Date }).toDate() : new Date(raw as string);
+        return d.toLocaleDateString();
+    };
 
     return (
         <AdminLayout title={property.name}>
             <Head>
-                <title>{property.name} - Admin Property Control</title>
+                <title>{property.name} - Admin</title>
             </Head>
 
-            <div className="admin-property-page">
-                {/* Header */}
-                <div className="property-header">
-                    <div className="property-header__info">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className={`tag ${property.status === 'occupied' ? 'tag--success' : 'tag--warning'}`}>
-                                {property.status === 'occupied' ? 'Occupied' : 'Vacant'}
-                            </span>
-                            <span className="text-xs text-gray-500">Source: {property.source || 'Direct'}</span>
-                            {property.ghlObjectId && (
-                                <span className="text-xs px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-800">
-                                    GHL Linked
-                                </span>
-                            )}
+            <div className="owner-page">
+                <div className="owner-page__head">
+                    <div>
+                        <p className="section-eyebrow">Admin · Property</p>
+                        <h1>{property.name}</h1>
+                        <p className="owner-page__sub">{formatAddress(property.address)}</p>
+                        <div className="owner-meta">
+                            <span className={`tag ${occupied ? 'tag--success' : 'tag--warning'}`}>{occupied ? 'Occupied' : 'Vacant'}</span>
+                            <span>Source: {property.source === 'ghl' ? 'GoHighLevel' : 'Direct'}</span>
+                            {property.ghlObjectId ? <span className="tag tag--info">GHL linked</span> : null}
                         </div>
-                        <h1 className="text-3xl font-extrabold text-white">{property.name}</h1>
-                        <p className="text-gray-400 text-sm mt-1">{formatAddress(property.address)}</p>
                     </div>
-
-                    <div className="property-header__actions">
+                    <div className="owner-page__actions">
+                        <button type="button" className="outline-button" onClick={() => router.push(`/admin/properties/${property.id}/edit`)}>
+                            Edit property
+                        </button>
                         <Link href={`/admin/leases/new?propertyId=${property.id}`} className="primary-button">
-                            + Create Lease
+                            Create lease
                         </Link>
                     </div>
                 </div>
 
-                {/* KPI Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div className="stat-box">
-                        <span className="stat-box__lbl">Monthly Rent</span>
-                        <span className="stat-box__val">${(property.defaultRentAmount || property.rent || 0).toLocaleString()}</span>
+                <div className="owner-page__stats">
+                    <div className="stat-card">
+                        <div className="stat-card__label">Monthly rent</div>
+                        <div className="stat-card__value">${rent.toLocaleString()}</div>
+                        <div className="stat-card__meta">{activeLease ? 'Under an active lease' : 'Target rent while vacant'}</div>
                     </div>
-                    <div className="stat-box">
-                        <span className="stat-box__lbl">Total Collected</span>
-                        <span className="stat-box__val text-green-400">${totalCollected.toLocaleString()}</span>
+                    <div className="stat-card">
+                        <div className="stat-card__label">Total collected</div>
+                        <div className="stat-card__value stat-card__value--good">${totalCollected.toLocaleString()}</div>
+                        <div className="stat-card__meta">Recorded payments, all time</div>
                     </div>
-                    <div className="stat-box">
-                        <span className="stat-box__lbl">Open Work Orders</span>
-                        <span className="stat-box__val text-amber-400">{openTickets.length}</span>
+                    <div className="stat-card">
+                        <div className="stat-card__label">Open work orders</div>
+                        <div className={`stat-card__value${openTickets.length ? ' stat-card__value--warn' : ''}`}>{openTickets.length}</div>
+                        <div className="stat-card__meta">{maintenanceList.length} ticket{maintenanceList.length === 1 ? '' : 's'} on record</div>
                     </div>
-                    <div className="stat-box">
-                        <span className="stat-box__lbl">Units</span>
-                        <span className="stat-box__val">{property.units?.length || 1} Unit(s)</span>
+                    <div className="stat-card">
+                        <div className="stat-card__label">Units</div>
+                        <div className="stat-card__value">{property.units?.length || 1}</div>
+                        <div className="stat-card__meta">{property.units?.length ? 'Multi-unit building' : 'Single family'}</div>
                     </div>
                 </div>
 
-                {/* Gallery */}
                 {property.images && property.images.length > 0 && (
-                    <div className="photo-strip mb-8">
+                    <div className="photo-strip">
                         {property.images.slice(0, 4).map((url, i) => (
                             <div key={i} className="photo-item">
                                 <Image src={url} alt={`Photo ${i + 1}`} fill style={{ objectFit: 'cover' }} />
@@ -157,258 +171,163 @@ const AdminPropertyDetailPage: NextPageWithAuth = () => {
                     </div>
                 )}
 
-                {/* Tabs */}
-                <div className="tabs-nav mb-6">
-                    <button
-                        className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('overview')}
-                    >
-                        Overview & Specs
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'units' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('units')}
-                    >
-                        Units ({property.units?.length || 1})
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'lease' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('lease')}
-                    >
-                        Lease & Tenant
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('maintenance')}
-                    >
-                        Maintenance ({maintenanceList.length})
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'financials' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('financials')}
-                    >
-                        Payment Ledger
-                    </button>
+                <div className="owner-tabs" role="tablist" aria-label="Property sections">
+                    {tabs.map(([key, label]) => (
+                        <button key={key} type="button" role="tab" aria-selected={activeTab === key} className={`owner-tab${activeTab === key ? ' owner-tab--active' : ''}`} onClick={() => setActiveTab(key)}>
+                            {label}
+                        </button>
+                    ))}
                 </div>
 
-                {/* Tab Views */}
                 {activeTab === 'overview' && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="md:col-span-2 space-y-6">
-                            <Card title="Unit Specifications">
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    <div>
-                                        <span className="text-xs text-gray-500 uppercase block">Bedrooms</span>
-                                        <span className="text-base font-bold text-white">{property.bedrooms || 1} Bed</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-xs text-gray-500 uppercase block">Bathrooms</span>
-                                        <span className="text-base font-bold text-white">{property.bathrooms || 1} Bath</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-xs text-gray-500 uppercase block">Square Feet</span>
-                                        <span className="text-base font-bold text-white">{property.squareFeet ? property.squareFeet.toLocaleString() : 'N/A'}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-xs text-gray-500 uppercase block">Status</span>
-                                        <span className="text-base font-bold text-green-400 capitalize">{property.status}</span>
-                                    </div>
+                    <div className="owner-page__grid">
+                        <div className="owner-page__stack">
+                            <section className="owner-card">
+                                <div className="owner-card__head"><h2>Unit specifications</h2></div>
+                                <div className="owner-kv">
+                                    <div><span>Bedrooms</span><span>{property.bedrooms || 1}</span></div>
+                                    <div><span>Bathrooms</span><span>{property.bathrooms || 1}</span></div>
+                                    <div><span>Square feet</span><span>{property.squareFeet ? property.squareFeet.toLocaleString() : 'Not recorded'}</span></div>
+                                    <div><span>Status</span><span className="capitalize">{property.status || 'unknown'}</span></div>
                                 </div>
-
                                 {property.description && (
-                                    <div className="mt-6 pt-6 border-t border-gray-800">
-                                        <h4 className="text-sm font-semibold text-gray-300 mb-2">Description</h4>
-                                        <p className="text-gray-400 text-sm leading-relaxed">{property.description}</p>
+                                    <div>
+                                        <h3 className="owner-card__subhead">Description</h3>
+                                        <p className="owner-note">{property.description}</p>
                                     </div>
                                 )}
-                            </Card>
+                            </section>
 
                             {property.amenities && property.amenities.length > 0 && (
-                                <Card title="Amenities & Inclusions">
-                                    <div className="flex flex-wrap gap-2">
+                                <section className="owner-card">
+                                    <div className="owner-card__head"><h2>Amenities</h2></div>
+                                    <div className="owner-page__chips">
                                         {property.amenities.map((item, idx) => (
-                                            <span key={idx} className="tag tag--neutral">
-                                                ✓ {item}
-                                            </span>
+                                            <span key={idx} className="tag tag--neutral">{item}</span>
                                         ))}
                                     </div>
-                                </Card>
+                                </section>
                             )}
                         </div>
 
-                        <div className="space-y-6">
-                            <Card title="Ownership & Landlord Link">
-                                <div className="p-4 bg-gray-900 rounded-lg border border-gray-800 space-y-3">
-                                    <div>
-                                        <span className="text-xs text-gray-500 uppercase block">Assigned Landlord</span>
-                                        <span className="text-sm font-semibold text-white">{property.landlordName || 'Unassigned / Direct'}</span>
-                                    </div>
-                                    {property.landlordId && (
-                                        <div>
-                                            <span className="text-xs text-gray-500 uppercase block">Landlord ID</span>
-                                            <span className="text-xs text-gray-400 font-mono">{property.landlordId}</span>
-                                        </div>
-                                    )}
+                        <div className="owner-page__stack">
+                            <section className="owner-card">
+                                <div className="owner-card__head"><h2>Ownership</h2></div>
+                                <div className="owner-kv">
+                                    <div><span>Assigned landlord</span><span>{property.landlordName || 'Unassigned / Direct'}</span></div>
+                                    {property.landlordId && <div><span>Landlord ID</span><span className="owner-mono">{property.landlordId}</span></div>}
                                 </div>
-                            </Card>
+                            </section>
 
-                            <Card title="Management Operations">
-                                <div className="flex flex-col gap-2">
-                                    <button
-                                        className="outline-button w-full text-center"
-                                        onClick={() => router.push(`/admin/properties/${property.id}/edit`)}
-                                    >
-                                        Edit Property Details
-                                    </button>
-                                    <Link href="/admin/rent-payments" className="secondary-button w-full text-center">
-                                        View Rent Roll
-                                    </Link>
+                            <section className="owner-card">
+                                <div className="owner-card__head"><h2>Management</h2></div>
+                                <div className="owner-page__chips">
+                                    <Link href="/admin/rent-payments" className="owner-small-button">View rent roll</Link>
+                                    <Link href="/admin/maintenance" className="owner-small-button">Maintenance queue</Link>
                                 </div>
-                            </Card>
+                            </section>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'units' && (
-                    <Card title="Building Units Inventory">
-                        <div className="overflow-x-auto">
-                            <table className="table w-full">
+                    <section className="owner-card owner-table">
+                        <div className="owner-card__head"><h2>Units</h2></div>
+                        <div className="table-wrapper">
+                            <table className="table">
                                 <thead>
                                     <tr>
-                                        <th>Unit #</th>
-                                        <th>Beds / Baths</th>
-                                        <th>Square Feet</th>
-                                        <th>Target Rent</th>
+                                        <th>Unit</th>
+                                        <th>Beds / baths</th>
+                                        <th>Square feet</th>
+                                        <th>Target rent</th>
                                         <th>Status</th>
-                                        <th>Current Resident</th>
+                                        <th>Current resident</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {property.units && property.units.length > 0 ? (
                                         property.units.map((unit) => (
                                             <tr key={unit.id}>
-                                                <td className="font-bold text-white">Unit {unit.unitNumber}</td>
+                                                <th scope="row">Unit {unit.unitNumber}</th>
                                                 <td>{unit.bedrooms}b / {unit.bathrooms}ba</td>
                                                 <td>{unit.squareFeet} sqft</td>
-                                                <td className="font-semibold text-white">${unit.rent}/mo</td>
-                                                <td>
-                                                    <span className={`tag ${unit.status === 'occupied' ? 'tag--success' : 'tag--warning'}`}>
-                                                        {unit.status}
-                                                    </span>
-                                                </td>
+                                                <td>${unit.rent}/mo</td>
+                                                <td><span className={`tag ${unit.status === 'occupied' ? 'tag--success' : 'tag--warning'}`}>{unit.status}</span></td>
                                                 <td>{unit.currentTenantName || 'Vacant'}</td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td className="font-bold text-white">Unit Main / Single Family</td>
+                                            <th scope="row">Main / single family</th>
                                             <td>{property.bedrooms || 1}b / {property.bathrooms || 1}ba</td>
                                             <td>{property.squareFeet || 0} sqft</td>
-                                            <td className="font-semibold text-white">${(property.defaultRentAmount || property.rent || 0).toLocaleString()}/mo</td>
-                                            <td>
-                                                <span className={`tag ${property.status === 'occupied' ? 'tag--success' : 'tag--warning'}`}>
-                                                    {property.status}
-                                                </span>
-                                            </td>
-                                            <td>{activeLease?.tenantName || 'See Leases tab'}</td>
+                                            <td>${rent.toLocaleString()}/mo</td>
+                                            <td><span className={`tag ${occupied ? 'tag--success' : 'tag--warning'}`}>{property.status}</span></td>
+                                            <td>{activeLease?.tenantName || 'See lease tab'}</td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
                         </div>
-                    </Card>
+                    </section>
                 )}
 
                 {activeTab === 'lease' && (
-                    <div>
-                        {activeLease ? (
-                            <Card title="Active Lease Details">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                    <div>
-                                        <span className="text-xs text-gray-500 uppercase block">Resident Name</span>
-                                        <span className="text-base font-bold text-white mt-1 block">
-                                            {activeLease.tenantName || 'Resident (Assigned)'}
-                                        </span>
-                                        <Link href={`/admin/tenants/${activeLease.tenantId}`} className="text-xs text-primary hover:underline mt-1 inline-block">
-                                            View Tenant 360 Profile →
-                                        </Link>
-                                    </div>
-                                    <div>
-                                        <span className="text-xs text-gray-500 uppercase block">Contract Rent</span>
-                                        <span className="text-2xl font-extrabold text-green-400 mt-1 block">
-                                            ${activeLease.monthlyRent.toLocaleString()}/mo
-                                        </span>
-                                        <span className="text-xs text-gray-500">Due on day {activeLease.paymentDueDay || 1} of month</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-xs text-gray-500 uppercase block">Lease Term</span>
-                                        <span className="text-sm text-gray-200 mt-1 block">
-                                            {new Date(activeLease.startDate as string).toLocaleDateString()} — {new Date(activeLease.endDate as string).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="mt-6 pt-6 border-t border-gray-800 flex gap-4">
-                                    <Link href={`/admin/ledger/${activeLease.tenantId}`} className="secondary-button">
-                                        View Tenant Financial Ledger
-                                    </Link>
-                                </div>
-                            </Card>
-                        ) : (
-                            <div className="p-8 text-center bg-gray-900 rounded-xl border border-gray-800">
-                                <p className="text-gray-400 mb-4">No active lease associated with this property.</p>
-                                <Link href={`/admin/leases/new?propertyId=${property.id}`} className="primary-button">
-                                    + Create New Lease Agreement
-                                </Link>
+                    activeLease ? (
+                        <section className="owner-card">
+                            <div className="owner-card__head">
+                                <h2>Active lease</h2>
+                                <Link href={`/admin/ledger/${activeLease.tenantId}`} className="owner-small-button">Tenant ledger</Link>
                             </div>
-                        )}
-                    </div>
+                            <div className="owner-kv">
+                                <div><span>Resident</span><span><Link href={`/admin/tenants/${activeLease.tenantId}`}>{activeLease.tenantName || 'Resident'}</Link></span></div>
+                                <div><span>Contract rent</span><span>${activeLease.monthlyRent.toLocaleString()}/mo, due day {activeLease.paymentDueDay || 1}</span></div>
+                                <div><span>Lease term</span><span>{new Date(activeLease.startDate as string).toLocaleDateString()} to {new Date(activeLease.endDate as string).toLocaleDateString()}</span></div>
+                                {activeLease.securityDeposit ? <div><span>Security deposit</span><span>${activeLease.securityDeposit.toLocaleString()}</span></div> : null}
+                            </div>
+                        </section>
+                    ) : (
+                        <section className="owner-card">
+                            <div className="owner-card__head"><h2>No active lease</h2></div>
+                            <p className="owner-empty">Nobody is on a lease at this property right now.</p>
+                            <div>
+                                <Link href={`/admin/leases/new?propertyId=${property.id}`} className="primary-button">Create lease</Link>
+                            </div>
+                        </section>
+                    )
                 )}
 
                 {activeTab === 'maintenance' && (
-                    <div>
+                    <section className="owner-card">
+                        <div className="owner-card__head"><h2>Maintenance</h2></div>
                         {maintenanceList.length > 0 ? (
-                            <div className="space-y-4">
+                            <ul className="owner-list">
                                 {maintenanceList.map((ticket) => (
-                                    <div key={ticket.id} className="p-5 bg-gray-900 rounded-xl border border-gray-800 flex justify-between items-start flex-wrap gap-4">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className={`tag ${ticket.priority === 'urgent' || ticket.priority === 'high' ? 'tag--error' : 'tag--neutral'}`}>
-                                                    {ticket.priority} priority
-                                                </span>
-                                                <span className={`tag ${ticket.status === 'completed' ? 'tag--success' : 'tag--info'}`}>
-                                                    {ticket.status}
-                                                </span>
-                                            </div>
-                                            <h4 className="text-lg font-bold text-white">{ticket.title}</h4>
-                                            <p className="text-sm text-gray-300 mt-1">{ticket.description}</p>
-                                            {ticket.adminNotes && (
-                                                <p className="text-xs text-gray-400 mt-2 p-2 bg-gray-800 rounded">
-                                                    Note: {ticket.adminNotes}
-                                                </p>
-                                            )}
+                                    <li key={ticket.id}>
+                                        <div className="owner-list__text">
+                                            <strong>{ticket.title}</strong>
+                                            <span>{ticket.description}</span>
+                                            {ticket.adminNotes ? <span>Note: {ticket.adminNotes}</span> : null}
                                         </div>
-
-                                        <button
-                                            className="outline-button text-xs py-1.5 px-3"
-                                            onClick={() => setSelectedMaintenance(ticket)}
-                                        >
-                                            Update Status / Notes
-                                        </button>
-                                    </div>
+                                        <span className={`tag ${ticket.priority === 'urgent' || ticket.priority === 'high' ? 'tag--error' : 'tag--neutral'}`}>{ticket.priority}</span>
+                                        <span className={`tag ${ticket.status === 'completed' ? 'tag--success' : 'tag--info'}`}>{ticket.status.replace('_', ' ')}</span>
+                                        <button type="button" className="owner-small-button" onClick={() => setSelectedMaintenance(ticket)}>Update</button>
+                                    </li>
                                 ))}
-                            </div>
+                            </ul>
                         ) : (
-                            <p className="text-center py-8 text-gray-500">No maintenance tickets for this property.</p>
+                            <p className="owner-empty">No maintenance tickets for this property.</p>
                         )}
-                    </div>
+                    </section>
                 )}
 
                 {activeTab === 'financials' && (
-                    <Card title="Property Payment Records">
+                    <section className="owner-card owner-table">
+                        <div className="owner-card__head"><h2>Payment records</h2></div>
                         {paymentsList.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="table w-full">
+                            <div className="table-wrapper">
+                                <table className="table">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
@@ -421,27 +340,22 @@ const AdminPropertyDetailPage: NextPageWithAuth = () => {
                                     <tbody>
                                         {paymentsList.map((p) => (
                                             <tr key={p.id}>
-                                                <td>{p.paidAt ? ((p.paidAt as any).toDate ? (p.paidAt as any).toDate().toLocaleDateString() : new Date(p.paidAt as any).toLocaleDateString()) : 'Pending'}</td>
-                                                <td>{p.description || 'Monthly Rent'}</td>
+                                                <th scope="row">{paidAt(p)}</th>
+                                                <td>{p.description || 'Monthly rent'}</td>
                                                 <td className="capitalize">{p.paymentMethod || 'Online'}</td>
-                                                <td>
-                                                    <span className={`tag ${p.status === 'paid' || p.status === 'succeeded' ? 'tag--success' : 'tag--warning'}`}>
-                                                        {p.status}
-                                                    </span>
-                                                </td>
-                                                <td className="font-bold text-white">${p.amount.toLocaleString()}</td>
+                                                <td><span className={`tag ${p.status === 'paid' || p.status === 'succeeded' ? 'tag--success' : 'tag--warning'}`}>{p.status}</span></td>
+                                                <td>${p.amount.toLocaleString()}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
                         ) : (
-                            <p className="text-center py-6 text-gray-500">No payment history recorded for this property.</p>
+                            <p className="owner-empty">No payment history recorded for this property.</p>
                         )}
-                    </Card>
+                    </section>
                 )}
 
-                {/* Maintenance Modal */}
                 {selectedMaintenance && (
                     <MaintenanceStatusModal
                         isOpen={Boolean(selectedMaintenance)}
@@ -456,46 +370,6 @@ const AdminPropertyDetailPage: NextPageWithAuth = () => {
             </div>
 
             <style jsx>{`
-                .admin-property-page {
-                    padding: 2rem;
-                    max-width: var(--max-width);
-                    margin: 0 auto;
-                }
-
-                .property-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    flex-wrap: wrap;
-                    gap: 1.5rem;
-                    margin-bottom: 2rem;
-                    padding-bottom: 1.5rem;
-                    border-bottom: 1px solid var(--color-border);
-                }
-
-                .stat-box {
-                    background: var(--color-surface);
-                    border: 1px solid var(--color-border);
-                    border-radius: var(--radius-md);
-                    padding: 1.25rem;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.25rem;
-                }
-
-                .stat-box__lbl {
-                    font-size: 0.75rem;
-                    color: var(--color-muted);
-                    text-transform: uppercase;
-                    font-weight: 600;
-                }
-
-                .stat-box__val {
-                    font-size: 1.5rem;
-                    font-weight: 800;
-                    color: var(--color-text);
-                }
-
                 .photo-strip {
                     display: grid;
                     grid-template-columns: repeat(4, 1fr);
@@ -504,40 +378,28 @@ const AdminPropertyDetailPage: NextPageWithAuth = () => {
                     border-radius: var(--radius-lg);
                     overflow: hidden;
                 }
-
                 .photo-item {
                     position: relative;
                     height: 100%;
                     background: var(--color-surface-elevated);
                 }
-
-                .tabs-nav {
-                    display: flex;
-                    gap: 0.75rem;
-                    border-bottom: 1px solid var(--color-border);
-                    overflow-x: auto;
-                }
-
-                .tab-btn {
-                    background: transparent;
-                    border: none;
-                    border-bottom: 2px solid transparent;
-                    color: var(--color-muted);
-                    padding: 0.75rem 1rem;
-                    font-weight: 600;
-                    font-size: 0.938rem;
-                    cursor: pointer;
-                    transition: all var(--transition-fast);
-                    white-space: nowrap;
-                }
-
-                .tab-btn:hover {
+                .owner-card__subhead {
+                    margin: 0 0 0.35rem;
+                    font-size: 0.95rem;
                     color: var(--color-text);
                 }
-
-                .tab-btn.active {
-                    color: var(--color-primary);
-                    border-bottom-color: var(--color-primary);
+                .owner-empty-state {
+                    display: grid;
+                    gap: 1rem;
+                    justify-items: start;
+                }
+                .capitalize {
+                    text-transform: capitalize;
+                }
+                @media (max-width: 720px) {
+                    .photo-strip {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
                 }
             `}</style>
         </AdminLayout>

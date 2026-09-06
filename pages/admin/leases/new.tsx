@@ -136,11 +136,12 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                 <title>Create Lease Agreement - Admin Operations</title>
             </Head>
 
-            <div className="wizard-container">
-                <div className="page-header">
+            <div className="owner-page">
+                <div className="owner-page__head">
                     <div>
+                        <p className="section-eyebrow">Admin · Leases</p>
                         <h1>Create Lease Agreement</h1>
-                        <p>Assign a tenant to a unit and activate the lease. Initial rent is prorated by calendar day through month end.</p>
+                        <p className="owner-page__sub">Assign a tenant to a unit and activate the lease. Initial rent is prorated by calendar day through month end.</p>
                     </div>
                 </div>
 
@@ -150,18 +151,16 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                         {tenantType === 'new' && (activation.accountSetupUrl ? (
                             <p>Account setup link (share securely with the resident): <a href={activation.accountSetupUrl}>Set password</a></p>
                         ) : <p>Account created. Request a password reset link before handing over access.</p>)}
-                        <button type="button" onClick={() => router.push(`/admin/properties/${selectedPropertyId}`)}>View property</button>
+                        <button type="button" className="primary-button" onClick={() => router.push(`/admin/properties/${selectedPropertyId}`)}>View property</button>
                     </Card>
                 ) : loading ? (
-                    <div className="p-8 text-center text-gray-400">
-                        Loading lease wizard data...
-                    </div>
+                    <p className="owner-empty">Loading lease wizard data...</p>
                 ) : (
                     <Card title="Lease Contract Configuration">
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="lease-form">
                             <fieldset disabled={submitting || uploading} style={{ border: 0, padding: 0, margin: 0 }}>
                             {errorMsg && (
-                                <div className="p-3 bg-red-900/40 border border-red-800 text-red-400 text-sm rounded">
+                                <div className="owner-alert" role="alert">
                                     {errorMsg}
                                 </div>
                             )}
@@ -169,7 +168,7 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                             {/* Property & Unit Selection */}
                             <div className="section-block">
                                 <h3 className="section-title">1. Property & Unit Assignment</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="owner-form">
                                     <div>
                                         <label className="input-label">Select Property *</label>
                                         <select
@@ -198,8 +197,8 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                             {/* Tenant Assignment */}
                             <div className="section-block">
                                 <h3 className="section-title">2. Resident Assignment</h3>
-                                <div className="flex gap-4 mb-4">
-                                    <label className="flex items-center gap-2 cursor-pointer text-sm">
+                                <div className="owner-radios">
+                                    <label>
                                         <input
                                             type="radio"
                                             name="tenantType"
@@ -208,7 +207,7 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                                         />
                                         <span>Existing Resident</span>
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer text-sm">
+                                    <label>
                                         <input
                                             type="radio"
                                             name="tenantType"
@@ -236,7 +235,7 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                                         </select>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="owner-form owner-form--3">
                                         <div>
                                             <label className="input-label">Full Name *</label>
                                             <input
@@ -276,7 +275,7 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                             {/* Financial Terms */}
                             <div className="section-block">
                                 <h3 className="section-title">3. Lease Dates & Financial Terms</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="owner-form owner-form--4">
                                     <div>
                                         <label className="input-label">Lease Start Date *</label>
                                         <input
@@ -319,7 +318,7 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                <div className="owner-form owner-form--3 lease-form__row">
                                     <div>
                                         <label className="input-label">Rent Due Day of Month</label>
                                         <input
@@ -357,14 +356,14 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                                 <h3 className="section-title">4. Executed Lease Agreement (PDF)</h3>
                                 <div>
                                     <UploadFiles kind="lease" propertyId={selectedPropertyId} ids={fileIds} onChange={setFileIds} onBusy={setUploading} />
-                                    <span className="text-xs text-gray-500 mt-1 block">
+                                    <p className="owner-note lease-form__hint">
                                         Residents will be able to view and download this contract directly from their portal.
-                                    </span>
+                                    </p>
                                 </div>
                             </div>
 
                             {/* Actions */}
-                            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                            <div className="owner-form__actions">
                                 <button
                                     type="button"
                                     onClick={() => router.back()}
@@ -387,26 +386,22 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
             </div>
 
             <style jsx>{`
-                .wizard-container {
-                    padding: 2rem;
-                    max-width: var(--max-width);
-                    margin: 0 auto;
+                .lease-form {
+                    display: grid;
+                    gap: 1.5rem;
                 }
 
-                .page-header {
-                    margin-bottom: 2rem;
+                .lease-form fieldset {
+                    display: grid;
+                    gap: 1.5rem;
                 }
 
-                h1 {
-                    font-size: 2rem;
-                    font-weight: 800;
-                    color: var(--color-text);
-                    margin: 0 0 0.25rem;
+                .lease-form__row {
+                    margin-top: 1rem;
                 }
 
-                p {
-                    color: var(--color-muted);
-                    margin: 0;
+                .lease-form__hint {
+                    margin-top: 0.5rem;
                 }
 
                 .section-block {
@@ -432,11 +427,13 @@ const NewLeaseWizardPage: NextPageWithAuth = () => {
                 .form-input {
                     width: 100%;
                     padding: 0.65rem 0.85rem;
-                    background: var(--color-surface);
+                    background: var(--color-background);
                     border: 1px solid var(--color-border);
-                    border-radius: var(--radius-md);
+                    border-radius: var(--radius-sm);
                     color: var(--color-text);
-                    font-size: 0.875rem;
+                    font: inherit;
+                    font-size: 0.95rem;
+                    min-height: 44px;
                 }
 
                 .form-input:focus {

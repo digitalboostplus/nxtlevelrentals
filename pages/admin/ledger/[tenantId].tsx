@@ -1,9 +1,9 @@
 import { calculateBalance } from '@/lib/ledger';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/Admin/AdminLayout';
-import PageHeader from '@/components/common/PageHeader';
 import LoadingState from '@/components/common/LoadingState';
 import Card from '@/components/common/Card';
 import LedgerTable from '@/components/Admin/LedgerTable';
@@ -54,22 +54,23 @@ const TenantLedgerPage: NextPageWithAuth = () => {
                 <title>Tenant Ledger - {tenant?.displayName || 'Loading'}</title>
             </Head>
 
-            <div className="page-container">
+            <div className="owner-page">
             {loading ? (
                 <div className="content-section">
                     <LoadingState message="Loading tenant ledger..." />
                 </div>
             ) : (
                 <>
-                    <PageHeader
-                        title={tenant?.displayName || 'Tenant Ledger'}
-                        subtitle="Financial History & Payment Records"
-                        breadcrumbs={[
-                            { label: 'Admin', href: '/admin' },
-                            { label: 'Tenants', href: '/admin/tenants' },
-                            { label: tenant?.displayName || 'Loading' },
-                        ]}
-                    />
+                    <div className="owner-page__head">
+                        <div>
+                            <p className="section-eyebrow">Admin · Ledger</p>
+                            <h1>{tenant?.displayName || 'Tenant ledger'}</h1>
+                            <p className="owner-page__sub">Financial history and payment records</p>
+                        </div>
+                        <div className="owner-page__actions">
+                            <Link href={`/admin/tenants/${tenantId}`} className="outline-button">Tenant profile</Link>
+                        </div>
+                    </div>
 
                     <div className="ledger-page">
                         <div className="ledger-grid">
@@ -115,17 +116,16 @@ const TenantLedgerPage: NextPageWithAuth = () => {
 
             <style jsx>{`
         .content-section {
-          padding: 2rem;
           min-height: 300px;
         }
 
         .ledger-page {
-          padding: 0 2rem 2rem;
+          padding: 0;
         }
 
         .ledger-grid {
           display: grid;
-          grid-template-columns: 1fr 380px;
+          grid-template-columns: minmax(0, 1fr) 320px;
           gap: 2rem;
           align-items: start;
         }
@@ -218,9 +218,6 @@ const TenantLedgerPage: NextPageWithAuth = () => {
         }
 
         @media (max-width: 768px) {
-          .ledger-page {
-            padding: 0 1rem 1rem;
-          }
 
           .content-section {
             padding: 1rem;
@@ -233,26 +230,6 @@ const TenantLedgerPage: NextPageWithAuth = () => {
           }
         }
 
-        .page-container {
-          animation: pageEnter 0.3s ease-out;
-        }
-
-        @keyframes pageEnter {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .page-container {
-            animation: none;
-          }
-        }
       `}</style>
       </div>
         </AdminLayout>
