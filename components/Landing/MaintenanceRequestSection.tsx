@@ -491,7 +491,7 @@ export default function MaintenanceRequestSection() {
           min-height: 64px;
           padding: 0.75rem 1rem;
           border-radius: var(--radius-sm);
-          border: 1px dashed rgba(59, 155, 255, 0.45);
+          border: 1px dashed rgba(124, 192, 255, 0.45);
           background: var(--color-accent-subtle);
           color: var(--color-primary);
           font-weight: 600;

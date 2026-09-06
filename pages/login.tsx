@@ -158,7 +158,7 @@ export default function LoginPage() {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
           min-height: calc(100vh - 120px);
-          background: radial-gradient(circle at top right, rgba(47, 128, 237, 0.18), transparent 55%),
+          background: radial-gradient(circle at top right, rgba(124, 192, 255, 0.18), transparent 55%),
             var(--color-surface-elevated);
         }
 

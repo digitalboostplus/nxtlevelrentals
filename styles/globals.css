@@ -3,45 +3,46 @@
 :root {
   color-scheme: dark;
   /* Colors - Dark Theme */
-  /* Lifted from near-black to deep navy (Sep 2026) so pages read lighter
-     without leaving the dark theme. Keep the three steps ~4-5% apart. */
-  --color-background: #131b2c;
-  --color-surface: #1b2538;
-  --color-surface-elevated: #253149;
-  --color-primary: #3b9bff;
-  --color-primary-light: rgba(59, 155, 255, 0.16);
-  --color-primary-dark: #1c6fd0;
-  --color-secondary: #2f80ed;
-  --color-secondary-light: rgba(47, 128, 237, 0.16);
+  /* "Mid slate" palette (chosen Sep 2026): a clearly lighter dark UI. The
+     three surface steps stay ~5% apart; the blue is brightened so it keeps
+     contrast on the lighter surfaces. */
+  --color-background: #2e3748;
+  --color-surface: #3a4457;
+  --color-surface-elevated: #475268;
+  --color-primary: #7cc0ff;
+  --color-primary-light: rgba(124, 192, 255, 0.16);
+  --color-primary-dark: #5cb0ff;
+  --color-secondary: #3b8fe8;
+  --color-secondary-light: rgba(59, 143, 232, 0.18);
   --color-accent: #5cb0ff;
-  --color-text: #edf2f9;
-  --color-text-secondary: #f6f8fc;
-  --color-muted: #aab5c6;
-  --color-border: #36435d;
+  --color-text: #f5f7fa;
+  --color-text-secondary: #ffffff;
+  --color-muted: #c3cbd7;
+  --color-border: #5a6580;
   --color-success: #22c55e;
   --color-warning: #f7b733;
   --color-error: #f87171;
   --color-info: #38bdf8;
 
   /* Status tag pairs */
-  --tag-success-bg: rgba(34, 197, 94, 0.16);
-  --tag-success-text: #4ade80;
-  --tag-warning-bg: rgba(247, 183, 51, 0.16);
-  --tag-warning-text: #fbbf24;
-  --tag-error-bg: rgba(248, 113, 113, 0.16);
-  --tag-error-text: #fca5a5;
-  --tag-info-bg: rgba(56, 189, 248, 0.16);
-  --tag-info-text: #7dd3fc;
-  --tag-neutral-bg: rgba(154, 167, 184, 0.14);
-  --tag-neutral-text: #c3cdda;
+  --tag-success-bg: rgba(74, 222, 128, 0.2);
+  --tag-success-text: #86efac;
+  --tag-warning-bg: rgba(251, 191, 36, 0.2);
+  --tag-warning-text: #fcd34d;
+  --tag-error-bg: rgba(252, 165, 165, 0.2);
+  --tag-error-text: #fecaca;
+  --tag-info-bg: rgba(125, 211, 252, 0.2);
+  --tag-info-text: #bae6fd;
+  --tag-neutral-bg: rgba(195, 203, 215, 0.18);
+  --tag-neutral-text: #e2e8f0;
 
   /* Overlays */
-  --overlay-background: rgba(14, 20, 34, 0.72);
-  --overlay-strong: rgba(14, 20, 34, 0.85);
+  --overlay-background: rgba(30, 37, 52, 0.72);
+  --overlay-strong: rgba(30, 37, 52, 0.85);
 
   /* Accent-subtle fills (replace repeated low-alpha tints) */
-  --color-accent-subtle: rgba(59, 155, 255, 0.10);
-  --color-accent-subtle-strong: rgba(59, 155, 255, 0.16);
+  --color-accent-subtle: rgba(124, 192, 255, 0.10);
+  --color-accent-subtle-strong: rgba(124, 192, 255, 0.18);
 
   /* Chart-specific colors */
   --chart-success: var(--color-success);
@@ -62,22 +63,22 @@
   --chart-series-5: #a78bfa;
 
   /* Chart gradients */
-  --chart-gradient-primary: linear-gradient(180deg, rgba(59, 155, 255, 0.28) 0%, rgba(59, 155, 255, 0.04) 100%);
+  --chart-gradient-primary: linear-gradient(180deg, rgba(124, 192, 255, 0.28) 0%, rgba(124, 192, 255, 0.04) 100%);
   --chart-gradient-success: linear-gradient(180deg, rgba(34, 197, 94, 0.26) 0%, rgba(34, 197, 94, 0.04) 100%);
 
   /* Glassmorphism */
-  --glass-background: rgba(27, 37, 56, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-background: rgba(58, 68, 87, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.14);
   --glass-blur: blur(20px);
 
   /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.45);
-  --shadow-glow: 0 0 40px rgba(59, 155, 255, 0.22);
-  --shadow-glow-secondary: 0 0 40px rgba(47, 128, 237, 0.22);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.26);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.34);
+  --shadow-glow: 0 0 40px rgba(124, 192, 255, 0.22);
+  --shadow-glow-secondary: 0 0 40px rgba(92, 176, 255, 0.22);
 
   /* Layout */
   --radius-xs: 6px;
@@ -110,8 +111,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(19, 127, 236, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(19, 127, 236, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 192, 255, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(124, 192, 255, 0.4); }
 }
 
 @keyframes float {
@@ -488,12 +489,12 @@ img {
 .primary-button {
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   color: #fff;
-  box-shadow: 0 18px 30px rgba(19, 127, 236, 0.25);
+  box-shadow: 0 18px 30px rgba(124, 192, 255, 0.25);
 }
 
 .primary-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 24px 35px rgba(19, 127, 236, 0.35);
+  box-shadow: 0 24px 35px rgba(124, 192, 255, 0.35);
 }
 
 .secondary-button {
@@ -510,11 +511,11 @@ img {
 .outline-button {
   background: transparent;
   color: var(--color-primary);
-  border: 1px solid rgba(19, 127, 236, 0.6);
+  border: 1px solid rgba(124, 192, 255, 0.6);
 }
 
 .outline-button:hover {
-  background: rgba(19, 127, 236, 0.08);
+  background: rgba(124, 192, 255, 0.08);
 }
 
 .ghost-button {
@@ -577,11 +578,11 @@ img {
 }
 
 .table tbody tr:nth-child(even) {
-  background: rgba(19, 127, 236, 0.04);
+  background: rgba(124, 192, 255, 0.04);
 }
 
 .table tbody tr:hover {
-  background: rgba(19, 127, 236, 0.06);
+  background: rgba(124, 192, 255, 0.06);
 }
 
 .table-wrapper {
@@ -694,7 +695,7 @@ img {
 .mobile-nav-toggle:hover {
   background: var(--color-primary-light);
   color: var(--color-primary);
-  border-color: rgba(19, 127, 236, 0.4);
+  border-color: rgba(124, 192, 255, 0.4);
 }
 
 .mobile-nav {
@@ -768,7 +769,7 @@ img {
 
 .hero {
   padding: 6rem 1.5rem 5rem;
-  background: radial-gradient(circle at top left, rgba(47, 128, 237, 0.22), transparent 55%),
+  background: radial-gradient(circle at top left, rgba(124, 192, 255, 0.22), transparent 55%),
     radial-gradient(circle at top right, rgba(92, 176, 255, 0.16), transparent 50%),
     linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
 }
@@ -943,7 +944,7 @@ img {
   top: -20px;
   left: 20px;
   font-size: 5rem;
-  color: rgba(19, 127, 236, 0.12);
+  color: rgba(124, 192, 255, 0.12);
   font-family: Georgia, 'Times New Roman', serif;
 }
 
@@ -964,7 +965,7 @@ img {
   gap: 2.5rem;
   align-items: center;
   padding: 3rem;
-  background: linear-gradient(135deg, rgba(19, 127, 236, 0.92), rgba(41, 153, 255, 0.92));
+  background: linear-gradient(135deg, rgba(124, 192, 255, 0.92), rgba(92, 176, 255, 0.92));
   color: #fff;
   border-radius: calc(var(--radius-lg) + 6px);
   box-shadow: var(--shadow-md);
@@ -1022,7 +1023,7 @@ img {
 
 .portal-hero {
   padding: 5rem 1.5rem 3rem;
-  background: linear-gradient(135deg, rgba(19, 127, 236, 0.95), rgba(41, 153, 255, 0.9));
+  background: linear-gradient(135deg, rgba(124, 192, 255, 0.95), rgba(92, 176, 255, 0.9));
   color: #fff;
 }
 
@@ -1097,7 +1098,7 @@ img {
 .stat-card {
   padding: 1.5rem;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(19, 127, 236, 0.14);
+  border: 1px solid rgba(124, 192, 255, 0.14);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
 }
@@ -1132,7 +1133,7 @@ img {
 .filter-chip {
   padding: 0.45rem 1.1rem;
   border-radius: 999px;
-  border: 1px solid rgba(19, 127, 236, 0.2);
+  border: 1px solid rgba(124, 192, 255, 0.2);
   background: var(--color-surface);
   color: var(--color-muted);
   font-weight: 500;
@@ -1141,9 +1142,9 @@ img {
 }
 
 .filter-chip--active {
-  background: rgba(19, 127, 236, 0.12);
+  background: rgba(124, 192, 255, 0.12);
   color: var(--color-primary);
-  border-color: rgba(19, 127, 236, 0.45);
+  border-color: rgba(124, 192, 255, 0.45);
 }
 
 .maintenance-grid {
@@ -1281,3 +1282,354 @@ img {
 }
 
 
+
+/* ==================== Owner console pages (/landlord/*) ==================== */
+/* Shared vocabulary for every landlord page: header row, stat grid, cards,
+   tables, forms. Pages add only what is unique to them. */
+.owner-page {
+  padding: 2rem 2.5rem 3rem;
+  display: grid;
+  gap: 1.75rem;
+}
+
+.owner-page__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.owner-page__head h1 {
+  font-size: clamp(1.8rem, 3vw, 2.15rem);
+  line-height: 1.1;
+  margin: 0.35rem 0 0.25rem;
+  color: var(--color-text-secondary);
+}
+
+.owner-page__sub {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  max-width: 720px;
+  margin: 0;
+}
+
+.owner-page__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.owner-page__chips {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.owner-page__section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: -0.75rem;
+}
+
+.owner-page__section-head h2,
+.owner-card h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.owner-page__section-head a {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.owner-page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.owner-page__stack {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.owner-page__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.owner-page__stats--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.owner-card {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.owner-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.owner-empty {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.owner-note {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.owner-alert {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--tag-error-bg);
+  border: 1px solid rgba(252, 165, 165, 0.35);
+  color: var(--color-text);
+}
+
+.owner-table .table thead th {
+  position: static;
+}
+
+.owner-table .table th[scope='row'] {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.owner-table .table td {
+  color: var(--color-muted);
+}
+
+.owner-table__foot {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.owner-kv {
+  display: grid;
+}
+
+.owner-kv > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+
+.owner-kv > div:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.owner-kv > div > span:first-child {
+  color: var(--color-muted);
+}
+
+.owner-kv > div > span:last-child {
+  color: var(--color-text);
+  font-weight: 600;
+  text-align: right;
+}
+
+.owner-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.owner-list > li {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+}
+
+.owner-list__text {
+  flex: 1;
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.owner-list__text strong {
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.owner-list__text span {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.owner-list__icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--tag-info-bg);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.owner-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.owner-field {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.owner-field > span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.owner-field input,
+.owner-field select,
+.owner-field textarea,
+.owner-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.owner-select {
+  width: auto;
+  min-width: 220px;
+}
+
+.owner-field textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.owner-field--wide {
+  grid-column: span 2;
+}
+
+.owner-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.owner-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.owner-small-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  color: var(--color-primary);
+  border: 1px solid rgba(124, 192, 255, 0.45);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.owner-small-button:hover {
+  background: var(--color-accent-subtle);
+}
+
+.owner-small-button--primary {
+  background: var(--color-primary);
+  color: var(--color-background);
+  border-color: var(--color-primary);
+}
+
+.owner-photo {
+  height: 150px;
+  background: linear-gradient(160deg, var(--color-surface-elevated), var(--color-surface));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+  .owner-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-page__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .owner-page {
+    padding: 1.5rem 1.25rem 2.5rem;
+  }
+
+  .owner-page__stats,
+  .owner-page__stats--3,
+  .owner-form {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-field--wide {
+    grid-column: auto;
+  }
+
+  .owner-list > li {
+    flex-wrap: wrap;
+  }
+}

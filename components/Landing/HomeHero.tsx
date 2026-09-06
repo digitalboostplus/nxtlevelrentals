@@ -175,9 +175,10 @@ export default function HomeHero() {
         .home-hero__overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(90deg, rgba(27, 37, 56, 0.96) 0%, rgba(27, 37, 56, 0.82) 45%, rgba(27, 37, 56, 0.45) 100%),
-            linear-gradient(180deg, rgba(27, 37, 56, 0.35) 0%, rgba(27, 37, 56, 0.1) 40%, rgba(27, 37, 56, 0.92) 100%),
-            radial-gradient(circle at top left, rgba(47, 128, 237, 0.18), transparent 55%);
+          /* Lighter wash: the photo shows through except where text sits (left) and where the
+             section meets the next one (bottom). */
+          background: linear-gradient(90deg, rgba(58, 68, 87, 0.82) 0%, rgba(58, 68, 87, 0.45) 50%, rgba(58, 68, 87, 0.12) 100%),
+            linear-gradient(180deg, rgba(58, 68, 87, 0) 55%, rgba(58, 68, 87, 0.88) 100%);
         }
 
         .home-hero__credit {
@@ -287,12 +288,12 @@ export default function HomeHero() {
         .home-tile:hover,
         .home-tile:focus-visible {
           transform: translateY(-3px);
-          border-color: rgba(59, 155, 255, 0.45);
+          border-color: rgba(124, 192, 255, 0.45);
           box-shadow: var(--shadow-md);
         }
 
         .home-tile--primary {
-          border-color: rgba(59, 155, 255, 0.45);
+          border-color: rgba(124, 192, 255, 0.45);
           box-shadow: var(--shadow-glow);
         }
 

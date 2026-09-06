@@ -117,6 +117,25 @@ test('landlord overview shows the month, decisions, chart and property table', a
   await expect(page.getByRole('row').filter({ hasText: 'Browser Property' })).toBeVisible();
   await expect(page.getByRole('img', { name: /Net income, last 6 months/ })).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/home-landlord.png', fullPage: true });
+
+  // Every inner landlord page shares the same shell and renders with seeded data.
+  const inner: [string, RegExp, string][] = [
+    ['/landlord/properties/', /My properties/, 'landlord-properties'],
+    ['/landlord/properties/browser-property/', /Browser Property/, 'landlord-property'],
+    ['/landlord/financials/', /Financial statements/, 'landlord-financials'],
+    ['/landlord/expenses/', /Expenses and invoices/, 'landlord-expenses'],
+    ['/landlord/payouts/', /Disbursements and payouts/, 'landlord-payouts'],
+    ['/landlord/maintenance/', /^Maintenance$/, 'landlord-maintenance'],
+    ['/landlord/documents/', /Owner documents/, 'landlord-documents'],
+  ];
+  for (const [path, heading, shot] of inner) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+    await expect(page.getByText('Owner Cockpit')).toBeVisible();
+    await expect(page.getByText(/^Loading /)).toHaveCount(0);
+    if (path === '/landlord/maintenance/') await expect(page.getByText('Approve repair estimate: $680 dishwasher leak')).toBeVisible();
+    await page.screenshot({ path: `.agent-artifacts/${shot}.png`, fullPage: true });
+  }
 });
 
 test('admin dashboard shows rent status, the queue, public requests and work orders', async ({ page }) => {

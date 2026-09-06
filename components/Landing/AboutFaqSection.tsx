@@ -166,7 +166,7 @@ export default function AboutFaqSection() {
         }
 
         .faq-item--open {
-          border-color: rgba(19, 127, 236, 0.35);
+          border-color: rgba(124, 192, 255, 0.35);
         }
 
         .faq-item__toggle {
