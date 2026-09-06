@@ -22,7 +22,7 @@ export async function loadOwnerData(db: Firestore, uid: string, propertyId?: str
   const fields: Record<string, string[]> = {
     leases: ['propertyId', 'unitId', 'unit', 'tenantId', 'tenantName', 'landlordId', 'startDate', 'endDate', 'monthlyRent', 'securityDeposit', 'paymentDueDay', 'isActive', 'status', 'fileIds'],
     ledger: ['propertyId', 'tenantId', 'landlordId', 'amount', 'type', 'category', 'date', 'status', 'description', 'paymentMethod'],
-    maintenanceRequests: ['propertyId', 'title', 'description', 'status', 'priority', 'category', 'createdAt', 'updatedAt', 'assignedVendorName', 'scheduledDate', 'scheduledTime', 'timeZone', 'assignedVendorPhone', 'actualCost', 'fileIds'],
+    maintenanceRequests: ['propertyId', 'title', 'description', 'status', 'priority', 'category', 'createdAt', 'updatedAt', 'assignedVendorName', 'scheduledDate', 'scheduledTime', 'timeZone', 'assignedVendorPhone', 'estimatedCost', 'actualCost', 'fileIds'],
     landlordExpenses: ['propertyId', 'propertyName', 'landlordId', 'amount', 'category', 'expenseType', 'date', 'paidDate', 'status', 'vendor', 'description', 'fileIds']
   };
   const collected: Record<string, DocumentData[]> = {};

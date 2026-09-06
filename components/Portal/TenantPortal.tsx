@@ -1,19 +1,15 @@
 import { normalizeDate } from '@/lib/date';
 import { useMemo, useState } from 'react';
-import PortalHero from '@/components/Portal/PortalHero';
-import DashboardHighlights from '@/components/Portal/DashboardHighlights';
+import TenantHome from '@/components/Portal/TenantHome';
 import PaymentHistory from '@/components/Portal/PaymentHistory';
 import MaintenanceRequests from '@/components/Portal/MaintenanceRequests';
-import CommunicationHub from '@/components/Portal/CommunicationHub';
 import LeaseDocuments from '@/components/Portal/LeaseDocuments';
-import QuickActions from '@/components/Portal/QuickActions';
-import SupportContacts from '@/components/Portal/SupportContacts';
 import MaintenanceRequestForm, { type MaintenanceRequestPayload } from '@/components/Portal/MaintenanceRequestForm';
-import ResidentResources from '@/components/Portal/ResidentResources';
 import PayRentModal from '@/components/Portal/PayRentModal';
 import { tenantDashboard } from '@/data/portal';
 import { useAuth } from '@/context/AuthContext';
 import { usePortalData } from '@/hooks/usePortalData';
+import { formatPropertyAddress, tenantActivity, tenantAttentionItems } from '@/lib/console-home';
 
 type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
 
@@ -56,6 +52,23 @@ export default function TenantPortal() {
     const documents = (lease?.documents || []).filter(url => url.startsWith('https://')).map((url, index) => ({
         id: `lease-${index}`, title: 'Lease Agreement', updatedOn: normalizeDate(lease?.updatedAt)?.toISOString() || '', downloadUrl: url
     }));
+
+    const attention = useMemo(
+        () => tenantAttentionItems({
+            maintenanceRequests,
+            lease,
+            hasRentersInsurance: Boolean(profile?.rentersInsurance),
+            currentBalance: realMetrics.currentBalance,
+            nextDueDate: realMetrics.nextDueDate,
+        }),
+        [maintenanceRequests, lease, profile?.rentersInsurance, realMetrics.currentBalance, realMetrics.nextDueDate]
+    );
+    const activity = useMemo(() => tenantActivity({ payments, maintenanceRequests }), [payments, maintenanceRequests]);
+    const lastPayment = useMemo(() => {
+        const paid = payments.find((payment) => ['paid', 'completed', 'succeeded'].includes(String(payment.status)) && payment.paidAt);
+        const date = normalizeDate(paid?.paidAt);
+        return paid && date ? { amount: paid.amount, date, method: paid.paymentMethod, receiptUrl: paid.receiptUrl } : null;
+    }, [payments]);
 
     const handleRequestSubmit = async (payload: MaintenanceRequestPayload) => {
         if (!user || !profile) return;
@@ -107,30 +120,19 @@ export default function TenantPortal() {
     return (
         <>
             {requestSaved && <p role="status">Request received! We will follow up shortly.</p>}
-            <p>Online payments are unavailable. Contact management for payment instructions.</p>
-            <PortalHero
-                residentName={profile?.displayName || tenantDashboard.residentName}
-                propertyName={property?.name || tenantDashboard.propertyName}
-                unit={lease?.unit || profile?.unit || 'Unassigned'}
-                nextDueDate={metrics.dueDate}
-            />
-            <DashboardHighlights
-                metrics={metrics}
-
-            />
-            <QuickActions
-                actions={tenantDashboard.quickActions.filter(a => a.id !== 'qa-pay-rent').map((action) => {
-                    switch (action.id) {
-                        case 'qa-pay-rent':
-                            return { ...action, onClick: () => setIsPayModalOpen(true) };
-                        case 'qa-maintenance':
-                            return { ...action, onClick: () => document.getElementById('maintenance')?.scrollIntoView({ behavior: 'smooth' }) };
-                        case 'qa-documents':
-                            return { ...action, onClick: () => document.getElementById('documents')?.scrollIntoView({ behavior: 'smooth' }) };
-                        default:
-                            return action;
-                    }
-                })}
+            <TenantHome
+                name={(profile?.displayName || '').split(' ')[0] || 'there'}
+                addressLine={[formatPropertyAddress(property?.address), lease?.unit || profile?.unit].filter(Boolean).join(' · ')}
+                rentAmount={lease?.monthlyRent || lease?.rentAmount || 0}
+                currentBalance={realMetrics.currentBalance}
+                nextDueDate={realMetrics.nextDueDate}
+                daysUntilDue={realMetrics.daysUntilDue}
+                lastPayment={lastPayment}
+                attention={attention}
+                activity={activity}
+                documents={documents}
+                hasRentersInsurance={Boolean(profile?.rentersInsurance)}
+                onPayRent={() => setIsPayModalOpen(true)}
             />
             <PaymentHistory payments={payments} />
 
@@ -140,18 +142,12 @@ export default function TenantPortal() {
                 activeStatus={maintenanceFilter}
                 onStatusChange={setMaintenanceFilter}
             />
-            <CommunicationHub
-                announcements={tenantDashboard.announcements}
-                messages={tenantDashboard.messages}
-            />
             <LeaseDocuments
                 documents={documents}
                 lease={lease}
                 rentersInsurance={profile?.rentersInsurance}
                 onInsuranceUpdated={refresh}
             />
-            <ResidentResources resources={tenantDashboard.residentResources} />
-            <SupportContacts contacts={tenantDashboard.supportContacts} />
 
             <PayRentModal
                 isOpen={isPayModalOpen}
