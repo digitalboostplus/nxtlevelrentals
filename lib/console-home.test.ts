@@ -12,6 +12,25 @@ import {
   tenantAttentionItems,
 } from './console-home';
 import type { Lease, MaintenanceRequest, Payment, Property } from '@/types/schema';
+import { lastRecordedPayment, paymentDates } from './tenantPayments';
+
+test('payment dates preserve canonical paidAt and support legacy paidDate without inventing dates', () => {
+  assert.equal(paymentDates({ paidAt: '2026-09-02', paidDate: '2026-08-01' }).paidAt?.getMonth(), 8);
+  assert.equal(paymentDates({ paidDate: '2026-08-01' }).paidAt?.getMonth(), 7);
+  assert.deepEqual(paymentDates({ dueDate: 'invalid' }), { paidAt: undefined, dueDate: undefined });
+});
+
+test('last payment uses settlement date rather than query order and preserves zero amounts', () => {
+  const records = [
+    { amount: 1200, status: 'paid', paidAt: new Date(2026, 7, 1) },
+    { amount: 9000, status: 'failed', paidAt: new Date(2026, 9, 1) },
+    { amount: 0, status: 'succeeded', paidAt: new Date(2026, 8, 1) },
+    { amount: 1400, status: 'paid' },
+  ] as Payment[];
+  assert.equal(lastRecordedPayment(records)?.amount, 0);
+  assert.equal(lastRecordedPayment([]), null);
+  assert.equal(lastRecordedPayment([{ amount: 1400, status: 'paid', paidAt: new Date('invalid') }] as Payment[]), null);
+});
 
 const now = new Date(2026, 8, 6, 9, 0, 0); // Sep 6, 2026, 9am
 

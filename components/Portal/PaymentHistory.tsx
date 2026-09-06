@@ -1,6 +1,6 @@
 import type { Payment } from '@/types/schema';
 
-import { formatLocalDate } from '@/lib/date';
+import { formatLocalDate, normalizeDate } from '@/lib/date';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
@@ -27,10 +27,7 @@ const getStatusConfig = (status: Payment['status']) => {
 };
 
 const getMethodLabel = (payment: Payment) => {
-  // Payment method ID or type might be all we have initially
-  if (payment.type === 'deposit') return 'Security Deposit';
-  // Ideally we'd look up the method details, but for now we fallback
-  return payment.paymentMethodId ? 'Card/Bank' : 'Manual Entry';
+  return payment.paymentMethod?.replaceAll('_', ' ') || 'Not recorded';
 };
 
 export default function PaymentHistory({ payments }: PaymentHistoryProps) {
@@ -41,6 +38,7 @@ export default function PaymentHistory({ payments }: PaymentHistoryProps) {
           <div className="card__header">
             <h2 className="card__title">Rent & payment history</h2>
           </div>
+          {payments.length === 0 ? <p>No payments recorded.</p> : (
           <div className="table-wrapper" role="region" aria-label="Payment history table">
             <table className="table">
               <thead>
@@ -53,20 +51,13 @@ export default function PaymentHistory({ payments }: PaymentHistoryProps) {
                 </tr>
               </thead>
               <tbody>
-                {payments.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-muted)' }}>
-                      No payment history yet. Recent payments can take a few minutes to appear.
-                    </td>
-                  </tr>
-                ) : null}
                 {payments.map((payment) => {
                   const statusConfig = getStatusConfig(payment.status);
-                  const date = payment.paidAt || payment.dueDate;
+                  const date = normalizeDate(payment.paidAt) ?? normalizeDate(payment.dueDate);
                   // If paid, show paid date, else due date
                   return (
                     <tr key={payment.id}>
-                      <td>{date ? formatLocalDate(date instanceof Date ? date.toISOString() : date as any, { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
+                      <td>{date ? formatLocalDate(date, { month: 'long', day: 'numeric', year: 'numeric' }) : 'Not recorded'}</td>
                       <td>{formatCurrency(payment.amount)}</td>
                       <td>
                         <span className={statusConfig.className}>{statusConfig.label}</span>
@@ -83,6 +74,7 @@ export default function PaymentHistory({ payments }: PaymentHistoryProps) {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       </div>
     </section>
