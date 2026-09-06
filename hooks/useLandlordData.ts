@@ -1,92 +1,57 @@
-import { useState, useEffect, useCallback } from 'react';
+import { normalizeDate } from '@/lib/date';
+import { moneyToCents } from '@/lib/ledger';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { landlordUtils, maintenanceUtils, paymentUtils } from '@/lib/firebase-utils';
-import type { Property, Payment, LandlordExpense, Payout, MaintenanceRequest } from '@/types/schema';
+import { ownerStatement, type FinancialRecord } from '@/lib/ownerFinancials';
+import type { Property, Payment, LandlordExpense, Payout, MaintenanceRequest, Lease } from '@/types/schema';
 
-export interface LandlordData {
-    properties: Property[];
-    payments: Payment[];
-    maintenanceRequests: MaintenanceRequest[];
-    expenses: LandlordExpense[];
-    payouts: Payout[];
-    summary: {
-        totalRentCollected: number;
-        totalExpenses: number;
-        netIncome: number;
-        pendingPayouts: number;
-        propertyCount: number;
-        tenantCount: number;
-    } | null;
-    loading: boolean;
-    error: string | null;
-    refresh: () => Promise<void>;
+export interface OwnerDocument {
+  id: string; fileName: string; documentType: string; status: string;
+  fileSize?: number; updatedAt?: string; createdAt?: string; downloadable: boolean;
 }
-
-export function useLandlordData(): LandlordData {
-    const { user, profile } = useAuth();
-    const [data, setData] = useState<Omit<LandlordData, 'refresh'>>({
-        properties: [],
-        payments: [],
-        maintenanceRequests: [],
-        expenses: [],
-        payouts: [],
-        summary: null,
-        loading: true,
-        error: null,
-    });
-
-    const fetchData = useCallback(async () => {
-        if (!user || profile?.role !== 'landlord') return;
-
-        try {
-            setData(prev => ({ ...prev, loading: true, error: null }));
-
-            // 1. Fetch Properties owned by this landlord
-            const propertiesRaw = await landlordUtils.getLandlordProperties(user.uid);
-            const properties = propertiesRaw as unknown as Property[];
-
-            // 2. Fetch Financial Summary
-            const summary = await landlordUtils.getLandlordFinancialSummary(user.uid);
-
-            // 3. Fetch Payments
-            const paymentsRaw = await paymentUtils.getPaymentsByLandlord(user.uid);
-            const payments = paymentsRaw as unknown as Payment[];
-
-            // 4. Fetch Expenses
-            const expensesRaw = await landlordUtils.getLandlordExpenses(user.uid);
-            const expenses = expensesRaw as unknown as LandlordExpense[];
-
-            // 5. Fetch maintenance requests for all landlord's properties
-            const maintenanceRequests: MaintenanceRequest[] = [];
-            for (const prop of properties) {
-                if (prop.id) {
-                    const reqs = await maintenanceUtils.getRequestsByProperty(prop.id);
-                    maintenanceRequests.push(...(reqs as unknown as MaintenanceRequest[]));
-                }
-            }
-
-            setData({
-                properties,
-                payments,
-                maintenanceRequests,
-                expenses,
-                payouts: [], // TODO: Fetch Payouts
-                summary,
-                loading: false,
-                error: null,
-            });
-
-        } catch (err) {
-            console.error("Error fetching landlord data:", err);
-            setData(prev => ({ ...prev, loading: false, error: "Failed to load landlord data." }));
-        }
-    }, [user, profile]);
-
-    useEffect(() => {
-        if (user && profile?.role === 'landlord') {
-            fetchData();
-        }
-    }, [user, profile, fetchData]);
-
-    return { ...data, refresh: fetchData };
+export interface OwnerRecords {
+  properties: Property[]; leases: Lease[]; ledger: FinancialRecord[];
+  expenses: LandlordExpense[]; payouts: Payout[]; documents: OwnerDocument[];
+  maintenanceRequests: MaintenanceRequest[];
+  managementFee: { type: string; amount: number } | null;
+}
+const empty: OwnerRecords = { properties: [], leases: [], ledger: [], expenses: [], payouts: [], documents: [], maintenanceRequests: [], managementFee: null };
+export function useLandlordData(propertyId?: string) {
+  const { user, profile } = useAuth();
+  const sequence = useRef(0);
+  const [state, setState] = useState({ records: empty, ownerUid: '', loading: true, error: null as string | null });
+  const fetchData = useCallback(async () => {
+    const request = ++sequence.current;
+    if (!user || profile?.role !== 'landlord') {
+      setState({ records: empty, ownerUid: '', loading: false, error: 'Owner access required' });
+      return;
+    }
+    setState({ records: empty, ownerUid: user.uid, loading: true, error: null });
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`/api/landlord/data${propertyId ? `?propertyId=${encodeURIComponent(propertyId)}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Owner records unavailable');
+      // Refuse to present corrupt financial data as a zero balance.
+      ownerStatement(data.ledger, data.expenses, 'all-time');
+      if (request === sequence.current) setState({ records: data, ownerUid: user.uid, loading: false, error: null });
+    } catch (error) {
+      if (request === sequence.current) setState({ records: empty, ownerUid: user.uid, loading: false, error: error instanceof Error ? error.message : 'Owner records unavailable' });
+    }
+  }, [user, profile?.role, propertyId]);
+  useEffect(() => { void fetchData(); return () => { sequence.current++; }; }, [fetchData]);
+  const records = state.ownerUid === user?.uid ? state.records : empty;
+  const statement = ownerStatement(records.ledger, records.expenses, 'year-to-date');
+  const payments = records.ledger.filter(e => e.type === 'payment' && e.category === 'rent')
+    .sort((a, b) => (normalizeDate(b.date)?.getTime() || 0) - (normalizeDate(a.date)?.getTime() || 0)).map(e => ({
+    ...e, dueDate: e.date, paidAt: ['completed', 'paid', 'succeeded'].includes(e.status) ? e.date : undefined,
+    status: e.status === 'completed' ? 'paid' : e.status,
+  })) as unknown as Payment[];
+  const summary = !state.loading && !state.error ? {
+    totalRentCollected: statement.rent, totalExpenses: statement.totalExpenses, netIncome: statement.net,
+    pendingPayouts: records.payouts.filter(p => p.status === 'scheduled').reduce((sum, p) => sum + moneyToCents(p.netAmount), 0) / 100,
+    propertyCount: records.properties.length,
+    tenantCount: new Set(records.leases.filter(l => l.isActive && l.status === 'active').map(l => l.tenantId)).size
+  } : null;
+  return { ...records, payments, summary, loading: state.loading || (!state.error && state.ownerUid !== user?.uid), error: state.error, refresh: fetchData };
 }

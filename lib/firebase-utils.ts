@@ -1,3 +1,4 @@
+import { ledgerDeltaCents } from './ledger';
 import {
   getFirebaseAuth,
   getFirestoreClient,
@@ -68,6 +69,8 @@ export interface MaintenanceRequest {
 }
 
 export interface Property {
+  features?: string[];
+  archived?: boolean;
   id?: string;
   name: string;
   address: string;
@@ -84,6 +87,10 @@ export interface Property {
   managementStartDate?: any; // Timestamp
   managementEndDate?: any; // Timestamp
   managementStatus?: 'active' | 'inactive' | 'pending';
+  status?: 'occupied' | 'vacant' | 'maintenance' | string;
+  defaultRentAmount?: number;
+  units?: any[];
+  totalUnits?: number;
   // GoHighLevel custom-object sync metadata (present on GHL-sourced docs)
   ghlObjectId?: string; // GHL custom-object record id
   ghlObjectKey?: string; // GHL custom-object key, e.g. custom_objects.properties
@@ -329,6 +336,7 @@ export interface LandlordExpense {
   id?: string;
   landlordId: string;
   propertyId: string;
+  propertyName?: string;
   expenseType: 'maintenance' | 'repair' | 'utility' | 'insurance' | 'tax' | 'capital_improvement' | 'other';
   category: string; // More specific: 'plumbing', 'electrical', 'hvac', 'lawn_care', etc.
   amount: number;
@@ -350,7 +358,7 @@ export interface LandlordExpense {
   notes?: string;
   createdAt: any; // Timestamp
   updatedAt: any; // Timestamp
-  createdBy: string;
+  createdBy?: string;
 }
 
 export interface LandlordReport {
@@ -481,7 +489,7 @@ export const propertyUtils = {
     const db = getFirestoreClient();
     const q = query(collection(db, 'properties'), where('available', '==', true));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
+    return snapshot.docs.filter(doc => !doc.data().archived).map(doc => ({ id: doc.id, ...doc.data() } as Property));
   },
 
   async getAllProperties(): Promise<Property[]> {
@@ -559,6 +567,17 @@ export const paymentUtils = {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payment));
   },
 
+  async getPaymentsByProperty(propertyId: string) {
+    const db = getFirestoreClient();
+    const q = query(
+      collection(db, 'payments'),
+      where('propertyId', '==', propertyId),
+      orderBy('dueDate', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payment));
+  },
+
   async createPayment(paymentData: Omit<Payment, 'id' | 'createdAt'>) {
     const db = getFirestoreClient();
     const docRef = await addDoc(collection(db, 'payments'), {
@@ -587,6 +606,10 @@ export const paymentUtils = {
       createdAt: serverTimestamp()
     });
     return docRef.id;
+  },
+
+  async addLedgerEntry(entryData: Omit<LedgerEntry, 'id' | 'createdAt'>) {
+    return this.createLedgerEntry(entryData);
   },
 
   // Payment Plan utilities
@@ -665,7 +688,7 @@ export const rentTrackingUtils = {
       return { status: 'pending', amountPaid: 0 };
     }
 
-    const totalPaid = payments.reduce((sum, payment) => sum + Math.abs(payment.amount), 0);
+    const totalPaid = payments.reduce((sum, payment) => sum + Math.max(0, -ledgerDeltaCents(payment)), 0) / 100;
     const amountDue = rentCharge.amount;
     const now = new Date();
     const isOverdue = now > dueDate;

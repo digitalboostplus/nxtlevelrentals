@@ -15,10 +15,11 @@ function parseCalendarDateString(value: string): Date | null {
 
   const date = new Date(year, month - 1, day);
 
-  return Number.isNaN(date.getTime()) ? null : date;
+  return Number.isNaN(date.getTime()) || date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day ? null : date;
 }
 
-function normalizeDate(value: string | number | Date): Date | null {
+export function normalizeDate(value: unknown): Date | null {
+  if (value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') return normalizeDate(value.toDate());
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? null : value;
   }
@@ -32,7 +33,7 @@ function normalizeDate(value: string | number | Date): Date | null {
     const trimmed = value.trim();
     const calendarDate = parseCalendarDateString(trimmed);
 
-    if (calendarDate) {
+    if (CALENDAR_DATE_REGEX.test(trimmed)) {
       return calendarDate;
     }
 
@@ -47,7 +48,7 @@ function normalizeDate(value: string | number | Date): Date | null {
  * Formats calendar dates without introducing timezone shifts for YYYY-MM-DD inputs.
  */
 export function formatLocalDate(
-  value: string | number | Date,
+  value: unknown,
   options?: Intl.DateTimeFormatOptions,
   locales?: Intl.LocalesArgument
 ): string {

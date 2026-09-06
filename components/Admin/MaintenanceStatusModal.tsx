@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import UploadFiles from '@/components/common/UploadFiles';
+import PrivateFile from '@/components/common/PrivateFile';
+import { useState, useEffect, useRef } from 'react';
 import { getAuthToken } from '@/lib/auth-client';
 import type { MaintenanceRequest, MaintenanceStatus } from '@/types/maintenance';
 
@@ -20,6 +22,12 @@ export default function MaintenanceStatusModal({
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
   const [technicianName, setTechnicianName] = useState('');
+  const operation = useRef('');
+  const [fileIds, setFileIds] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [vendorPhone, setVendorPhone] = useState('');
+  const [actualCost, setActualCost] = useState('');
+  const [timeZone, setTimeZone] = useState('America/Chicago');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,9 +35,14 @@ export default function MaintenanceStatusModal({
     if (isOpen) {
       setStatus(request.status);
       setAdminNotes('');
-      setScheduledDate('');
-      setScheduledTime('');
-      setTechnicianName('');
+      operation.current = crypto.randomUUID();
+      setFileIds([]);
+      setVendorPhone(request.assignedVendorPhone || '');
+      setActualCost(request.actualCost === undefined ? '' : String(request.actualCost));
+      setTimeZone(request.timeZone || 'America/Chicago');
+      setScheduledDate(typeof request.scheduledDate === 'string' ? request.scheduledDate.slice(0, 10) : '');
+      setScheduledTime(request.scheduledTime || '');
+      setTechnicianName(request.assignedVendorName || '');
       setError(null);
     }
   }, [isOpen, request]);
@@ -51,7 +64,9 @@ export default function MaintenanceStatusModal({
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          requestId: request.id,
+          requestId: request.id, operationId: operation.current, vendorPhone, timeZone,
+          actualCost: actualCost === '' ? undefined : Number(actualCost),
+          fileIds: fileIds.length ? fileIds : undefined,
           status,
           adminNotes: adminNotes || undefined,
           scheduledDate: scheduledDate || undefined,
@@ -63,7 +78,7 @@ export default function MaintenanceStatusModal({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update request');
+        throw new Error(data.error || data.message || 'Failed to update request');
       }
 
       onSuccess();
@@ -166,7 +181,7 @@ export default function MaintenanceStatusModal({
               rows={4}
             />
             <span className="form-hint">
-              These notes will be visible to the tenant and trigger a notification.
+              These notes will be visible to the tenant with notifications subject to their preferences.
             </span>
           </div>
 
@@ -203,6 +218,12 @@ export default function MaintenanceStatusModal({
             />
           </div>
 
+          <label>Time zone <input value={timeZone} onChange={e => setTimeZone(e.target.value)} required /></label>
+          <label>Vendor phone <input value={vendorPhone} onChange={e => setVendorPhone(e.target.value)} /></label>
+          <label>Invoice amount <input type="number" min="0" step="0.01" value={actualCost} onChange={e => setActualCost(e.target.value)} /></label>
+          <p>Completing a ticket with a cost creates an approved expense. It does not mark it paid.</p>
+          <UploadFiles kind="expense" propertyId={request.propertyId} ids={fileIds} onChange={setFileIds} onBusy={setUploading} />
+          {request.fileIds?.map(id => <PrivateFile key={id} id={id} image />)}
           {error && <p className="error-message">{error}</p>}
 
           <div className="form-actions">
@@ -210,12 +231,12 @@ export default function MaintenanceStatusModal({
               type="button"
               className="outline-button"
               onClick={onClose}
-              disabled={loading}
+              disabled={loading || uploading}
             >
               Cancel
             </button>
-            <button type="submit" className="primary-button" disabled={loading}>
-              {loading ? 'Updating & Notifying...' : 'Update & Notify Tenant'}
+            <button type="submit" className="primary-button" disabled={loading || uploading}>
+              {loading ? 'Saving...' : 'Save work order'}
             </button>
           </div>
         </form>

@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import SiteLayout from '@/components/Layout/SiteLayout';
+import AdminLayout from '@/components/Admin/AdminLayout';
 import { adminUtils } from '@/lib/firebase-utils';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
@@ -83,9 +83,9 @@ const TenantsPage: NextPageWithAuth = () => {
     };
 
     return (
-        <SiteLayout>
+        <AdminLayout title="Tenants">
             <Head>
-                <title>Tenants - Landlord Portal</title>
+                <title>Tenants - Admin Portal</title>
             </Head>
 
             <div className="admin-container">
@@ -132,7 +132,9 @@ const TenantsPage: NextPageWithAuth = () => {
                                     <tr key={tenant.id}>
                                         <td>
                                             <div className="tenant-info">
-                                                <span className="tenant-name">{tenant.displayName}</span>
+                                                <Link href={`/admin/tenants/${tenant.id}`} className="tenant-name font-bold hover:underline">
+                                                    {tenant.displayName}
+                                                </Link>
                                             </div>
                                         </td>
                                         <td>{tenant.unit || 'Not assigned'}</td>
@@ -141,8 +143,11 @@ const TenantsPage: NextPageWithAuth = () => {
                                             <span className="tag tag--success">Active</span>
                                         </td>
                                         <td>
-                                            <Link href={`/admin/ledger/${tenant.id}`} className="view-link">
-                                                View Ledger
+                                            <Link href={`/admin/tenants/${tenant.id}`} className="view-link mr-3">
+                                                Profile
+                                            </Link>
+                                            <Link href={`/admin/ledger/${tenant.id}`} className="view-link mr-3">
+                                                Ledger
                                             </Link>
                                             <button
                                                 className="sync-link"
@@ -259,7 +264,7 @@ const TenantsPage: NextPageWithAuth = () => {
           color: var(--color-muted);
         }
       `}</style>
-        </SiteLayout>
+        </AdminLayout>
     );
 };
 

@@ -2,17 +2,14 @@ import Head from 'next/head';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import SiteLayout from '@/components/Layout/SiteLayout';
+import AdminLayout from '@/components/Admin/AdminLayout';
 import AddPropertyModal from '@/components/Admin/AddPropertyModal';
 import { propertyUtils } from '@/lib/firebase-utils';
 import type { Property } from '@/lib/firebase-utils';
 import { useAuth } from '@/context/AuthContext';
 import type { NextPageWithAuth } from '../_app';
 
-// Properties are sourced from GoHighLevel and synced into Firestore, so the app
-// is read-only for them. Flip to true (and set ALLOW_MANUAL_PROPERTY=true on the
-// server) to temporarily re-enable in-app creation.
-const ALLOW_MANUAL_PROPERTY = false;
+const ALLOW_MANUAL_PROPERTY = true;
 
 const PropertiesPage: NextPageWithAuth = () => {
   const router = useRouter();
@@ -75,32 +72,33 @@ const PropertiesPage: NextPageWithAuth = () => {
   };
 
   const handleManageProperty = (property: Property) => {
-    // Navigate to tenants page filtered by this property, or show property details
-    // For now, show an alert with property info
-    alert(`Managing: ${property.name}\nAddress: ${property.address}\nRent: $${property.rent}/mo\n\nProperty detail page coming soon!`);
+    if (property.id) {
+      router.push(`/admin/properties/${property.id}`);
+    }
   };
 
   return (
-    <SiteLayout>
+    <AdminLayout title="Properties">
       <Head>
-        <title>Properties - Landlord Portal</title>
+        <title>Properties - Admin Portal</title>
       </Head>
 
       <div className="admin-container">
         <header className="admin-header">
           <div>
-            <h1>Properties</h1>
-            <p>Synced from GoHighLevel. Overview of all units and their current status.</p>
+            <h1>Properties & Units</h1>
+            <p>Portfolio overview, unit status, and GoHighLevel sync.</p>
           </div>
           <div className="header-actions">
-            <button className="primary-button" onClick={handleSyncFromGHL} disabled={syncing}>
+            <button className="secondary-button" onClick={handleSyncFromGHL} disabled={syncing}>
               {syncing ? 'Syncing…' : 'Sync from GHL'}
             </button>
             {ALLOW_MANUAL_PROPERTY && (
-              <button className="secondary-button" onClick={handleAddProperty}>+ Add Property</button>
+              <button className="primary-button" onClick={handleAddProperty}>+ Add Property</button>
             )}
           </div>
         </header>
+
 
         {syncMessage && <div className="sync-banner">{syncMessage}</div>}
 
@@ -122,7 +120,7 @@ const PropertiesPage: NextPageWithAuth = () => {
                     <div className="image-placeholder">No Image</div>
                   )}
                   <span className={`status-tag ${property.available ? 'status--available' : 'status--occupied'}`}>
-                    {property.available ? 'Available' : 'Occupied'}
+                    {property.archived ? 'Archived' : property.available ? 'Available' : property.status || 'Unavailable'}
                   </span>
                 </div>
                 <div className="property-content">
@@ -283,7 +281,7 @@ const PropertiesPage: NextPageWithAuth = () => {
           color: var(--color-muted);
         }
       `}</style>
-    </SiteLayout>
+    </AdminLayout>
   );
 };
 

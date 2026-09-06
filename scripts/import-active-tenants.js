@@ -12,15 +12,16 @@
 
 require('./load-env');
 const fetch = require('node-fetch');
-const admin = require('firebase-admin');
+const { getApps, initializeApp, applicationDefault } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
+if (!getApps().length) {
+  initializeApp({
+    credential: applicationDefault(),
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'rental-tracker-app-2026',
   });
 }
-const db = admin.firestore();
+const db = getFirestore();
 
 const TOKEN = process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN;
 const LOC = process.env.GHL_LOCATION_ID || process.env.LOCATION_ID;

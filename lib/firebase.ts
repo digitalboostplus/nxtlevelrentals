@@ -9,9 +9,9 @@ if (USE_MOCK) {
 const mockFirebase = USE_MOCK ? require('./firebase-mock') : null;
 
 import { FirebaseApp, initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
-import { getStorage, type FirebaseStorage } from 'firebase/storage';
+import { getAuth, connectAuthEmulator, type Auth } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore';
+import { getStorage, connectStorageEmulator, type FirebaseStorage } from 'firebase/storage';
 import { getMessaging, type Messaging } from 'firebase/messaging';
 import { getAnalytics, type Analytics } from 'firebase/analytics';
 
@@ -21,6 +21,9 @@ let firestoreInstance: Firestore | undefined;
 let storageInstance: FirebaseStorage | undefined;
 let messagingInstance: Messaging | undefined;
 let analyticsInstance: Analytics | undefined;
+
+const USE_EMULATORS = process.env.NEXT_PUBLIC_USE_EMULATORS === 'true';
+if (USE_EMULATORS && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== 'demo-nlr-integrity') throw new Error('Emulator mode requires demo-nlr-integrity');
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -55,6 +58,7 @@ export const getFirebaseAuth = (): Auth => {
   
   if (!authInstance) {
     authInstance = getAuth(getFirebaseApp());
+    if (USE_EMULATORS) connectAuthEmulator(authInstance, 'http://127.0.0.1:9199', { disableWarnings: true });
   }
 
   return authInstance;
@@ -67,6 +71,7 @@ export const getFirestoreClient = (): Firestore => {
   
   if (!firestoreInstance) {
     firestoreInstance = getFirestore(getFirebaseApp());
+    if (USE_EMULATORS) connectFirestoreEmulator(firestoreInstance, '127.0.0.1', 8180);
   }
 
   return firestoreInstance;
@@ -79,6 +84,7 @@ export const getStorageClient = (): FirebaseStorage => {
   
   if (!storageInstance) {
     storageInstance = getStorage(getFirebaseApp());
+    if (USE_EMULATORS) connectStorageEmulator(storageInstance, '127.0.0.1', 9198);
   }
 
   return storageInstance;
@@ -89,7 +95,7 @@ export const getMessagingClient = (): Messaging | null => {
     return mockFirebase.getMessagingClient();
   }
   
-  if (typeof window === 'undefined') return null; // Only available in browser
+  if (USE_EMULATORS || typeof window === 'undefined') return null; // Only available in browser
   
   if (!messagingInstance) {
     try {
@@ -108,7 +114,7 @@ export const getAnalyticsClient = (): Analytics | null => {
     return mockFirebase.getAnalyticsClient();
   }
   
-  if (typeof window === 'undefined') return null; // Only available in browser
+  if (USE_EMULATORS || typeof window === 'undefined') return null; // Only available in browser
   
   if (!analyticsInstance) {
     try {

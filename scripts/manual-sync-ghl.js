@@ -5,17 +5,18 @@ const fetch = require('node-fetch');
 // BUT, since we are running locally, we can just use the Admin SDK directly in a script to populate the DB, instead of hitting the API.
 // That is much easier.
 
-const admin = require('firebase-admin');
+const { getApps, initializeApp, applicationDefault } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 // 1. Initialize Firebase Admin (ADC)
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
+if (!getApps().length) {
+    initializeApp({
+        credential: applicationDefault(),
         projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'rental-tracker-app-2026'
     });
 }
 
-const db = admin.firestore();
+const db = getFirestore();
 
 // 2. GHL Fetch Function (Duplicated from lib/ghl.ts approx, but simplified for script)
 async function getGHLContact(email) {

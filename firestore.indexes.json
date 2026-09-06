@@ -317,6 +317,20 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "fileAttachments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "boundTo",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

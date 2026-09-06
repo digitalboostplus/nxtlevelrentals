@@ -1,20 +1,40 @@
-import { FormEvent, useState } from 'react';
+import UploadFiles from '@/components/common/UploadFiles';
+import { FormEvent, useState, useRef } from 'react';
 import { maintenanceCategories, type MaintenanceRequest } from '@/data/portal';
 
+export type MaintenanceRequestPayload = {
+  title: string;
+  description: string;
+  priority: 'Low' | 'Medium' | 'High';
+  category?: string;
+  permissionToEnter?: boolean;
+  hasPets?: boolean;
+  fileIds?: string[];
+  operationId: string;
+  preferredTime?: string;
+};
+
 type MaintenanceRequestFormProps = {
-  onSubmit: (request: Omit<MaintenanceRequest, 'id' | 'submittedOn' | 'status'>) => Promise<void> | void;
+  onSubmit: (request: MaintenanceRequestPayload) => Promise<void> | void;
   submitting?: boolean;
+  propertyId?: string;
 };
 
 const priorities: MaintenanceRequest['priority'][] = ['Low', 'Medium', 'High'];
 
 type FieldName = 'title' | 'description';
 
-export default function MaintenanceRequestForm({ onSubmit, submitting }: MaintenanceRequestFormProps) {
+export default function MaintenanceRequestForm({ onSubmit, submitting, propertyId }: MaintenanceRequestFormProps) {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<(typeof maintenanceCategories)[number]>('Appliance');
   const [priority, setPriority] = useState<MaintenanceRequest['priority']>('Medium');
   const [description, setDescription] = useState('');
+  const [permissionToEnter, setPermissionToEnter] = useState(false);
+  const [hasPets, setHasPets] = useState(false);
+  const [fileIds, setFileIds] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [preferredTime, setPreferredTime] = useState('');
+  const operation = useRef('');
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ title?: string; description?: string }>({});
@@ -49,22 +69,31 @@ export default function MaintenanceRequestForm({ onSubmit, submitting }: Mainten
     }
 
     try {
+      operation.current ||= crypto.randomUUID();
       await onSubmit({
         title,
         description,
         priority,
-        category
+        category,
+        permissionToEnter,
+        hasPets,
+        fileIds, preferredTime, operationId: operation.current
       });
 
       setTitle('');
       setDescription('');
       setPriority('Medium');
       setCategory('Appliance');
+      setPermissionToEnter(false);
+      setHasPets(false);
+      setFileIds([]);
+      operation.current = '';
+      setPreferredTime('');
       setSuccess(true);
       setFieldErrors({});
     } catch (err) {
       console.error('Failed to submit maintenance request', err);
-      setSubmitError('We could not send your request. Please try again.');
+      setSubmitError(err instanceof Error ? err.message : 'We could not send your request. Please try again.');
     }
   };
 
@@ -180,8 +209,48 @@ export default function MaintenanceRequestForm({ onSubmit, submitting }: Mainten
             ) : null}
           </div>
 
+          <div className="maintenance-form__grid">
+            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={permissionToEnter}
+                  onChange={(e) => setPermissionToEnter(e.target.checked)}
+                  style={{ width: '18px', height: '18px', marginTop: '3px' }}
+                />
+                <div>
+                  <span style={{ fontWeight: 600, display: 'block' }}>Permission to Enter</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>
+                    Grant permission for maintenance personnel to enter unit if you are not home.
+                  </span>
+                </div>
+              </label>
+            </div>
+            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={hasPets}
+                  onChange={(e) => setHasPets(e.target.checked)}
+                  style={{ width: '18px', height: '18px', marginTop: '3px' }}
+                />
+                <div>
+                  <span style={{ fontWeight: 600, display: 'block' }}>Pets on Premises</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>
+                    Check if you have pets inside the residence so staff can prepare accordingly.
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div className="maintenance-form__group">
+            <label>Preferred visit window <input value={preferredTime} onChange={e => setPreferredTime(e.target.value)} placeholder="Optional availability" /></label>
+            <UploadFiles kind="maintenance" propertyId={propertyId} ids={fileIds} onChange={setFileIds} onBusy={setUploading} />
+          </div>
+
           <div className="maintenance-form__actions">
-            <button type="submit" className="primary-button" disabled={submitting}>
+            <button type="submit" className="primary-button" disabled={submitting || uploading}>
               {submitting ? 'Submitting...' : 'Send request'}
             </button>
             {success ? <span className="maintenance-form__success">Request received! We will follow up shortly.</span> : null}

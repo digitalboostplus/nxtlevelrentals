@@ -10,15 +10,16 @@
 
 require('./load-env');
 const fetch = require('node-fetch');
-const admin = require('firebase-admin');
+const { getApps, initializeApp, applicationDefault } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
+if (!getApps().length) {
+  initializeApp({
+    credential: applicationDefault(),
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'rental-tracker-app-2026',
   });
 }
-const db = admin.firestore();
+const db = getFirestore();
 
 const BASE = 'https://services.leadconnectorhq.com';
 const TOKEN = process.env.GHL_API_KEY || process.env.GHL_ACCESS_TOKEN;
@@ -249,11 +250,11 @@ async function main() {
       ghlObjectKey: key,
       source: 'ghl',
       lastSyncedAt: new Date().toISOString(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
     if (m.images.length) data.images = m.images;
     else if (!existing.exists) data.images = [];
-    if (!existing.exists) data.createdAt = admin.firestore.FieldValue.serverTimestamp();
+    if (!existing.exists) data.createdAt = FieldValue.serverTimestamp();
 
     if (!DRY) await ref.set(data, { merge: true });
     if (existing.exists) updated++;

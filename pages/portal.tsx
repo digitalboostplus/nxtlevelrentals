@@ -1,19 +1,31 @@
 import Head from 'next/head';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import SiteLayout from '@/components/Layout/SiteLayout';
 import { useAuth } from '@/context/AuthContext';
 import TenantPortal from '@/components/Portal/TenantPortal';
-import LandlordPortal from '@/components/Portal/LandlordPortal';
 import type { NextPageWithAuth } from './_app';
 
 const PortalPage: NextPageWithAuth = () => {
   const { role, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading) {
+      if (role === 'landlord') {
+        router.replace('/landlord');
+      } else if (role === 'admin' || role === 'super-admin') {
+        router.replace('/admin');
+      }
+    }
+  }, [role, loading, router]);
+
+  if (loading || role === 'landlord' || role === 'admin' || role === 'super-admin') {
     return (
       <SiteLayout>
         <div className="loading-container">
           <div className="spinner"></div>
-          <p>Loading your portal...</p>
+          <p>{loading ? 'Loading your portal...' : 'Redirecting to your dashboard...'}</p>
           <style jsx>{`
                     .loading-container {
                         display: flex;
@@ -44,23 +56,21 @@ const PortalPage: NextPageWithAuth = () => {
   return (
     <SiteLayout>
       <Head>
-        <title>
-          {role === 'landlord' ? 'Landlord Portal' : 'Tenant Portal'} - Next Level Rentals
-        </title>
+        <title>Resident Portal - Next Level Rentals</title>
         <meta
           name="description"
-          content="Access your Next Level Rentals portal."
+          content="Access your Next Level Rentals resident portal to pay rent, submit maintenance, and view lease documents."
         />
       </Head>
 
-      {role === 'landlord' ? <LandlordPortal /> : <TenantPortal />}
+      <TenantPortal />
 
     </SiteLayout>
   );
 };
 
 PortalPage.requireAuth = true;
-// Allow 'landlord' in addition to tenant/admin
 PortalPage.allowedRoles = ['tenant', 'admin', 'super-admin', 'landlord'];
+
 
 export default PortalPage;

@@ -17,7 +17,13 @@ export interface MaintenanceRequest {
   status: MaintenanceStatus;
   createdAt: number; // timestamp
   updatedAt: number; // timestamp
-  scheduledDate?: number; // timestamp
+  scheduledDate?: number | string;
+  scheduledTime?: string;
+  timeZone?: string;
+  assignedVendorName?: string;
+  assignedVendorPhone?: string;
+  actualCost?: number;
+  fileIds?: string[]; // timestamp
   technicianNotes?: string;
   adminNotes?: string;
 }

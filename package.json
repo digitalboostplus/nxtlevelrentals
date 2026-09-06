@@ -6,11 +6,11 @@
     "node": "22"
   },
   "scripts": {
-    "dev": "next dev -p 4000",
-    "dev:3000": "next dev -p 3000",
-    "build": "next build",
+    "dev": "next dev --webpack -p 4000",
+    "dev:3000": "next dev --webpack -p 3000",
+    "build": "npm run lint && next build --webpack",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint pages components lib data --no-error-on-unmatched-pattern",
     "autopilot": "node automation/server.js",
     "autopilot:demo": "node automation/server.js --demo",
     "autopilot:test": "node automation/test.js",
@@ -18,28 +18,44 @@
     "discover:ghl-properties": "node scripts/discover-ghl-properties.js",
     "sync:ghl-properties": "node scripts/sync-ghl-properties.js",
     "import:active-tenants": "node scripts/import-active-tenants.js",
-    "deploy": "npm run build && firebase deploy",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting",
-    "deploy:rules": "firebase deploy --only firestore:rules,storage",
-    "emulators": "firebase emulators:start"
+    "deploy": "npm run build:firebase && npx --yes firebase-tools@15.29.0 deploy",
+    "deploy:hosting": "npm run build:firebase && npx --yes firebase-tools@15.29.0 deploy --only hosting",
+    "deploy:rules": "npx --yes firebase-tools@15.29.0 deploy --only firestore:rules,firestore:indexes,storage",
+    "emulators": "firebase emulators:start",
+    "test": "tsx --test lib/ledger.test.ts lib/date.test.ts lib/activateLease.test.ts lib/ownerFinancials.test.ts lib/stage4.test.ts",
+    "test:emulators": "firebase emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"tsx --test --test-concurrency=1 tests/integrity.test.ts\"",
+    "test:browser": "firebase emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"node tests/run-browser.cjs\"",
+    "build:firebase": "npm run lint && next build && npm run verify:release",
+    "verify:release": "node scripts/verify-release.cjs",
+    "test:live": "node tests/live-smoke.cjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@opentelemetry/api": "1.9.0",
-    "firebase": "^10.11.0",
-    "firebase-admin": "^12.0.0",
-    "firebase-functions": "^7.2.5",
-    "next": "14.2.5",
+    "firebase": "^12.18.0",
+    "firebase-admin": "^13.10.0",
+    "firebase-functions": "^7.3.2",
+    "next": "^16.3.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "recharts": "^3.6.0"
+    "recharts": "^3.6.0",
+    "firebase-admin-a14c8a5423a75469": "npm:firebase-admin@^13.10.0",
+    "firebase-1afcf8358dffaf12": "npm:firebase@^12.18.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@playwright/test": "^1.63.0",
     "@types/node": "20.14.9",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
-    "eslint": "8.57.0",
-    "eslint-config-next": "14.2.5",
+    "eslint": "9.39.5",
+    "eslint-config-next": "^16.3.4",
+    "tsx": "^4.23.13",
     "typescript": "5.4.5"
+  },
+  "overrides": {
+    "firebase-frameworks": {
+      "sharp": "^0.35.3"
+    }
   }
 }

@@ -1,3 +1,4 @@
+import PrivateFile from '@/components/common/PrivateFile';
 import { useMemo } from 'react';
 import type { MaintenanceRequest } from '@/types/schema';
 import { formatLocalDate } from '@/lib/date';
@@ -86,8 +87,38 @@ export default function MaintenanceRequests({ requests, activeStatus, onStatusCh
                   <span>{formatLocalDate(dateStr)}</span>
                   <span className={statusColors[displayStatus]}>{displayStatus}</span>
                 </div>
+                {request.fileIds?.map(id => <PrivateFile key={id} id={id} image />)}
+                {request.scheduledDate && <p>Visit: {formatLocalDate(request.scheduledDate)} {request.scheduledTime} {request.timeZone} ? {request.assignedVendorName}</p>}
                 <h3 className="maintenance-card__title">{request.title}</h3>
                 <p className="maintenance-card__description">{request.description}</p>
+
+                {((request.permissionToEnter !== undefined) || request.hasPets || (request as any).petsOnPremises) && (
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0.5rem 0' }}>
+                    {request.permissionToEnter ? (
+                      <span className="tag tag--neutral" style={{ fontSize: '0.75rem' }}>✓ Permission to enter</span>
+                    ) : (
+                      <span className="tag tag--warning" style={{ fontSize: '0.75rem' }}>Resident must be present</span>
+                    )}
+                    {(request.hasPets || (request as any).petsOnPremises) && (
+                      <span className="tag tag--neutral" style={{ fontSize: '0.75rem' }}>🐾 Pets on site</span>
+                    )}
+                  </div>
+                )}
+
+                {request.images && request.images.length > 0 && (
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0.75rem 0' }}>
+                    {(request.images as string[]).map((img: string, idx: number) => (
+                      <a key={idx} href={img} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+                        <img
+                          src={img}
+                          alt="Attachment"
+                          style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--color-border)' }}
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
+
                 <div className="maintenance-card__foot">
                   <span>Priority: {formatLabel(request.priority)}</span>
                   {request.category ? <span>{formatLabel(request.category)}</span> : null}

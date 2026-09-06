@@ -78,6 +78,7 @@ export async function ghlFetch(
   const { token } = getCredentials();
   const res = await fetch(`${GHL_API_BASE}${path}`, {
     method: init.method || 'GET',
+    signal: AbortSignal.timeout(15000),
     headers: {
       Authorization: `Bearer ${token}`,
       Version: init.version || GHL_API_VERSION,
