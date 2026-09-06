@@ -9,3 +9,14 @@ test('landing page renders every section', async ({ page }) => {
   await page.waitForTimeout(400);
   await page.screenshot({ path: '.agent-artifacts/landing-phone.png', fullPage: true });
 });
+
+test('login page renders', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/login/');
+  await expect(page.getByLabel('Email address')).toBeVisible();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: '.agent-artifacts/login.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: '.agent-artifacts/login-phone.png', fullPage: true });
+});
