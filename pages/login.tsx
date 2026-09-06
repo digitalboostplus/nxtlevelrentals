@@ -38,6 +38,31 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const redirectTarget = typeof router.query.next === 'string' ? router.query.next : '/portal';
+  const audience: 'landlord' | 'admin' | 'tenant' = redirectTarget.startsWith('/landlord')
+    ? 'landlord'
+    : redirectTarget.startsWith('/admin')
+      ? 'admin'
+      : 'tenant';
+  const copy = {
+    tenant: {
+      eyebrow: 'Sign in',
+      cardTitle: 'Sign in to your portal',
+      intro: 'One sign-in for residents and property owners. Use the email address the office has on file for you.',
+    },
+    landlord: {
+      eyebrow: 'Owner portal · Sign in',
+      cardTitle: 'Sign in to the landlord console',
+      intro: 'Statements, expenses, payouts and open work orders for the homes we manage for you. Use the email address the office has on file.',
+    },
+    admin: {
+      eyebrow: 'Admin · Sign in',
+      cardTitle: 'Sign in to the admin console',
+      intro: 'Rent tracking, tenants, properties and the maintenance queue. Use your staff email address.',
+    },
+  }[audience];
+  const highlights = audience === 'landlord'
+    ? [portalHighlights[1], portalHighlights[0], portalHighlights[2]]
+    : portalHighlights;
 
   useEffect(() => {
     if (user) {
@@ -73,7 +98,7 @@ export default function LoginPage() {
   return (
     <SiteLayout>
       <Head>
-        <title>Sign in - Next Level Rentals Tenant Portal</title>
+        <title>{audience === 'landlord' ? 'Landlord console sign in' : audience === 'admin' ? 'Admin sign in' : 'Sign in'} - Next Level Rentals</title>
         <meta
           name="description"
           content="Access your Next Level Rentals tenant portal to view documents, submit maintenance requests, and stay informed about community updates."
@@ -82,13 +107,11 @@ export default function LoginPage() {
       <div className="owner-page auth" aria-labelledby="loginHeading">
         <div className="auth__grid">
           <section className="auth__welcome" aria-label="What you can do after signing in">
-            <p className="section-eyebrow">Sign in</p>
+            <p className="section-eyebrow">{copy.eyebrow}</p>
             <h1 id="loginHeading">Welcome back.</h1>
-            <p className="auth__intro">
-              One sign-in for residents and property owners. Use the email address the office has on file for you.
-            </p>
+            <p className="auth__intro">{copy.intro}</p>
             <ul className="owner-list auth__highlights">
-              {portalHighlights.map((highlight) => (
+              {highlights.map((highlight) => (
                 <li key={highlight.title}>
                   <div className="owner-list__text">
                     <strong>{highlight.title}</strong>
@@ -105,7 +128,7 @@ export default function LoginPage() {
 
           <section className="owner-card auth-card" aria-label="Login form">
             <div className="owner-card__head">
-              <h2>Sign in to your portal</h2>
+              <h2>{copy.cardTitle}</h2>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">
               <label className="owner-field" htmlFor="email">

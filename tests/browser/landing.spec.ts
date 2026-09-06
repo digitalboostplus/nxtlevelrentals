@@ -20,3 +20,12 @@ test('login page renders', async ({ page }) => {
   await page.waitForTimeout(300);
   await page.screenshot({ path: '.agent-artifacts/login-phone.png', fullPage: true });
 });
+
+test('landlord sign-in entry point presents the owner console', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/login/?next=%2Flandlord');
+  await expect(page.getByText('Owner portal · Sign in')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sign in to the landlord console' })).toBeVisible();
+  await expect(page.getByLabel('Email address')).toBeVisible();
+  await page.screenshot({ path: '.agent-artifacts/login-landlord.png', fullPage: true });
+});
