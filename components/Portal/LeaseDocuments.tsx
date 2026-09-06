@@ -161,7 +161,7 @@ export default function LeaseDocuments({
               width: '44px',
               height: '44px',
               borderRadius: '12px',
-              background: activeInsurance?.provider ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+              background: activeInsurance?.provider ? 'var(--tag-success-bg)' : 'var(--tag-warning-bg)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -222,7 +222,7 @@ export default function LeaseDocuments({
           <div style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.75)',
+            background: 'var(--overlay-background)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
@@ -268,7 +268,7 @@ export default function LeaseDocuments({
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)'
                     }}
                   />
@@ -289,7 +289,7 @@ export default function LeaseDocuments({
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)'
                     }}
                   />
@@ -309,7 +309,7 @@ export default function LeaseDocuments({
                       padding: '0.65rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--color-border)',
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'var(--color-background)',
                       color: 'var(--color-text)'
                     }}
                   />

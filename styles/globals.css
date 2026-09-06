@@ -1593,6 +1593,110 @@ img {
   color: var(--color-text);
   cursor: pointer;
 }
+/* Tenant portal: every section sits on the page background like the other consoles. */
+.tenant-portal .section {
+  padding: 0 1.5rem 3rem;
+}
+.tenant-portal .section--muted {
+  background: transparent;
+}
+.tenant-portal__status {
+  max-width: var(--max-width);
+  margin: 1rem auto 0;
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--tag-success-bg);
+  color: var(--tag-success-text);
+}
+.account-page {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+.account-page .owner-page__head {
+  margin-bottom: 0.5rem;
+}
+.tenant-portal .card__header {
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+.account-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.account-nav__item {
+  text-align: left;
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.account-nav__item:hover {
+  border-color: var(--color-primary);
+}
+.account-nav__item--active {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.account-page__main {
+  display: block;
+  min-width: 0;
+}
+.account-page__main h2 {
+  color: var(--color-text);
+}
+.prefs {
+  display: grid;
+  gap: 1.25rem;
+}
+.prefs__head h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.4rem;
+}
+.prefs__all {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 1rem;
+}
+.prefs__channel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  padding: 1rem 1.25rem 1.25rem;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.prefs__channel legend {
+  padding: 0 0.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.prefs__options {
+  display: grid;
+  gap: 0.5rem;
+}
+.prefs__saved {
+  margin: 0;
+  color: var(--tag-success-text);
+  font-weight: 600;
+}
+.prefs__actions {
+  border-top: none;
+  padding-top: 0;
+  justify-content: flex-start;
+}
 .owner-form__actions {
   display: flex;
   justify-content: flex-end;

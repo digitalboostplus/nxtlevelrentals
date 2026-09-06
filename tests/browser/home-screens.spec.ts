@@ -105,6 +105,18 @@ test('empty tenant account shows missing records without sample claims', async (
   await page.screenshot({ path: '.agent-artifacts/tenant-empty-records.png', fullPage: true });
 });
 
+test('tenant account page shares the console vocabulary', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page, 'tenant', '/account/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Account Settings' })).toBeVisible();
+  await expect(page.getByText('Tenant portal · Account')).toBeVisible();
+  await page.screenshot({ path: '.agent-artifacts/tenant-account.png', fullPage: true });
+  await page.getByRole('button', { name: /Notifications/ }).click();
+  await expect(page.getByRole('heading', { name: 'Maintenance notifications' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save preferences' })).toBeEnabled();
+  await page.screenshot({ path: '.agent-artifacts/tenant-account-notifications.png', fullPage: true });
+});
+
 test('landlord overview shows the month, decisions, chart and property table', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page, 'landlord', '/landlord/');

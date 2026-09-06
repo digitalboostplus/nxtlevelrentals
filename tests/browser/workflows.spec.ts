@@ -41,7 +41,7 @@ test('tenant uploads photo, submits maintenance and persists notification choice
   expect(tickets.size).toBe(1); expect(tickets.docs[0].data().fileIds).toHaveLength(1);
   await page.goto('/account/'); await page.getByRole('button', { name: /Notifications/ }).click();
   await expect(page.getByRole('button', { name: 'Save preferences' })).toBeEnabled();
-  const email = page.locator('fieldset').filter({ has: page.locator('legend', { hasText: /^email$/ }) }).last();
+  const email = page.locator('fieldset').filter({ has: page.locator('legend', { hasText: /^Email$/ }) }).last();
   await email.getByLabel('Enable channel').check();
   await email.getByLabel('Maintenance status changes').uncheck();
   await page.getByRole('button', { name: 'Save preferences' }).click();
