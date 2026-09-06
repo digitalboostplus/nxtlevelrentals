@@ -2,7 +2,11 @@ import UploadFiles from '@/components/common/UploadFiles';
 import PrivateFile from '@/components/common/PrivateFile';
 import { useState, useEffect, useRef } from 'react';
 import { getAuthToken } from '@/lib/auth-client';
+import { adminUtils, propertyUtils } from '@/lib/firebase-utils';
 import type { MaintenanceRequest, MaintenanceStatus } from '@/types/maintenance';
+
+type PickerProperty = { id: string; name?: string };
+type PickerTenant = { id: string; displayName?: string; email?: string; propertyIds?: string[] };
 
 interface MaintenanceStatusModalProps {
   isOpen: boolean;
@@ -30,11 +34,35 @@ export default function MaintenanceStatusModal({
   const [timeZone, setTimeZone] = useState('America/Chicago');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Public-form tickets arrive unlinked; the admin links them to a property (and tenant) here.
+  const publicRequest = request as MaintenanceRequest & { addressText?: string; tenantName?: string; tenantPhone?: string; contactEmail?: string };
+  const unmatched = request.tenantId === 'public' || request.propertyId === 'unassigned';
+  const [assignPropertyId, setAssignPropertyId] = useState('');
+  const [assignTenantId, setAssignTenantId] = useState('');
+  const [properties, setProperties] = useState<PickerProperty[]>([]);
+  const [tenants, setTenants] = useState<PickerTenant[]>([]);
+
+  useEffect(() => {
+    if (!isOpen || !unmatched) return;
+    let cancelled = false;
+    Promise.all([propertyUtils.getAllProperties(), adminUtils.getAllTenants()])
+      .then(([props, users]) => {
+        if (cancelled) return;
+        setProperties(props.filter((p) => Boolean(p.id)).map((p) => ({ id: String(p.id), name: p.name })));
+        setTenants(users as PickerTenant[]);
+      })
+      .catch((err) => console.error('Failed to load assignment options:', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, unmatched]);
 
   useEffect(() => {
     if (isOpen) {
       setStatus(request.status);
       setAdminNotes('');
+      setAssignPropertyId('');
+      setAssignTenantId('');
       operation.current = crypto.randomUUID();
       setFileIds([]);
       setVendorPhone(request.assignedVendorPhone || '');
@@ -65,6 +93,8 @@ export default function MaintenanceStatusModal({
         },
         body: JSON.stringify({
           requestId: request.id, operationId: operation.current, vendorPhone, timeZone,
+          propertyId: unmatched && assignPropertyId ? assignPropertyId : undefined,
+          tenantId: unmatched && assignTenantId ? assignTenantId : undefined,
           actualCost: actualCost === '' ? undefined : Number(actualCost),
           fileIds: fileIds.length ? fileIds : undefined,
           status,
@@ -156,6 +186,31 @@ export default function MaintenanceStatusModal({
         </div>
 
         <form onSubmit={handleSubmit} className="modal__form">
+          {unmatched ? (
+            <div className="form-group">
+              <label htmlFor="assignProperty">Link to a property</label>
+              <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: 'var(--color-muted)' }}>
+                Submitted from the website{publicRequest.tenantName ? ` by ${publicRequest.tenantName}` : ''}
+                {publicRequest.addressText ? ` for "${publicRequest.addressText}"` : ''}
+                {publicRequest.tenantPhone ? ` · ${publicRequest.tenantPhone}` : ''}
+                {publicRequest.contactEmail ? ` · ${publicRequest.contactEmail}` : ''}. Scheduling a visit or recording a cost needs a linked property.
+              </p>
+              <select id="assignProperty" value={assignPropertyId} onChange={(e) => { setAssignPropertyId(e.target.value); setAssignTenantId(''); }}>
+                <option value="">Not linked yet</option>
+                {properties.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name || p.id}</option>
+                ))}
+              </select>
+              {assignPropertyId ? (
+                <select id="assignTenant" value={assignTenantId} onChange={(e) => setAssignTenantId(e.target.value)} style={{ marginTop: '0.5rem' }} aria-label="Link to a tenant">
+                  <option value="">Keep as a public request</option>
+                  {tenants.filter((t) => t.propertyIds?.includes(assignPropertyId)).map((t) => (
+                    <option key={t.id} value={t.id}>{t.displayName || t.email || t.id}</option>
+                  ))}
+                </select>
+              ) : null}
+            </div>
+          ) : null}
           <div className="form-group">
             <label htmlFor="status">Status *</label>
             <select
@@ -222,7 +277,7 @@ export default function MaintenanceStatusModal({
           <label>Vendor phone <input value={vendorPhone} onChange={e => setVendorPhone(e.target.value)} /></label>
           <label>Invoice amount <input type="number" min="0" step="0.01" value={actualCost} onChange={e => setActualCost(e.target.value)} /></label>
           <p>Completing a ticket with a cost creates an approved expense. It does not mark it paid.</p>
-          <UploadFiles kind="expense" propertyId={request.propertyId} ids={fileIds} onChange={setFileIds} onBusy={setUploading} />
+          <UploadFiles kind="expense" propertyId={unmatched ? assignPropertyId || request.propertyId : request.propertyId} ids={fileIds} onChange={setFileIds} onBusy={setUploading} />
           {request.fileIds?.map(id => <PrivateFile key={id} id={id} image />)}
           {error && <p className="error-message">{error}</p>}
 

@@ -20,8 +20,8 @@ export async function loadOwnerData(db: Firestore, uid: string, propertyId?: str
   const propertyDocs = propertySnapshot.docs.filter(d => !propertyId || d.id === propertyId);
   const properties = propertyDocs.map(d => ({ id: d.id, ...pick(d.data(), ['name', 'address', 'landlordId', 'status', 'available', 'rent', 'defaultRentAmount', 'bedrooms', 'bathrooms', 'squareFeet', 'images', 'description', 'features', 'amenities', 'units', 'totalUnits', 'archived']) }));
   const fields: Record<string, string[]> = {
-    leases: ['propertyId', 'unitId', 'unit', 'tenantId', 'tenantName', 'landlordId', 'startDate', 'endDate', 'monthlyRent', 'securityDeposit', 'paymentDueDay', 'isActive', 'status', 'fileIds'],
-    ledger: ['propertyId', 'tenantId', 'landlordId', 'amount', 'type', 'category', 'date', 'status', 'description', 'paymentMethod'],
+    leases: ['propertyId', 'unitId', 'unit', 'tenantId', 'tenantName', 'landlordId', 'startDate', 'endDate', 'monthlyRent', 'rentAmount', 'securityDeposit', 'paymentDueDay', 'lateFeeGraceDays', 'lateFeeConfig', 'lateFeeAmount', 'isActive', 'status', 'fileIds'],
+    ledger: ['propertyId', 'tenantId', 'landlordId', 'amount', 'type', 'category', 'date', 'dueDate', 'status', 'description', 'paymentMethod'],
     maintenanceRequests: ['propertyId', 'title', 'description', 'status', 'priority', 'category', 'createdAt', 'updatedAt', 'assignedVendorName', 'scheduledDate', 'scheduledTime', 'timeZone', 'assignedVendorPhone', 'estimatedCost', 'actualCost', 'fileIds'],
     landlordExpenses: ['propertyId', 'propertyName', 'landlordId', 'amount', 'category', 'expenseType', 'date', 'paidDate', 'status', 'vendor', 'description', 'fileIds']
   };

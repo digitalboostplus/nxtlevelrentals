@@ -115,12 +115,16 @@ export async function activateLease(db: Firestore, auth: Auth, actorId: string, 
     const finalDay = end.getUTCFullYear() === start.getUTCFullYear() && end.getUTCMonth() === start.getUTCMonth()
       ? end.getUTCDate() : daysInMonth;
     const rentCents = Math.round(moneyToCents(input.monthlyRent) * (finalDay - start.getUTCDate() + 1) / daysInMonth);
+    // Ledger dates are stored as timestamps (noon UTC on the calendar day) so
+    // range queries such as admin rent tracking match them. billingPeriod keeps
+    // the calendar month as a string.
+    const chargeDate = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), 12));
     for (const [category, amount] of [['deposit', input.securityDeposit], ['rent', rentCents / 100]] as const) {
       if (!amount) continue;
       tx.create(db.collection('ledger').doc(`${leaseId}-${category}`), {
         leaseId, tenantId, propertyId: input.propertyId, landlordId, unitId: input.unitId || null,
-        type: 'charge', category, amount, status: 'pending', date: input.startDate,
-        dueDate: input.startDate, billingPeriod: input.startDate.slice(0, 7),
+        type: 'charge', category, amount, status: 'pending', date: chargeDate,
+        dueDate: chargeDate, billingPeriod: input.startDate.slice(0, 7),
         description: category === 'rent' ? 'Initial rent (prorated through month end)' : 'Security deposit',
         createdAt: now, recordedBy: actorId
       });

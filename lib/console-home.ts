@@ -3,7 +3,7 @@
 // it can be unit tested without Firestore.
 
 import { normalizeDate } from '@/lib/date';
-import { moneyToCents } from '@/lib/ledger';
+import { ledgerDeltaCents, moneyToCents, oldestUnpaidDate, type BalanceEntry } from '@/lib/ledger';
 import type { FinancialRecord } from '@/lib/ownerFinancials';
 import type { Lease, MaintenanceRequest, Payment, Payout, Property } from '@/types/schema';
 
@@ -209,16 +209,70 @@ export type Decision = {
   href: string;
 };
 
+// 'none' = leased, nothing owed, and no rent charge posted for this month yet.
+export type MonthStatus = 'paid' | 'late' | 'due' | 'none' | 'vacant';
+
 export type PropertyRow = {
   propertyId: string;
   name: string;
   tenantName: string;
   rent: number;
-  monthStatus: 'paid' | 'late' | 'due' | 'vacant';
+  monthStatus: MonthStatus;
   monthLabel: string;
   leaseEnd: Date | null;
   openWork: number;
+  units: number;
 };
+
+type LedgerLike = FinancialRecord & { tenantId?: string; dueDate?: unknown };
+
+type LeaseStatus = {
+  lease: Lease;
+  status: Exclude<MonthStatus, 'vacant'>;
+  label: string;
+  owedCents: number;
+  daysLate: number;
+};
+
+function leaseRent(lease: Lease): number {
+  return lease.monthlyRent || lease.rentAmount || 0;
+}
+
+function safeCents(amount: number): number | null {
+  try {
+    return moneyToCents(amount);
+  } catch {
+    return null;
+  }
+}
+
+// Status from obligations and allocations, not receipt dates: an early payment
+// is a credit that covers the next posted charge, and a tenant cannot be late
+// for a charge that was never posted.
+export function leaseMonthStatus(lease: Lease, entries: LedgerLike[], now: Date): LeaseStatus {
+  const balanceEntries: BalanceEntry[] = entries
+    .filter((entry) => safeCents(entry.amount) !== null)
+    .map((entry) => ({ amount: entry.amount, type: entry.type ?? '', status: entry.status, date: entry.date, dueDate: entry.dueDate }));
+  const balanceCents = balanceEntries.reduce((sum, entry) => sum + ledgerDeltaCents(entry), 0);
+  const inMonth = (value: unknown) => {
+    const date = normalizeDate(value);
+    return Boolean(date && sameMonth(date, now));
+  };
+  const chargeThisMonth = entries.some((entry) => entry.type === 'charge' && entry.category === 'rent' && inMonth(entry.dueDate ?? entry.date));
+  const paymentThisMonth = entries.some((entry) => isCompletedRent(entry) && inMonth(entry.date));
+  const grace = lease.lateFeeGraceDays ?? lease.lateFeeConfig?.gracePeriodDays ?? 0;
+
+  if (balanceCents > 0) {
+    const due = oldestUnpaidDate(balanceEntries) ?? new Date(now.getFullYear(), now.getMonth(), lease.paymentDueDay || 1);
+    const daysLate = daysBetween(due, now) - grace;
+    if (daysLate > 0) {
+      return { lease, status: 'late', label: `${daysLate} day${daysLate === 1 ? '' : 's'} late`, owedCents: balanceCents, daysLate };
+    }
+    return { lease, status: 'due', label: `Due ${due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`, owedCents: balanceCents, daysLate: 0 };
+  }
+  if (chargeThisMonth || paymentThisMonth) return { lease, status: 'paid', label: 'Paid', owedCents: 0, daysLate: 0 };
+  return { lease, status: 'none', label: 'No charge posted', owedCents: 0, daysLate: 0 };
+}
 
 export type LandlordMonth = {
   collected: number;
@@ -274,20 +328,19 @@ export function landlordMonth(input: {
 }): LandlordMonth {
   const now = input.now ?? new Date();
   const activeLeases = input.leases.filter((lease) => lease.isActive && lease.status === 'active');
-  const leaseByProperty = new Map<string, Lease>();
+  const leasesByProperty = new Map<string, Lease[]>();
   for (const lease of activeLeases) {
-    if (!leaseByProperty.has(lease.propertyId)) leaseByProperty.set(lease.propertyId, lease);
+    leasesByProperty.set(lease.propertyId, [...(leasesByProperty.get(lease.propertyId) ?? []), lease]);
   }
+  const ledger = input.ledger as LedgerLike[];
 
-  const paidThisMonthByProperty = new Map<string, number>();
+  // Cash flow for the month stays receipt-based; rent status below does not.
   let collectedCents = 0;
-  for (const entry of input.ledger) {
+  for (const entry of ledger) {
     if (!isCompletedRent(entry)) continue;
     const date = normalizeDate(entry.date);
     if (!date || !sameMonth(date, now)) continue;
-    const cents = Math.abs(moneyToCents(entry.amount));
-    collectedCents += cents;
-    paidThisMonthByProperty.set(entry.propertyId, (paidThisMonthByProperty.get(entry.propertyId) ?? 0) + cents);
+    collectedCents += Math.abs(safeCents(entry.amount) ?? 0);
   }
 
   let expenseCents = 0;
@@ -297,7 +350,7 @@ export function landlordMonth(input: {
     if (date && sameMonth(date, now)) expenseCents += moneyToCents(entry.amount);
   }
 
-  const expectedCents = activeLeases.reduce((sum, lease) => sum + moneyToCents(lease.monthlyRent || lease.rentAmount || 0), 0);
+  const expectedCents = activeLeases.reduce((sum, lease) => sum + (safeCents(leaseRent(lease)) ?? 0), 0);
 
   const scheduled = input.payouts
     .filter((payout) => payout.status === 'scheduled')
@@ -312,59 +365,74 @@ export function landlordMonth(input: {
   const decisions: Decision[] = [];
   const rows: PropertyRow[] = [];
 
-  for (const property of input.properties) {
-    const lease = leaseByProperty.get(property.id) ?? null;
-    const rent = lease?.monthlyRent || lease?.rentAmount || property.defaultRentAmount || property.rent || 0;
-    const name = property.name || shortAddress(property.address, 'Property');
-    let monthStatus: PropertyRow['monthStatus'] = 'vacant';
-    let monthLabel = 'Vacant';
+  const severity: Record<Exclude<MonthStatus, 'vacant'>, number> = { late: 0, due: 1, none: 2, paid: 3 };
 
-    if (lease) {
-      const paidCents = paidThisMonthByProperty.get(property.id) ?? 0;
-      const dueDay = lease.paymentDueDay || 1;
-      const grace = lease.lateFeeGraceDays ?? lease.lateFeeConfig?.gracePeriodDays ?? 0;
-      const dueDate = new Date(now.getFullYear(), now.getMonth(), dueDay);
-      const daysLate = daysBetween(dueDate, now) - grace;
-      if (paidCents >= moneyToCents(rent) && rent > 0) {
-        monthStatus = 'paid';
-        monthLabel = 'Paid';
-      } else if (daysLate > 0) {
-        monthStatus = 'late';
-        monthLabel = `${daysLate} day${daysLate === 1 ? '' : 's'} late`;
-        decisions.push({
-          id: `late-${property.id}`,
-          kind: 'late-rent',
-          title: `Rent ${monthLabel.toLowerCase()}: ${formatMoney(rent - paidCents / 100)}`,
-          meta: `${name}${lease.tenantName ? ` · ${lease.tenantName}` : ''}${paidCents > 0 ? ` · ${formatMoney(paidCents / 100)} paid so far` : ''}`,
-          tone: 'error',
-          actionLabel: 'View ledger',
-          href: `/landlord/properties/${property.id}`,
-        });
-      } else {
-        monthStatus = 'due';
-        monthLabel = `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-      }
-    } else {
+  for (const property of input.properties) {
+    const leases = leasesByProperty.get(property.id) ?? [];
+    const name = property.name || shortAddress(property.address, 'Property');
+
+    if (leases.length === 0) {
+      const target = property.defaultRentAmount || property.rent || 0;
       decisions.push({
         id: `vacant-${property.id}`,
         kind: 'vacant',
         title: `${name} is vacant`,
-        meta: rent ? `Target rent ${formatMoney(rent)} per month` : 'No target rent set',
+        meta: target ? `Target rent ${formatMoney(target)} per month` : 'No target rent set',
         tone: 'info',
         actionLabel: 'See property',
         href: `/landlord/properties/${property.id}`,
       });
+      rows.push({
+        propertyId: property.id,
+        name,
+        tenantName: 'Vacant',
+        rent: target,
+        monthStatus: 'vacant',
+        monthLabel: 'Vacant',
+        leaseEnd: null,
+        openWork: openByProperty.get(property.id) ?? 0,
+        units: 0,
+      });
+      continue;
     }
 
+    // Each lease is judged on its own ledger so one paid unit cannot hide an unpaid one.
+    const statuses = leases.map((lease) =>
+      leaseMonthStatus(
+        lease,
+        ledger.filter((entry) => entry.propertyId === property.id && (!entry.tenantId || !lease.tenantId || entry.tenantId === lease.tenantId)),
+        now
+      )
+    );
+    const worst = statuses.reduce((a, b) => (severity[a.status] <= severity[b.status] ? a : b));
+    const worstCount = statuses.filter((s) => s.status === worst.status).length;
+    const multi = leases.length > 1;
+
+    for (const s of statuses) {
+      if (s.status !== 'late') continue;
+      const who = [s.lease.tenantName, s.lease.unit ? `Unit ${s.lease.unit}` : ''].filter(Boolean).join(', ');
+      decisions.push({
+        id: `late-${s.lease.id || `${property.id}-${s.lease.tenantId}`}`,
+        kind: 'late-rent',
+        title: `Rent ${s.label.toLowerCase()}: ${formatMoney(s.owedCents / 100)}`,
+        meta: `${name}${who ? ` · ${who}` : ''}`,
+        tone: 'error',
+        actionLabel: 'View ledger',
+        href: `/landlord/properties/${property.id}`,
+      });
+    }
+
+    const statusWord: Record<Exclude<MonthStatus, 'vacant'>, string> = { late: 'late', due: 'due', none: 'no charge', paid: 'paid' };
     rows.push({
       propertyId: property.id,
       name,
-      tenantName: lease?.tenantName || (lease ? 'Tenant' : 'Vacant'),
-      rent,
-      monthStatus,
-      monthLabel,
-      leaseEnd: normalizeDate(lease?.endDate),
+      tenantName: multi ? `${leases.length} tenants` : leases[0].tenantName || 'Tenant',
+      rent: leases.reduce((sum, lease) => sum + leaseRent(lease), 0) || property.defaultRentAmount || property.rent || 0,
+      monthStatus: worst.status,
+      monthLabel: multi ? `${worstCount} of ${leases.length} ${statusWord[worst.status]}` : worst.label,
+      leaseEnd: statuses.map((s) => normalizeDate(s.lease.endDate)).filter((d): d is Date => Boolean(d)).sort((a, b) => a.getTime() - b.getTime())[0] ?? null,
       openWork: openByProperty.get(property.id) ?? 0,
+      units: leases.length,
     });
   }
 
@@ -394,7 +462,7 @@ export function landlordMonth(input: {
     });
   }
 
-  const order: PropertyRow['monthStatus'][] = ['late', 'due', 'vacant', 'paid'];
+  const order: MonthStatus[] = ['late', 'due', 'none', 'vacant', 'paid'];
   rows.sort((a, b) => order.indexOf(a.monthStatus) - order.indexOf(b.monthStatus) || a.name.localeCompare(b.name));
 
   return {
@@ -404,7 +472,7 @@ export function landlordMonth(input: {
     expensesThisMonth: expenseCents / 100,
     net: (collectedCents - expenseCents) / 100,
     nextPayout: scheduled[0] ?? null,
-    occupied: input.properties.filter((property) => leaseByProperty.has(property.id)).length,
+    occupied: input.properties.filter((property) => leasesByProperty.has(property.id)).length,
     total: input.properties.length,
     decisions,
     rows,
@@ -447,7 +515,8 @@ export function leasesEndingWithin(leases: Lease[], days: number, now = new Date
     .sort((a, b) => (normalizeDate(a.endDate)?.getTime() ?? 0) - (normalizeDate(b.endDate)?.getTime() ?? 0));
 }
 
-const PRIORITY_RANK: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
+// 'emergency' (types/maintenance.ts) and 'urgent' (types/schema.ts) are both in use.
+const PRIORITY_RANK: Record<string, number> = { emergency: 0, urgent: 0, high: 1, medium: 2, low: 3 };
 
 export function sortOpenWorkOrders(requests: MaintenanceRequest[]): MaintenanceRequest[] {
   return requests

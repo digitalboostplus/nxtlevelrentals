@@ -122,12 +122,19 @@ test('tenantActivity merges payments and maintenance newest first', () => {
   assert.equal(items[2].meta, 'bank account');
 });
 
+const charge = (propertyId: string, tenantId: string, date: string, amount = 1000) =>
+  ({ propertyId, tenantId, amount, status: 'pending', type: 'charge', category: 'rent', date, dueDate: date });
+const payment = (propertyId: string, tenantId: string, date: string, amount = 1000) =>
+  ({ propertyId, tenantId, amount, status: 'completed', type: 'payment', category: 'rent', date });
+
 test('landlordMonth classifies paid, late, due and vacant homes and builds decisions', () => {
   const properties = [property('p1', 'Paid House'), property('p2', 'Late House'), property('p3', 'Vacant House', 1300), property('p4', 'Grace House')];
   const leases = [lease('p1'), lease('p2'), lease('p4', { paymentDueDay: 1, lateFeeGraceDays: 10 })];
   const ledger = [
-    { propertyId: 'p1', amount: 1000, status: 'completed', type: 'payment', category: 'rent', date: '2026-09-02' },
-    { propertyId: 'p2', amount: 1000, status: 'completed', type: 'payment', category: 'rent', date: '2026-08-01' }, // last month, not this one
+    charge('p1', 'tenant-p1', '2026-09-01'), payment('p1', 'tenant-p1', '2026-09-02'),
+    charge('p2', 'tenant-p2', '2026-08-01'), payment('p2', 'tenant-p2', '2026-08-01'), // August settled
+    charge('p2', 'tenant-p2', '2026-09-01'), // September unpaid, 5 days past due
+    charge('p4', 'tenant-p4', '2026-09-01'), // unpaid but inside a 10-day grace window
   ];
   const expenses = [
     { id: 'e1', propertyId: 'p1', amount: 250, status: 'paid', category: 'repair', date: '2026-09-03', description: 'faucet', vendor: 'Plumber' },
@@ -169,6 +176,48 @@ test('landlordMonth classifies paid, late, due and vacant homes and builds decis
   assert.equal(result.rows[0].monthStatus, 'late'); // late rows sort first
 });
 
+test('landlordMonth treats an early payment as a credit, not a late month', () => {
+  const properties = [property('p1', 'Early House')];
+  const leases = [lease('p1')];
+  const ledger = [
+    charge('p1', 'tenant-p1', '2026-08-01'), payment('p1', 'tenant-p1', '2026-08-01'),
+    payment('p1', 'tenant-p1', '2026-08-31'), // September rent paid a day early
+    charge('p1', 'tenant-p1', '2026-09-01'),
+  ];
+  const result = landlordMonth({ properties, leases, ledger, expenses: [], payouts: [], maintenanceRequests: [], now });
+  assert.equal(result.rows[0].monthStatus, 'paid');
+  assert.equal(result.collected, 0); // cash flow still counts receipts by the month they arrived
+  assert.deepEqual(result.decisions, []);
+});
+
+test('landlordMonth shows no charge posted rather than paid when nothing is owed and nothing was billed', () => {
+  const result = landlordMonth({ properties: [property('p1', 'Quiet House')], leases: [lease('p1')], ledger: [], expenses: [], payouts: [], maintenanceRequests: [], now });
+  assert.equal(result.rows[0].monthStatus, 'none');
+  assert.equal(result.rows[0].monthLabel, 'No charge posted');
+});
+
+test('landlordMonth judges each unit of a multi-tenant property separately', () => {
+  const properties = [property('duplex', 'Duplex', 2000)];
+  const leases = [
+    lease('duplex', { id: 'lease-a', tenantId: 'tenant-a', tenantName: 'Tenant A', unit: 'A' }),
+    lease('duplex', { id: 'lease-b', tenantId: 'tenant-b', tenantName: 'Tenant B', unit: 'B' }),
+  ];
+  const ledger = [
+    charge('duplex', 'tenant-a', '2026-09-01'), payment('duplex', 'tenant-a', '2026-09-01'),
+    charge('duplex', 'tenant-b', '2026-09-01'), // unit B has not paid
+  ];
+  const result = landlordMonth({ properties, leases, ledger, expenses: [], payouts: [], maintenanceRequests: [], now });
+  const row = result.rows[0];
+  assert.equal(row.monthStatus, 'late');
+  assert.equal(row.monthLabel, '1 of 2 late');
+  assert.equal(row.tenantName, '2 tenants');
+  assert.equal(row.rent, 2000);
+  assert.equal(row.units, 2);
+  assert.equal(result.expected, 2000);
+  assert.equal(result.decisions.length, 1);
+  assert.match(result.decisions[0].meta, /Tenant B, Unit B/);
+});
+
 test('monthlyNet returns one bar per month, rent minus paid expenses', () => {
   const ledger = [
     { propertyId: 'p1', amount: 1000, status: 'completed', type: 'payment', category: 'rent', date: '2026-09-02' },
@@ -199,8 +248,9 @@ test('admin helpers: average days to close, request age, leases ending, work ord
   const sorted = sortOpenWorkOrders([
     request({ id: 'low', priority: 'low', createdAt: new Date(2026, 8, 1) }),
     request({ id: 'high-new', priority: 'high', createdAt: new Date(2026, 8, 5) }),
+    request({ id: 'emergency', priority: 'emergency' as MaintenanceRequest['priority'], createdAt: new Date(2026, 8, 6) }),
     request({ id: 'high-old', priority: 'high', createdAt: new Date(2026, 8, 2) }),
     request({ id: 'done', priority: 'urgent', status: 'completed' }),
   ]);
-  assert.deepEqual(sorted.map((r) => r.id), ['high-old', 'high-new', 'low']);
+  assert.deepEqual(sorted.map((r) => r.id), ['emergency', 'high-old', 'high-new', 'low']);
 });
