@@ -75,7 +75,8 @@ export default function AboutFaqSection() {
       <style jsx>{`
         .about {
           padding: clamp(3.5rem, 7vw, 5rem) 1.5rem;
-          background: var(--color-surface);
+          background: var(--color-background);
+          border-top: 1px solid var(--color-border);
           scroll-margin-top: var(--header-height);
         }
 
@@ -107,7 +108,7 @@ export default function AboutFaqSection() {
         .about__photo {
           height: 240px;
           border-radius: var(--radius-lg);
-          background: linear-gradient(160deg, var(--color-surface-elevated), var(--color-background));
+          background: linear-gradient(160deg, var(--color-surface-elevated), var(--color-surface));
           border: 1px solid var(--color-border);
           display: flex;
           align-items: center;
@@ -160,7 +161,7 @@ export default function AboutFaqSection() {
 
         .faq-item {
           border-radius: var(--radius-md);
-          background: var(--color-background);
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           transition: border-color var(--transition-fast);
         }
