@@ -175,8 +175,8 @@ export default function HomeHero() {
         .home-hero__overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(90deg, rgba(17, 24, 39, 0.96) 0%, rgba(17, 24, 39, 0.82) 45%, rgba(17, 24, 39, 0.45) 100%),
-            linear-gradient(180deg, rgba(17, 24, 39, 0.35) 0%, rgba(17, 24, 39, 0.1) 40%, rgba(17, 24, 39, 0.92) 100%),
+          background: linear-gradient(90deg, rgba(27, 37, 56, 0.96) 0%, rgba(27, 37, 56, 0.82) 45%, rgba(27, 37, 56, 0.45) 100%),
+            linear-gradient(180deg, rgba(27, 37, 56, 0.35) 0%, rgba(27, 37, 56, 0.1) 40%, rgba(27, 37, 56, 0.92) 100%),
             radial-gradient(circle at top left, rgba(47, 128, 237, 0.18), transparent 55%);
         }
 

@@ -3,19 +3,21 @@
 :root {
   color-scheme: dark;
   /* Colors - Dark Theme */
-  --color-background: #0a0f1a;
-  --color-surface: #111827;
-  --color-surface-elevated: #1a2333;
+  /* Lifted from near-black to deep navy (Sep 2026) so pages read lighter
+     without leaving the dark theme. Keep the three steps ~4-5% apart. */
+  --color-background: #131b2c;
+  --color-surface: #1b2538;
+  --color-surface-elevated: #253149;
   --color-primary: #3b9bff;
   --color-primary-light: rgba(59, 155, 255, 0.16);
   --color-primary-dark: #1c6fd0;
   --color-secondary: #2f80ed;
   --color-secondary-light: rgba(47, 128, 237, 0.16);
   --color-accent: #5cb0ff;
-  --color-text: #e6edf6;
-  --color-text-secondary: #f3f6fb;
-  --color-muted: #9aa7b8;
-  --color-border: #26303f;
+  --color-text: #edf2f9;
+  --color-text-secondary: #f6f8fc;
+  --color-muted: #aab5c6;
+  --color-border: #36435d;
   --color-success: #22c55e;
   --color-warning: #f7b733;
   --color-error: #f87171;
@@ -34,8 +36,8 @@
   --tag-neutral-text: #c3cdda;
 
   /* Overlays */
-  --overlay-background: rgba(8, 12, 22, 0.72);
-  --overlay-strong: rgba(8, 12, 22, 0.85);
+  --overlay-background: rgba(14, 20, 34, 0.72);
+  --overlay-strong: rgba(14, 20, 34, 0.85);
 
   /* Accent-subtle fills (replace repeated low-alpha tints) */
   --color-accent-subtle: rgba(59, 155, 255, 0.10);
@@ -64,16 +66,16 @@
   --chart-gradient-success: linear-gradient(180deg, rgba(34, 197, 94, 0.26) 0%, rgba(34, 197, 94, 0.04) 100%);
 
   /* Glassmorphism */
-  --glass-background: rgba(17, 24, 39, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-background: rgba(27, 37, 56, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.1);
   --glass-blur: blur(20px);
 
   /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
-  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.45);
   --shadow-glow: 0 0 40px rgba(59, 155, 255, 0.22);
   --shadow-glow-secondary: 0 0 40px rgba(47, 128, 237, 0.22);
 
