@@ -25,10 +25,10 @@ test.beforeAll(async () => {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 3);
 
-  for (const role of ['tenant', 'admin', 'landlord']) {
-    const uid = `browser-${role}`;
+  for (const role of ['tenant', 'admin', 'landlord', 'super-admin']) {
+    const uid = role === 'super-admin' ? 'browser-super' : `browser-${role}`;
     await auth.createUser({ uid, email: `${uid}@example.com`, password }).catch(e => { if (e.code !== 'auth/uid-already-exists') throw e; });
-    await db.doc(`users/${uid}`).set({ role, email: `${uid}@example.com`, displayName: `Browser ${role}`, propertyIds: ['browser-property'] }, { merge: true });
+    await db.doc(`users/${uid}`).set({ role, email: `${uid}@example.com`, displayName: `Browser ${role === 'super-admin' ? 'super' : role}`, propertyIds: ['browser-property'] }, { merge: true });
   }
   await db.doc('properties/browser-property').set({ name: 'Browser Property', address: '123 Emulator St', landlordId: 'browser-landlord', status: 'occupied', available: false, units: [], rent: 1200, createdAt: new Date(), images: [] }, { merge: true });
   await db.doc('properties/browser-vacant').set({ name: 'Browser Vacant', address: '456 Emulator Ave', landlordId: 'browser-landlord', status: 'vacant', available: true, units: [], rent: 1300, createdAt: new Date(), images: [] });
@@ -212,4 +212,27 @@ test('admin account page shares the admin console shell', async ({ page }) => {
   await page.getByRole('button', { name: /Notifications/ }).click();
   await expect(page.getByRole('heading', { name: 'Maintenance notifications' })).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/admin-account-notifications.png', fullPage: true });
+});
+
+test('super admin sees the admin console with its own eyebrow', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page, 'super', '/admin/');
+  await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Browser\./ })).toBeVisible();
+  await expect(page.getByText('Super admin', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Loading/)).toHaveCount(0);
+  await expect(page.getByText("Today's queue")).toBeVisible();
+  await page.screenshot({ path: '.agent-artifacts/home-super-admin.png', fullPage: true });
+  await page.goto('/admin/tenants/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Tenants' })).toBeVisible();
+  await expect(page.getByText(/^Loading/)).toHaveCount(0);
+  await page.screenshot({ path: '.agent-artifacts/super-admin-tenants.png', fullPage: true });
+  await page.goto('/account/');
+  await expect(page.getByText('Super admin · Account')).toBeVisible();
+  await expect(page.getByText('Access level')).toBeVisible();
+  await page.screenshot({ path: '.agent-artifacts/super-admin-account.png', fullPage: true });
+  await page.goto('/notifications/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
+  await expect(page.getByText('Admin Menu')).toBeAttached();
+  await expect(page.getByText(/^Loading/)).toHaveCount(0);
+  await page.screenshot({ path: '.agent-artifacts/super-admin-notifications.png', fullPage: true });
 });
