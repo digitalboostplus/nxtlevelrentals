@@ -157,7 +157,10 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
       <div className="admin-body">
         <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           <div className="sidebar-header">
-            <h2>Admin Menu</h2>
+            <div>
+              <h2>Admin console</h2>
+              <span className="sidebar-subtitle">Property management</span>
+            </div>
             <button
               className="close-button"
               onClick={() => setMobileMenuOpen(false)}
@@ -273,10 +276,31 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         }
 
         .sidebar-header {
-          display: none;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 0.5rem 0.5rem;
+          margin-bottom: 1rem;
+          border-bottom: 1px solid var(--color-border);
+        }
+
+        .sidebar-header h2 {
+          margin: 0;
+          font-size: 1.125rem;
+          font-weight: 700;
+          color: var(--color-text);
+        }
+
+        .sidebar-subtitle {
+          display: block;
+          font-size: 0.75rem;
+          color: var(--color-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .close-button {
+          display: none;
           background: none;
           border: none;
           color: var(--color-text-secondary);
@@ -297,36 +321,39 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
           margin: 0;
         }
 
-        .nav-link {
+        /* Next's Link renders the anchor without the styled-jsx scope class, so
+           these rules must be global to reach it. */
+        nav :global(.nav-link) {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding: 0.875rem 1rem;
-          color: var(--color-text-secondary);
+          gap: 0.875rem;
+          padding: 0.75rem 1rem;
+          color: var(--color-muted);
           text-decoration: none;
           border-radius: var(--radius-md);
           font-weight: 500;
-          transition: all var(--transition-fast);
+          transition: background var(--transition-fast), color var(--transition-fast);
           margin-bottom: 0.25rem;
-          min-height: 48px;
         }
 
-        .nav-link:hover {
-          background: var(--color-background);
+        nav :global(.nav-link:hover) {
+          background: var(--color-surface-elevated);
           color: var(--color-text);
         }
 
-        .nav-link.active {
-          background: var(--color-primary);
-          color: white;
-          box-shadow: var(--shadow-sm);
+        nav :global(.nav-link.active) {
+          background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+          color: #fff;
+          box-shadow: 0 2px 8px rgba(59, 155, 255, 0.16);
         }
 
         .icon {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
+          flex: none;
+          width: 20px;
+          height: 20px;
         }
 
         .label {
@@ -390,19 +417,11 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
           }
 
           .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             padding: 1rem 1rem 1.5rem;
-            border-bottom: 1px solid var(--color-border);
-            margin-bottom: 1rem;
           }
 
-          .sidebar-header h2 {
-            margin: 0;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--color-text);
+          .close-button {
+            display: block;
           }
         }
 

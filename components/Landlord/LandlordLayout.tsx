@@ -146,7 +146,7 @@ export default function LandlordLayout({ children, title }: LandlordLayoutProps)
   const breadcrumbs = pathSegments.map((segment, index) => {
     const label =
       breadcrumbLabels[segment] ??
-      (segment.length > 10 ? `Record ${segment.slice(0, 6).toUpperCase()}` : segment.replace(/-/g, ' '));
+      (segment.length > 10 || (index === pathSegments.length - 1 && index > 1) ? 'Details' : segment.replace(/-/g, ' '));
     return {
       label: label.charAt(0).toUpperCase() + label.slice(1),
       href: `/${pathSegments.slice(0, index + 1).join('/')}`
@@ -280,6 +280,7 @@ export default function LandlordLayout({ children, title }: LandlordLayoutProps)
           display: flex;
           flex: 1;
           position: relative;
+          padding-top: var(--header-height);
         }
 
         .landlord-sidebar {
@@ -333,7 +334,9 @@ export default function LandlordLayout({ children, title }: LandlordLayoutProps)
           gap: 0.35rem;
         }
 
-        .nav-link {
+        /* Next's Link renders the anchor without the styled-jsx scope class, so
+           these rules must be global to reach it. */
+        nav :global(.nav-link) {
           display: flex;
           align-items: center;
           gap: 0.875rem;
@@ -343,30 +346,34 @@ export default function LandlordLayout({ children, title }: LandlordLayoutProps)
           border-radius: var(--radius-md);
           font-weight: 500;
           font-size: 0.938rem;
-          transition: all var(--transition-fast);
+          transition: background var(--transition-fast), color var(--transition-fast);
         }
 
-        .nav-link:hover {
+        nav :global(.nav-link:hover) {
           color: var(--color-text);
           background: var(--color-surface-elevated);
         }
 
-        .nav-link.active {
-          color: white;
+        nav :global(.nav-link.active) {
+          color: #fff;
           background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-          box-shadow: 0 2px 8px var(--color-primary-light);
+          box-shadow: 0 2px 8px rgba(59, 155, 255, 0.16);
         }
 
-        .nav-link .icon {
-          display: flex;
+        nav :global(.nav-link) .icon {
+          display: inline-flex;
           align-items: center;
           justify-content: center;
+          flex: none;
+          width: 20px;
+          height: 20px;
         }
 
         .landlord-content {
           flex: 1;
           background: var(--color-background);
           min-width: 0;
+          padding-top: 0; /* the global main rule adds the header offset; the body already has it */
         }
 
         .landlord-breadcrumbs {

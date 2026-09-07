@@ -127,7 +127,7 @@ test('landlord overview shows the month, decisions, chart and property table', a
   await expect(page.getByText('Browser Vacant is vacant')).toBeVisible();
   await expect(page.getByText(/Pending expense: \$900/)).toBeVisible();
   await expect(page.getByRole('row').filter({ hasText: 'Browser Property' })).toBeVisible();
-  await expect(page.getByRole('img', { name: /Net income, last 6 months/ })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Net income/ })).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/home-landlord.png', fullPage: true });
 
   // Every inner landlord page shares the same shell and renders with seeded data.
@@ -204,7 +204,7 @@ test('admin account page shares the admin console shell', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page, 'admin', '/account/');
   await expect(page.getByRole('heading', { level: 1, name: 'Account Settings' })).toBeVisible();
-  await expect(page.getByText('Admin Menu')).toBeAttached();
+  await expect(page.getByText('Admin console', { exact: true })).toBeVisible();
   await expect(page.getByText('Admin · Account')).toBeVisible();
   await expect(page.getByText('Access level')).toBeVisible();
   await expect(page.locator('body')).not.toContainText('lease agreement');
@@ -233,7 +233,7 @@ test('super admin sees the admin console with its own eyebrow', async ({ page })
   await page.screenshot({ path: '.agent-artifacts/super-admin-account.png', fullPage: true });
   await page.goto('/notifications/');
   await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
-  await expect(page.getByText('Admin Menu')).toBeAttached();
+  await expect(page.getByText('Admin console', { exact: true })).toBeVisible();
   await expect(page.getByText(/^Loading/)).toHaveCount(0);
   await page.screenshot({ path: '.agent-artifacts/super-admin-notifications.png', fullPage: true });
 });

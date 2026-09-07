@@ -110,7 +110,7 @@ const LandlordPropertyDetailPage: NextPageWithAuth = () => {
               Log expense
             </Link>
             <Link href="/landlord/financials" className="primary-button">
-              View statements
+              View ledger
             </Link>
           </div>
         </div>
@@ -213,7 +213,7 @@ const LandlordPropertyDetailPage: NextPageWithAuth = () => {
             <div className="owner-card">
               <div className="owner-card__head">
                 <h2>Rent collection history</h2>
-                <Link href="/landlord/financials">Open financials</Link>
+                <Link href="/landlord/financials">Open full ledger</Link>
               </div>
               {sortedPayments.length === 0 ? (
                 <p className="owner-empty">No rent receipts are recorded for this property yet.</p>
@@ -300,6 +300,39 @@ const LandlordPropertyDetailPage: NextPageWithAuth = () => {
                   ))}
                 </div>
               ) : null}
+            </div>
+
+            <div className="owner-card">
+              <div className="owner-card__head">
+                <h2>Documents</h2>
+                <Link href="/landlord/documents">All documents</Link>
+              </div>
+              {activeLeases.some((lease) => lease.fileIds?.length || lease.documents?.length) ? (
+                <ul className="owner-list">
+                  {activeLeases.flatMap((lease) => [
+                    ...(lease.fileIds || []).map((id) => (
+                      <li key={id}>
+                        <div className="owner-list__text">
+                          <strong>Lease agreement</strong>
+                          <span>{lease.tenantName ? `Signed by ${lease.tenantName}` : 'Current lease'}</span>
+                        </div>
+                        <PrivateFile id={id} />
+                      </li>
+                    )),
+                    ...(lease.documents || []).map((url) => (
+                      <li key={url}>
+                        <div className="owner-list__text">
+                          <strong>Signed lease (PDF)</strong>
+                          <span>{lease.tenantName ? `Signed by ${lease.tenantName}` : 'Current lease'}</span>
+                        </div>
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="owner-small-button">Download</a>
+                      </li>
+                    )),
+                  ])}
+                </ul>
+              ) : (
+                <p className="owner-empty">No documents are attached to this property yet. Statements and agreements live under Documents.</p>
+              )}
             </div>
           </div>
         </div>

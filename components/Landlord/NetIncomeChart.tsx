@@ -87,7 +87,7 @@ export default function NetIncomeChart({ series, title = 'Net income, last 6 mon
           </g>
         </svg>
       ) : (
-        <p className="net-chart__empty">No posted rent or expenses in the last six months yet.</p>
+        <p className="net-chart__empty">No posted rent or expenses in these months yet.</p>
       )}
       <style jsx>{`
         .net-chart {

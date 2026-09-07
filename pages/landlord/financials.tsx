@@ -20,7 +20,8 @@ const Financials: NextPageWithAuth = () => {
   const [period, setPeriod] = useState<OwnerPeriod>('year-to-date');
   const now = useMemo(() => new Date(), []);
   const statement = ownerStatement(ledger, expenses, period, now);
-  const series = useMemo(() => monthlyNet(ledger, expenses, now, 6), [ledger, expenses, now]);
+  // Year to date, one bar per month, as designed; at least six so the early months of a year still read as a chart.
+  const series = useMemo(() => monthlyNet(ledger, expenses, now, Math.max(6, now.getMonth() + 1)), [ledger, expenses, now]);
 
   const periodLabel =
     period === 'year-to-date'
@@ -105,7 +106,7 @@ const Financials: NextPageWithAuth = () => {
                 </p>
               </div>
 
-              <NetIncomeChart series={series} />
+              <NetIncomeChart series={series} title="Net income by month" />
             </div>
 
             <div className="owner-page__section-head">
