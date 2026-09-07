@@ -236,3 +236,23 @@ test('super admin sees the admin console with its own eyebrow', async ({ page })
   await expect(page.getByText(/^Loading/)).toHaveCount(0);
   await page.screenshot({ path: '.agent-artifacts/super-admin-notifications.png', fullPage: true });
 });
+
+test('tenant notifications page shares the portal vocabulary', async ({ page }) => {
+  await db.doc('notifications/browser-note-unread').set({ userId: 'browser-tenant', type: 'scheduled', title: 'Dishwasher leak: visit scheduled', message: 'Ace Plumbing is coming Wednesday between 10am and 12pm.', maintenanceRequestId: 'browser-open', read: false, createdAt: new Date() });
+  await db.doc('notifications/browser-note-read').set({ userId: 'browser-tenant', type: 'status_change', title: 'Porch light out: completed', message: 'The bulb was replaced.', maintenanceRequestId: 'browser-done', read: true, createdAt: daysFromNow(-6) });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page, 'tenant', '/notifications/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
+  await expect(page.getByText('Tenant portal · Notifications')).toBeVisible();
+  await expect(page.getByText(/^Loading/)).toHaveCount(0);
+  await expect(page.getByText('Dishwasher leak: visit scheduled')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'View maintenance request' }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Mark read' })).toHaveCount(1);
+  await expect(page.locator('body')).not.toContainText('Invalid Date');
+  await expect(page.getByText(/^Today at /)).toBeVisible();
+  await page.screenshot({ path: '.agent-artifacts/tenant-notifications.png', fullPage: true });
+  await page.getByRole('button', { name: 'Mark read' }).click();
+  await expect(page.getByRole('button', { name: 'Mark read' })).toHaveCount(0);
+  await db.doc('notifications/browser-note-unread').delete();
+  await db.doc('notifications/browser-note-read').delete();
+});
