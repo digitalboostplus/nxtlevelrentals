@@ -167,6 +167,18 @@ const AdminPage: NextPageWithAuth = () => {
   );
 
   const openRequests = useMemo(() => sortOpenWorkOrders(requests), [requests]);
+  const [workFilter, setWorkFilter] = useState<'all' | 'high' | 'unassigned'>('all');
+  const visibleWork = useMemo(
+    () =>
+      openRequests.filter((request) => {
+        if (workFilter === 'high') return ['high', 'urgent', 'emergency'].includes(String(request.priority).toLowerCase());
+        if (workFilter === 'unassigned') return !request.assignedVendorName;
+        return true;
+      }),
+    [openRequests, workFilter],
+  );
+  const highCount = openRequests.filter((request) => ['high', 'urgent', 'emergency'].includes(String(request.priority).toLowerCase())).length;
+  const unassignedCount = openRequests.filter((request) => !request.assignedVendorName).length;
   const newRequests = useMemo(() => requests.filter((r) => r.status === 'submitted'), [requests]);
   const publicRequests = useMemo(
     () =>
@@ -423,7 +435,17 @@ const AdminPage: NextPageWithAuth = () => {
 
             <div className="admin-home__table-head">
               <h2>Open work orders</h2>
-              <Link href="/admin/maintenance">Open maintenance</Link>
+              <div className="owner-page__chips" role="group" aria-label="Filter work orders">
+                <button type="button" aria-pressed={workFilter === 'all'} className={`filter-chip${workFilter === 'all' ? ' filter-chip--active' : ''}`} onClick={() => setWorkFilter('all')}>
+                  All {openRequests.length}
+                </button>
+                <button type="button" aria-pressed={workFilter === 'high'} className={`filter-chip${workFilter === 'high' ? ' filter-chip--active' : ''}`} onClick={() => setWorkFilter('high')}>
+                  High{highCount ? ` ${highCount}` : ''}
+                </button>
+                <button type="button" aria-pressed={workFilter === 'unassigned'} className={`filter-chip${workFilter === 'unassigned' ? ' filter-chip--active' : ''}`} onClick={() => setWorkFilter('unassigned')}>
+                  Unassigned{unassignedCount ? ` ${unassignedCount}` : ''}
+                </button>
+              </div>
             </div>
             <div className="table-wrapper">
               <table className="table admin-home__table">
@@ -439,14 +461,14 @@ const AdminPage: NextPageWithAuth = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {openRequests.length === 0 ? (
+                  {visibleWork.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="admin-home__empty">
-                        No open work orders.
+                        {workFilter === 'all' ? 'No open work orders.' : 'Nothing matches this filter.'}
                       </td>
                     </tr>
                   ) : (
-                    openRequests.slice(0, 6).map((request) => (
+                    visibleWork.slice(0, 6).map((request) => (
                       <tr key={request.id}>
                         <th scope="row">{request.title}</th>
                         <td>{requestPlace(request)}</td>
@@ -465,11 +487,10 @@ const AdminPage: NextPageWithAuth = () => {
                   )}
                 </tbody>
               </table>
-              {openRequests.length > 6 ? (
-                <div className="admin-home__table-foot">
-                  Showing 6 of {openRequests.length} · <Link href="/admin/maintenance">See all</Link>
-                </div>
-              ) : null}
+              <div className="admin-home__table-foot">
+                {visibleWork.length > 6 ? `Showing 6 of ${visibleWork.length} · ` : ''}
+                <Link href="/admin/maintenance">Open maintenance</Link>
+              </div>
             </div>
           </>
         )}
