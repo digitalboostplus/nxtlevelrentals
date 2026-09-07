@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@/components/Layout/Header';
-import Footer from '@/components/Layout/Footer';
 
 interface LandlordLayoutProps {
   children: ReactNode;
@@ -132,27 +131,6 @@ export default function LandlordLayout({ children, title }: LandlordLayoutProps)
     { label: 'Documents', path: '/landlord/documents', icon: <DocumentsIcon /> }
   ];
 
-  const pathSegments = router.asPath.split('?')[0].split('/').filter(Boolean);
-  const breadcrumbLabels: Record<string, string> = {
-    landlord: 'Owner Portal',
-    properties: 'My Properties',
-    financials: 'Financials',
-    expenses: 'Expenses',
-    payouts: 'Disbursements',
-    maintenance: 'Maintenance',
-    documents: 'Documents'
-  };
-
-  const breadcrumbs = pathSegments.map((segment, index) => {
-    const label =
-      breadcrumbLabels[segment] ??
-      (segment.length > 10 || (index === pathSegments.length - 1 && index > 1) ? 'Details' : segment.replace(/-/g, ' '));
-    return {
-      label: label.charAt(0).toUpperCase() + label.slice(1),
-      href: `/${pathSegments.slice(0, index + 1).join('/')}`
-    };
-  });
-  const showBreadcrumbs = breadcrumbs.length > 2;
   const activeTitle = title ? `${title} | Owner Portal` : 'Landlord Portal - Next Level Rentals';
 
   return (
@@ -214,25 +192,10 @@ export default function LandlordLayout({ children, title }: LandlordLayoutProps)
         </aside>
 
         <main className="landlord-content">
-          {showBreadcrumbs ? (
-            <nav className="landlord-breadcrumbs" aria-label="Breadcrumb">
-              {breadcrumbs.map((crumb, index) => (
-                <span key={crumb.href} className="landlord-breadcrumbs__item">
-                  {index > 0 ? <span className="landlord-breadcrumbs__separator">/</span> : null}
-                  {index === breadcrumbs.length - 1 ? (
-                    <span aria-current="page">{crumb.label}</span>
-                  ) : (
-                    <Link href={crumb.href}>{crumb.label}</Link>
-                  )}
-                </span>
-              ))}
-            </nav>
-          ) : null}
           {children}
         </main>
       </div>
 
-      <Footer />
 
       <style jsx>{`
         .landlord-layout {

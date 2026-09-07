@@ -6,19 +6,30 @@ import LandlordLayout from '@/components/Landlord/LandlordLayout';
 import LoadingState from '@/components/common/LoadingState';
 import { useLandlordData } from '@/hooks/useLandlordData';
 import { formatLocalDate, normalizeDate } from '@/lib/date';
-import { formatMoney, formatPropertyAddress, isOpenRequest } from '@/lib/console-home';
+import { formatMoney, formatPropertyAddress, isOpenRequest, landlordMonth, type MonthStatus } from '@/lib/console-home';
 import type { Lease, Property } from '@/types/schema';
 import type { NextPageWithAuth } from '../../_app';
 
 type Filter = 'all' | 'attention' | 'leased' | 'vacant';
 
+const monthStatusTag: Record<MonthStatus, string> = {
+  paid: 'tag--success',
+  late: 'tag--error',
+  due: 'tag--info',
+  none: 'tag--neutral',
+  vacant: 'tag--neutral',
+};
+
 const LandlordPropertiesPage: NextPageWithAuth = () => {
-  const { properties, leases, maintenanceRequests, loading, error, refresh } = useLandlordData();
+  const { properties, leases, ledger, expenses, payouts, maintenanceRequests, loading, error, refresh } = useLandlordData();
+  const now = useMemo(() => new Date(), []);
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
 
   const rows = useMemo(() => {
     const active = leases.filter((lease) => lease.isActive && lease.status === 'active');
+    const month = landlordMonth({ properties, leases, ledger, expenses, payouts, maintenanceRequests, now });
+    const monthByProperty = new Map(month.rows.map((row) => [row.propertyId, row]));
     return properties
       .filter((property) => !property.archived)
       .map((property) => {
@@ -31,9 +42,12 @@ const LandlordPropertiesPage: NextPageWithAuth = () => {
           .sort((a, b) => a.getTime() - b.getTime())[0] ?? null;
         const openWork = maintenanceRequests.filter((request) => request.propertyId === property.id && isOpenRequest(request)).length;
         const tenant = propertyLeases.length > 1 ? `${propertyLeases.length} tenants` : propertyLeases[0]?.tenantName || (leased ? 'Tenant' : 'Vacant');
-        return { property, leased, rent, leaseEnd, openWork, tenant, attention: !leased || openWork > 0 };
+        const monthRow = monthByProperty.get(property.id);
+        const monthStatus: MonthStatus = monthRow?.monthStatus ?? (leased ? 'none' : 'vacant');
+        const monthLabel = monthRow?.monthLabel ?? (leased ? 'No charge posted' : 'Vacant');
+        return { property, leased, rent, leaseEnd, openWork, tenant, monthStatus, monthLabel, attention: !leased || openWork > 0 || monthStatus === 'late' };
       });
-  }, [properties, leases, maintenanceRequests]);
+  }, [properties, leases, ledger, expenses, payouts, maintenanceRequests, now]);
 
   const counts = {
     all: rows.length,
@@ -125,7 +139,7 @@ const LandlordPropertiesPage: NextPageWithAuth = () => {
               </div>
             ) : (
               <div className="properties__grid">
-                {visible.map(({ property, leased, rent, leaseEnd, openWork, tenant }) => (
+                {visible.map(({ property, leased, rent, leaseEnd, openWork, tenant, monthStatus, monthLabel }) => (
                   <article key={property.id} className="property-tile">
                     <div className="owner-photo">
                       {property.images?.[0] ? (
@@ -140,9 +154,7 @@ const LandlordPropertiesPage: NextPageWithAuth = () => {
                           <h3>{property.name || formatPropertyAddress(property.address)}</h3>
                           <span>{tenant}</span>
                         </div>
-                        <span className={`tag ${leased ? (openWork > 0 ? 'tag--info' : 'tag--success') : 'tag--neutral'}`}>
-                          {leased ? (openWork > 0 ? `${openWork} open` : 'Leased') : 'Vacant'}
-                        </span>
+                        <span className={`tag ${monthStatusTag[monthStatus]}`}>{monthLabel}</span>
                       </div>
                       <dl className="property-tile__facts">
                         <div>

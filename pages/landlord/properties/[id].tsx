@@ -95,7 +95,9 @@ const LandlordPropertyDetailPage: NextPageWithAuth = () => {
       <div className="owner-page">
         <div className="owner-page__head">
           <div>
-            <p className="section-eyebrow">Owner portal</p>
+            <p className="section-eyebrow">
+              <Link href="/landlord/properties">My properties</Link> › {property.name}
+            </p>
             <h1>{property.name}</h1>
             <p className="owner-page__sub">
               {formatPropertyAddress(property.address)}
@@ -142,9 +144,9 @@ const LandlordPropertyDetailPage: NextPageWithAuth = () => {
             <div className="stat-card__meta">{deposit ? 'Per the lease on file' : 'Not recorded'}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-card__label">All-time net</div>
-            <div className="stat-card__value">{formatMoney(statement.net)}</div>
-            <div className="stat-card__meta">{formatMoney(statement.rent)} rent · {formatMoney(statement.totalExpenses)} paid expenses</div>
+            <div className="stat-card__label">Open work</div>
+            <div className={`stat-card__value${openRequests.length ? ' stat-card__value--warn' : ''}`}>{openRequests.length}</div>
+            <div className="stat-card__meta">{openRequests[0] ? `${openRequests[0].title}, ${String(openRequests[0].status || '').replace(/_/g, ' ') || 'open'}` : `All-time net ${formatMoney(statement.net)}`}</div>
           </div>
         </div>
 
@@ -213,7 +215,7 @@ const LandlordPropertyDetailPage: NextPageWithAuth = () => {
             <div className="owner-card">
               <div className="owner-card__head">
                 <h2>Rent collection history</h2>
-                <Link href="/landlord/financials">Open full ledger</Link>
+                <Link href="/landlord/financials" className="owner-small-button">Open full ledger</Link>
               </div>
               {sortedPayments.length === 0 ? (
                 <p className="owner-empty">No rent receipts are recorded for this property yet.</p>

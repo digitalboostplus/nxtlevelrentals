@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@/components/Layout/Header';
-import Footer from '@/components/Layout/Footer';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -207,7 +206,6 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         </main>
       </div>
 
-      <Footer />
 
       <style jsx>{`
         .admin-layout {
@@ -362,6 +360,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
 
         .admin-content {
           flex: 1;
+          min-width: 0;
           background: var(--color-background);
           padding-top: 0;
         }
