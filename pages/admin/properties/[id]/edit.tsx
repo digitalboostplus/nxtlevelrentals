@@ -20,29 +20,126 @@ const EditProperty: NextPageWithAuth = () => {
     } catch (e) { setError(e instanceof Error ? e.message : 'Save failed'); } finally { setSaving(false); }
   };
   const set = (key: string, value: unknown) => setForm({ ...form, [key]: value });
-  return <AdminLayout title="Edit property and units"><div style={{ padding: '2rem', maxWidth: 1000 }}>
-    <h1>Edit property and units</h1>{error && <p role="alert">{error}</p>}
-    {!form ? <p>Loading property...</p> : <form onSubmit={save}><fieldset disabled={saving} style={{ border: 0, display: 'grid', gap: '1rem' }}>
-      <label>Name <input required value={form.name} onChange={e => set('name', e.target.value)} /></label>
-      {typeof form.address === 'object' ? ['street', 'city', 'state', 'zipCode'].map(key => <label key={key}>{key}<input required value={form.address[key] || ''} onChange={e => set('address', { ...form.address, [key]: e.target.value })} /></label>) : <label>Address <input value={form.address || ''} onChange={e => set('address', e.target.value)} /></label>}
-      {['bedrooms', 'bathrooms', 'squareFeet'].map(key => <label key={key}>{key}<input type="number" min="0" step="any" value={form[key] || 0} onChange={e => set(key, Number(e.target.value))} /></label>)}
-      <label>Description <textarea value={form.description || ''} onChange={e => set('description', e.target.value)} /></label>
-      <label>Target rent <input type="number" min="0" step="0.01" value={form.rent} onChange={e => set('rent', Number(e.target.value))} /></label>
-      <label>Owner user ID <input value={form.landlordId || ''} onChange={e => set('landlordId', e.target.value)} /></label>
-      <label>Status <select value={form.status} onChange={e => set('status', e.target.value)}><option>vacant</option><option>occupied</option><option>maintenance</option></select></label>
-      <label>Amenities (comma separated) <input value={form.features} onChange={e => set('features', e.target.value)} /></label>
-      <label>Photo URLs (one HTTPS URL per line) <textarea value={form.images.join('\n')} onChange={e => set('images', e.target.value.split('\n').filter(Boolean))} /></label>
-      <label><input type="checkbox" checked={!!form.archived} onChange={e => set('archived', e.target.checked)} /> Archive property (keeps history and removes availability)</label>
-      <h2>Units</h2>
-      {form.units.map((unit: any, index: number) => <fieldset key={unit.id}><legend>Unit {unit.unitNumber || index + 1}</legend>
-        {['unitNumber', 'rent', 'bedrooms', 'bathrooms', 'squareFeet'].map(key => <label key={key}>{key} <input value={unit[key] ?? ''} type={key === 'unitNumber' ? 'text' : 'number'} min="0" step="any" onChange={e => set('units', form.units.map((u: any, i: number) => i === index ? { ...u, [key]: key === 'unitNumber' ? e.target.value : Number(e.target.value) } : u))} /></label>)}
-        <select aria-label="Unit status" value={unit.status} onChange={e => set('units', form.units.map((u: any, i: number) => i === index ? { ...u, status: e.target.value } : u))}><option>vacant</option><option>occupied</option><option>maintenance</option></select>
-        <label><input type="checkbox" checked={!!unit.archived} onChange={e => set('units', form.units.map((u: any, i: number) => i === index ? { ...u, archived: e.target.checked } : u))} /> Archived</label>
-      </fieldset>)}
-      <button type="button" onClick={() => set('units', [...form.units, { id: crypto.randomUUID(), unitNumber: '', rent: 0, status: 'vacant', bedrooms: 0, bathrooms: 0, squareFeet: 0 }])}>Add unit</button>
-      <button type="submit">{saving ? 'Saving...' : 'Save property'}</button>
-    </fieldset></form>}
-  </div></AdminLayout>;
+  const setUnit = (index: number, patch: Record<string, unknown>) =>
+    set('units', form.units.map((u: any, i: number) => (i === index ? { ...u, ...patch } : u)));
+  const FIELD_LABELS: Record<string, string> = { street: 'Street', city: 'City', state: 'State', zipCode: 'ZIP code', bedrooms: 'Bedrooms', bathrooms: 'Bathrooms', squareFeet: 'Square feet', unitNumber: 'Unit number', rent: 'Rent' };
+  return (
+    <AdminLayout title="Edit property">
+      <div className="owner-page edit-property">
+        <div className="owner-page__head">
+          <div>
+            <p className="section-eyebrow">Admin · Property</p>
+            <h1>Edit property and units</h1>
+            <p className="owner-page__sub">{form?.name ? `Update the record for ${form.name}. Changes apply to the admin, owner and tenant views.` : 'Update the property record and its units.'}</p>
+          </div>
+          <div className="owner-page__actions">
+            <button type="button" className="outline-button" onClick={() => router.push(`/admin/properties/${id}`)}>Back to property</button>
+          </div>
+        </div>
+        {error && <p role="alert" className="owner-alert">{error}</p>}
+        {!form ? (
+          <p className="owner-empty">Loading property...</p>
+        ) : (
+          <form onSubmit={save} className="edit-property__form">
+            <fieldset disabled={saving} className="edit-property__fields">
+              <section className="owner-card">
+                <div className="owner-card__head"><h2>Property</h2></div>
+                <div className="owner-form">
+                  <label className="owner-field owner-field--wide"><span>Name</span><input required value={form.name} onChange={e => set('name', e.target.value)} /></label>
+                  {typeof form.address === 'object' ? (
+                    ['street', 'city', 'state', 'zipCode'].map(key => (
+                      <label key={key} className="owner-field"><span>{FIELD_LABELS[key]}</span><input required value={form.address[key] || ''} onChange={e => set('address', { ...form.address, [key]: e.target.value })} /></label>
+                    ))
+                  ) : (
+                    <label className="owner-field owner-field--wide"><span>Address</span><input value={form.address || ''} onChange={e => set('address', e.target.value)} /></label>
+                  )}
+                  <label className="owner-field"><span>Status</span><select value={form.status} onChange={e => set('status', e.target.value)}><option>vacant</option><option>occupied</option><option>maintenance</option></select></label>
+                  <label className="owner-field"><span>Target rent</span><input type="number" min="0" step="0.01" value={form.rent} onChange={e => set('rent', Number(e.target.value))} /></label>
+                </div>
+              </section>
+
+              <section className="owner-card">
+                <div className="owner-card__head"><h2>Details</h2></div>
+                <div className="owner-form owner-form--3">
+                  {['bedrooms', 'bathrooms', 'squareFeet'].map(key => (
+                    <label key={key} className="owner-field"><span>{FIELD_LABELS[key]}</span><input type="number" min="0" step="any" value={form[key] || 0} onChange={e => set(key, Number(e.target.value))} /></label>
+                  ))}
+                  <label className="owner-field owner-field--wide"><span>Description</span><textarea value={form.description || ''} onChange={e => set('description', e.target.value)} /></label>
+                  <label className="owner-field owner-field--wide"><span>Amenities (comma separated)</span><input value={form.features} onChange={e => set('features', e.target.value)} /></label>
+                  <label className="owner-field owner-field--wide"><span>Photo URLs (one HTTPS URL per line)</span><textarea value={form.images.join('\n')} onChange={e => set('images', e.target.value.split('\n').filter(Boolean))} /></label>
+                </div>
+              </section>
+
+              <section className="owner-card">
+                <div className="owner-card__head"><h2>Ownership and availability</h2></div>
+                <div className="owner-form">
+                  <label className="owner-field"><span>Owner user ID</span><input value={form.landlordId || ''} onChange={e => set('landlordId', e.target.value)} /></label>
+                  <label className="owner-check edit-property__archive"><input type="checkbox" checked={!!form.archived} onChange={e => set('archived', e.target.checked)} /><span>Archive property (keeps history and removes availability)</span></label>
+                </div>
+              </section>
+
+              <section className="owner-card">
+                <div className="owner-card__head">
+                  <h2>Units</h2>
+                  <button type="button" className="owner-small-button" onClick={() => set('units', [...form.units, { id: crypto.randomUUID(), unitNumber: '', rent: 0, status: 'vacant', bedrooms: 0, bathrooms: 0, squareFeet: 0 }])}>Add unit</button>
+                </div>
+                {form.units.length === 0 ? <p className="owner-empty">Single-family home. Add a unit only if the property is split into separately leased spaces.</p> : null}
+                {form.units.map((unit: any, index: number) => (
+                  <fieldset key={unit.id} className="edit-property__unit">
+                    <legend>Unit {unit.unitNumber || index + 1}</legend>
+                    <div className="owner-form owner-form--3">
+                      {['unitNumber', 'rent', 'bedrooms', 'bathrooms', 'squareFeet'].map(key => (
+                        <label key={key} className="owner-field"><span>{FIELD_LABELS[key]}</span><input value={unit[key] ?? ''} type={key === 'unitNumber' ? 'text' : 'number'} min="0" step="any" onChange={e => setUnit(index, { [key]: key === 'unitNumber' ? e.target.value : Number(e.target.value) })} /></label>
+                      ))}
+                      <label className="owner-field"><span>Unit status</span><select aria-label="Unit status" value={unit.status} onChange={e => setUnit(index, { status: e.target.value })}><option>vacant</option><option>occupied</option><option>maintenance</option></select></label>
+                      <label className="owner-check"><input type="checkbox" checked={!!unit.archived} onChange={e => setUnit(index, { archived: e.target.checked })} /><span>Archived</span></label>
+                    </div>
+                  </fieldset>
+                ))}
+              </section>
+
+              <div className="owner-form__actions">
+                <button type="button" className="ghost-button" onClick={() => router.push(`/admin/properties/${id}`)}>Cancel</button>
+                <button type="submit" className="primary-button">{saving ? 'Saving...' : 'Save property'}</button>
+              </div>
+            </fieldset>
+          </form>
+        )}
+      </div>
+      <style jsx>{`
+        .edit-property {
+          max-width: 1000px;
+        }
+        .edit-property__form,
+        .edit-property__fields {
+          display: grid;
+          gap: 1.5rem;
+        }
+        .edit-property__fields {
+          border: 0;
+          padding: 0;
+          margin: 0;
+          min-width: 0;
+        }
+        .edit-property__unit {
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          background: var(--color-background);
+          padding: 0.75rem 1.25rem 1.25rem;
+          margin: 0;
+          min-width: 0;
+        }
+        .edit-property__unit legend {
+          padding: 0 0.5rem;
+          font-weight: 700;
+          color: var(--color-text);
+        }
+        .edit-property__archive {
+          align-self: end;
+        }
+      `}</style>
+    </AdminLayout>
+  );
 };
 EditProperty.requireAuth = true; EditProperty.allowedRoles = ['admin', 'super-admin'];
 export default EditProperty;

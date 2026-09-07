@@ -39,14 +39,14 @@ test('tenant uploads photo, submits maintenance and persists notification choice
   await expect(page.getByText('Request received!', { exact: false })).toBeVisible();
   const tickets = await db.collection('maintenanceRequests').where('tenantId', '==', 'browser-tenant').get();
   expect(tickets.size).toBe(1); expect(tickets.docs[0].data().fileIds).toHaveLength(1);
-  await page.goto('/account/'); await page.getByRole('button', { name: /Notifications/ }).click();
+  await page.goto('/account/'); await page.locator('.account-nav').getByRole('button', { name: /Notifications/ }).click();
   await expect(page.getByRole('button', { name: 'Save preferences' })).toBeEnabled();
   const email = page.locator('fieldset').filter({ has: page.locator('legend', { hasText: /^Email$/ }) }).last();
   await email.getByLabel('Enable channel').check();
   await email.getByLabel('Maintenance status changes').uncheck();
   await page.getByRole('button', { name: 'Save preferences' }).click();
   await expect(page.getByText('Preferences saved.')).toBeVisible();
-  await page.reload(); await page.getByRole('button', { name: /Notifications/ }).click();
+  await page.reload(); await page.locator('.account-nav').getByRole('button', { name: /Notifications/ }).click();
   await expect(email.getByLabel('Maintenance status changes')).not.toBeChecked();
   await page.route(/\/api\/notifications\/preferences\/?(?:\?.*)?$/, route => route.request().method() === 'PUT' ? route.fulfill({ status: 500, contentType: 'application/json', body: '{}' }) : route.continue());
   await email.getByLabel('Maintenance status changes').check();

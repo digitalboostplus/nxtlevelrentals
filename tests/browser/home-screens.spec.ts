@@ -111,7 +111,7 @@ test('tenant account page shares the console vocabulary', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Account Settings' })).toBeVisible();
   await expect(page.getByText('Tenant portal · Account')).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/tenant-account.png', fullPage: true });
-  await page.getByRole('button', { name: /Notifications/ }).click();
+  await page.locator('.account-nav').getByRole('button', { name: /Notifications/ }).click();
   await expect(page.getByRole('heading', { name: 'Maintenance notifications' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save preferences' })).toBeEnabled();
   await page.screenshot({ path: '.agent-artifacts/tenant-account-notifications.png', fullPage: true });
@@ -175,6 +175,7 @@ test('admin dashboard shows rent status, the queue, public requests and work ord
     ['/admin/ledger/browser-tenant/', /Browser tenant/, 'admin-ledger'],
     ['/admin/leases/new/', /Create Lease Agreement/, 'admin-lease-new'],
     ['/admin/operations/', /Delivery and upload operations/, 'admin-operations'],
+    ['/admin/properties/browser-property/edit/', /Edit property and units/, 'admin-property-edit'],
   ];
   for (const [path, heading, shot] of inner) {
     await page.goto(path);
@@ -194,7 +195,7 @@ test('landlord account page shares the owner console shell', async ({ page }) =>
   await expect(page.locator('body')).not.toContainText('lease agreement');
   await expect(page.locator('body')).not.toContainText('parking permits');
   await page.screenshot({ path: '.agent-artifacts/landlord-account.png', fullPage: true });
-  await page.getByRole('button', { name: /Notifications/ }).click();
+  await page.locator('.account-nav').getByRole('button', { name: /Notifications/ }).click();
   await expect(page.getByText(/maintenance events at your homes/)).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/landlord-account-notifications.png', fullPage: true });
 });
@@ -209,7 +210,7 @@ test('admin account page shares the admin console shell', async ({ page }) => {
   await expect(page.locator('body')).not.toContainText('lease agreement');
   await expect(page.locator('body')).not.toContainText('parking permits');
   await page.screenshot({ path: '.agent-artifacts/admin-account.png', fullPage: true });
-  await page.getByRole('button', { name: /Notifications/ }).click();
+  await page.locator('.account-nav').getByRole('button', { name: /Notifications/ }).click();
   await expect(page.getByRole('heading', { name: 'Maintenance notifications' })).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/admin-account-notifications.png', fullPage: true });
 });
@@ -255,4 +256,18 @@ test('tenant notifications page shares the portal vocabulary', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Mark read' })).toHaveCount(0);
   await db.doc('notifications/browser-note-unread').delete();
   await db.doc('notifications/browser-note-read').delete();
+});
+
+test('landlord notifications page shares the owner console shell', async ({ page }) => {
+  await db.doc('notifications/browser-owner-note').set({ userId: 'browser-landlord', type: 'status_change', title: 'Dishwasher leak at Browser Property: in progress', message: 'Ace Plumbing has been scheduled for Wednesday.', maintenanceRequestId: 'browser-open', read: false, createdAt: new Date() });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page, 'landlord', '/notifications/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
+  await expect(page.getByText('Owner portal · Notifications')).toBeVisible();
+  await expect(page.getByText('Owner Cockpit')).toBeVisible();
+  await expect(page.getByText(/^Loading/)).toHaveCount(0);
+  await expect(page.getByText('Dishwasher leak at Browser Property: in progress')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('Invalid Date');
+  await page.screenshot({ path: '.agent-artifacts/landlord-notifications.png', fullPage: true });
+  await db.doc('notifications/browser-owner-note').delete();
 });
