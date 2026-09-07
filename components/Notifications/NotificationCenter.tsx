@@ -149,191 +149,106 @@ export default function NotificationCenter() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="notification-center">
-      <div className="center-header">
-        <h1>Notifications</h1>
+    <div className="owner-page notification-center">
+      <div className="owner-page__head">
+        <div>
+          <p className="section-eyebrow">Notifications</p>
+          <h1>Notifications</h1>
+          <p className="owner-page__sub">
+            {unreadCount > 0 ? `${unreadCount} unread` : 'You are all caught up'} · maintenance updates land here as they happen.
+          </p>
+        </div>
         {unreadCount > 0 && (
-          <button
-            className="mark-all-button"
-            onClick={handleMarkAllAsRead}
-            disabled={markingAllRead}
-          >
-            {markingAllRead ? 'Marking...' : 'Mark All as Read'}
+          <div className="owner-page__actions">
+            <button type="button" className="outline-button" onClick={handleMarkAllAsRead} disabled={markingAllRead}>
+              {markingAllRead ? 'Marking...' : 'Mark all as read'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="owner-page__chips" role="tablist" aria-label="Filter notifications">
+        {(
+          [
+            ['all', 'All'],
+            ['unread', unreadCount > 0 ? `Unread ${unreadCount}` : 'Unread'],
+            ['read', 'Read'],
+          ] as const
+        ).map(([key, label]) => (
+          <button key={key} type="button" role="tab" aria-selected={filter === key} className={`filter-chip${filter === key ? ' filter-chip--active' : ''}`} onClick={() => setFilter(key)}>
+            {label}
           </button>
-        )}
+        ))}
       </div>
 
-      <div className="filter-tabs">
-        <button
-          className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All
-        </button>
-        <button
-          className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
-          onClick={() => setFilter('unread')}
-        >
-          Unread {unreadCount > 0 && `(${unreadCount})`}
-        </button>
-        <button
-          className={`filter-tab ${filter === 'read' ? 'active' : ''}`}
-          onClick={() => setFilter('read')}
-        >
-          Read
-        </button>
-      </div>
-
-      <div className="notifications-content">
-        {loading ? (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Loading notifications...</p>
-          </div>
-        ) : notifications.length === 0 ? (
-          <div className="empty-state">
-            <span className="empty-icon">🔔</span>
-            <h3>No notifications</h3>
-            <p>
-              {filter === 'unread'
-                ? "You're all caught up! No unread notifications."
-                : filter === 'read'
-                  ? 'No read notifications yet.'
-                  : 'No notifications to display.'}
-            </p>
-          </div>
-        ) : (
-          <ul className="notification-list">
-            {notifications.map((notification) => (
-              <li
-                key={notification.id}
-                className={`notification-card ${!notification.read ? 'unread' : ''}`}
-              >
-                <div className="card-header">
-                  <span className="notification-icon">
-                    {getNotificationIcon(notification.type)}
-                  </span>
-                  <div className="card-title-section">
-                    <h3 className="card-title">{notification.title}</h3>
-                    <span className="card-time">{formatDate(notification.createdAt)}</span>
-                  </div>
-                  {!notification.read && (
-                    <button
-                      className="mark-read-button"
-                      onClick={() => handleMarkAsRead(notification.id!)}
-                      title="Mark as read"
-                    >
-                      ✓
-                    </button>
-                  )}
-                </div>
-
-                <p className="card-message">{notification.message}</p>
-
-                {notification.maintenanceRequestId && (
-                  <Link href={`/portal#maintenance-${notification.maintenanceRequestId}`}>
-                    <a className="view-request-link">View Maintenance Request →</a>
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {loading ? (
+        <div className="notification-center__loading">
+          <div className="spinner" aria-hidden="true"></div>
+          <p>Loading notifications...</p>
+        </div>
+      ) : notifications.length === 0 ? (
+        <section className="owner-card">
+          <div className="owner-card__head"><h2>No notifications</h2></div>
+          <p className="owner-empty">
+            {filter === 'unread'
+              ? 'Nothing unread. Maintenance updates will show up here as they happen.'
+              : filter === 'read'
+                ? 'Nothing has been marked read yet.'
+                : 'Maintenance updates will show up here as they happen.'}
+          </p>
+        </section>
+      ) : (
+        <ul className="owner-list notification-list">
+          {notifications.map((notification) => (
+            <li key={notification.id} className={`notification-card${!notification.read ? ' notification-card--unread' : ''}`}>
+              <span className="owner-list__icon" aria-hidden="true">{getNotificationIcon(notification.type)}</span>
+              <div className="owner-list__text">
+                <strong>{notification.title}</strong>
+                <span>{notification.message}</span>
+                <span className="notification-card__meta">
+                  {formatDate(notification.createdAt)}
+                  {notification.maintenanceRequestId ? (
+                    <>
+                      {' · '}
+                      <Link href={`/portal#maintenance-${notification.maintenanceRequestId}`}>View maintenance request</Link>
+                    </>
+                  ) : null}
+                </span>
+              </div>
+              {!notification.read && (
+                <button type="button" className="owner-small-button" onClick={() => handleMarkAsRead(notification.id!)}>
+                  Mark read
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <style jsx>{`
         .notification-center {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 2rem 1rem;
+          max-width: 880px;
         }
 
-        .center-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-        }
-
-        .center-header h1 {
-          margin: 0;
-          font-size: 2rem;
-          color: var(--color-text-secondary);
-        }
-
-        .mark-all-button {
-          padding: 0.625rem 1.25rem;
-          background-color: var(--color-primary);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 0.875rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .mark-all-button:hover:not(:disabled) {
-          background-color: var(--color-primary-dark);
-          transform: translateY(-1px);
-        }
-
-        .mark-all-button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .filter-tabs {
-          display: flex;
-          gap: 0.5rem;
-          margin-bottom: 1.5rem;
-          border-bottom: 2px solid var(--color-border);
-        }
-
-        .filter-tab {
-          padding: 0.75rem 1.25rem;
-          background: none;
-          border: none;
-          font-size: 0.938rem;
-          font-weight: 500;
+        .notification-center__loading {
+          display: grid;
+          justify-items: center;
+          gap: 0.75rem;
+          padding: 3rem 1rem;
           color: var(--color-muted);
-          cursor: pointer;
-          border-bottom: 2px solid transparent;
-          margin-bottom: -2px;
-          transition: all 0.2s;
         }
 
-        .filter-tab:hover {
-          color: var(--color-text);
-        }
-
-        .filter-tab.active {
-          color: var(--color-primary);
-          border-bottom-color: var(--color-primary);
-        }
-
-        .notifications-content {
-          min-height: 300px;
-        }
-
-        .loading-state,
-        .empty-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 4rem 2rem;
-          text-align: center;
+        .notification-center__loading p {
+          margin: 0;
         }
 
         .spinner {
-          width: 48px;
-          height: 48px;
+          width: 40px;
+          height: 40px;
           border: 4px solid var(--color-border);
           border-top-color: var(--color-primary);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
-          margin-bottom: 1rem;
         }
 
         @keyframes spin {
@@ -342,117 +257,22 @@ export default function NotificationCenter() {
           }
         }
 
-        .empty-icon {
-          font-size: 4rem;
-          margin-bottom: 1rem;
-          opacity: 0.3;
-        }
-
-        .empty-state h3 {
-          margin: 0 0 0.5rem;
-          color: var(--color-text-secondary);
-          font-size: 1.25rem;
-        }
-
-        .empty-state p {
-          margin: 0;
-          color: var(--color-muted);
-        }
-
-        .notification-list {
-          list-style: none;
-          margin: 0;
-          padding: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .notification-card {
+        .notification-list > :global(li) {
           background: var(--color-surface);
-          border-radius: 12px;
-          padding: 1.5rem;
-          border: 1px solid var(--color-border);
-          transition: all 0.2s;
-        }
-
-        .notification-card:hover {
-          border-color: var(--color-border);
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .notification-card.unread {
-          background-color: var(--color-primary-light);
-          border-color: var(--color-border);
-        }
-
-        .card-header {
-          display: flex;
           align-items: flex-start;
-          gap: 1rem;
-          margin-bottom: 0.75rem;
         }
 
-        .notification-icon {
-          font-size: 1.75rem;
-          flex-shrink: 0;
+        .notification-list > :global(li.notification-card--unread) {
+          border-color: rgba(124, 192, 255, 0.45);
         }
 
-        .card-title-section {
-          flex: 1;
-          min-width: 0;
+        .notification-card__meta {
+          margin-top: 0.15rem;
         }
 
-        .card-title {
-          margin: 0 0 0.25rem;
-          font-size: 1.063rem;
-          font-weight: 600;
-          color: var(--color-text-secondary);
-        }
-
-        .card-time {
-          font-size: 0.813rem;
-          color: var(--color-muted);
-        }
-
-        .mark-read-button {
-          padding: 0.375rem 0.75rem;
-          background: var(--color-primary);
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-size: 1rem;
-          font-weight: 700;
-          cursor: pointer;
-          flex-shrink: 0;
-          transition: all 0.2s;
-        }
-
-        .mark-read-button:hover {
-          background-color: var(--color-primary-dark);
-          transform: scale(1.1);
-        }
-
-        .card-message {
-          margin: 0 0 1rem 0;
-          color: var(--color-muted);
-          line-height: 1.6;
-          margin-left: 3.75rem;
-        }
-
-        .view-request-link {
-          display: inline-block;
+        .notification-card__meta :global(a) {
           color: var(--color-primary);
-          font-size: 0.875rem;
           font-weight: 600;
-          text-decoration: none;
-          margin-left: 3.75rem;
-          transition: all 0.2s;
-        }
-
-        .view-request-link:hover {
-          text-decoration: underline;
-          transform: translateX(4px);
         }
 
         @media (max-width: 640px) {
