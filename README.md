@@ -133,6 +133,12 @@ This app targets the `rental-tracker-app-2026` Firebase project. `.env.example` 
 
 ## 📊 Features in Development
 
+> **Road to production:** [`docs/PRODUCTION_PLAN.md`](docs/PRODUCTION_PLAN.md) is the
+> July 2026 plan for taking the MVP to a production launch across all four roles
+> (tenant, landlord, admin, super-admin): current-state audit, open decisions,
+> workstreams, phasing, and the launch gate checklist. Much of it has since shipped;
+> treat it as the record of the plan rather than a live checklist.
+
 - **Mobile App**: Native iOS and Android applications
 - **Property Analytics**: Advanced reporting and analytics dashboard
 - **Smart Home Integration**: IoT device management
