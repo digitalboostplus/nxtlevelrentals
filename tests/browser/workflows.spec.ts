@@ -30,7 +30,7 @@ test.beforeEach(async ({ context }) => {
   });
 });
 test('tenant uploads photo, submits maintenance and persists notification choices', async ({ page }) => {
-  await login(page, 'tenant', '/portal/');
+  await login(page, 'tenant', '/portal/maintenance/');
   await page.locator('#requestTitle').fill('Browser test leaking sink');
   await page.locator('#requestDescription').fill('The kitchen sink leaks when the tap is running.');
   await page.locator('#maintenance input[type=file]').setInputFiles({ name: 'photo.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jwZkAAAAASUVORK5CYII=', 'base64') });

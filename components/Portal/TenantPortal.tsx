@@ -1,5 +1,6 @@
 import { normalizeDate } from '@/lib/date';
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import TenantHome from '@/components/Portal/TenantHome';
 import PaymentHistory from '@/components/Portal/PaymentHistory';
 import MaintenanceRequests from '@/components/Portal/MaintenanceRequests';
@@ -13,7 +14,15 @@ import { lastRecordedPayment } from '@/lib/tenantPayments';
 
 type MaintenanceStatusFilter = 'Open' | 'In Progress' | 'Resolved' | 'All';
 
-export default function TenantPortal() {
+export type PortalView = 'home' | 'payments' | 'maintenance' | 'documents';
+
+const VIEW_COPY: Record<Exclude<PortalView, 'home'>, { title: string; sub: string }> = {
+  payments: { title: 'Payment history', sub: 'Every rent receipt we have recorded for your account.' },
+  maintenance: { title: 'Maintenance', sub: 'Send us a repair request and follow the ones already open.' },
+  documents: { title: 'Documents', sub: 'Your lease, addenda and renters insurance in one place.' },
+};
+
+export default function TenantPortal({ view = 'home' }: { view?: PortalView }) {
     const { user, profile } = useAuth();
 
     // Use our portal data hook
@@ -98,11 +107,44 @@ export default function TenantPortal() {
 
     if (loading) return <p role="status">Loading resident records...</p>;
     if (error) return <div>{requestSaved && <p role="status">Request received. Refresh the page to reload your records.</p>}<p role="alert">{error}</p></div>;
+    const homeProps = {
+        name: (profile?.displayName || '').split(' ')[0] || 'there',
+    };
+    if (view !== 'home') {
+        const copy = VIEW_COPY[view];
+        return (
+            <div className="tenant-portal tenant-portal--page">
+                <div className="owner-page tenant-portal__head">
+                    <div className="owner-page__head">
+                        <div>
+                            <p className="section-eyebrow">Tenant portal</p>
+                            <h1>{copy.title}</h1>
+                            <p className="owner-page__sub">{copy.sub}</p>
+                        </div>
+                        <div className="owner-page__actions">
+                            <Link href="/portal" className="outline-button">Back to home</Link>
+                        </div>
+                    </div>
+                </div>
+                {requestSaved && <p role="status" className="tenant-portal__status">Request received! We will follow up shortly.</p>}
+                {view === 'payments' ? <PaymentHistory payments={payments} /> : null}
+                {view === 'maintenance' ? (
+                    <>
+                        <MaintenanceRequestForm propertyId={lease?.propertyId || profile?.propertyIds?.[0]} onSubmit={handleRequestSubmit} submitting={requestSubmitting} />
+                        <MaintenanceRequests requests={maintenanceRequests} activeStatus={maintenanceFilter} onStatusChange={setMaintenanceFilter} />
+                    </>
+                ) : null}
+                {view === 'documents' ? (
+                    <LeaseDocuments documents={documents} lease={lease} rentersInsurance={profile?.rentersInsurance} onInsuranceUpdated={refresh} />
+                ) : null}
+            </div>
+        );
+    }
     return (
         <div className="tenant-portal">
             {requestSaved && <p role="status" className="tenant-portal__status">Request received! We will follow up shortly.</p>}
             <TenantHome
-                name={(profile?.displayName || '').split(' ')[0] || 'there'}
+                name={homeProps.name}
                 addressLine={[formatPropertyAddress(property?.address), lease?.unit || profile?.unit].filter(Boolean).join(' · ')}
                 rentAmount={lease?.monthlyRent ?? lease?.rentAmount ?? null}
                 currentBalance={realMetrics.currentBalance}
@@ -116,21 +158,6 @@ export default function TenantPortal() {
                 hasRentersInsurance={Boolean(profile?.rentersInsurance?.provider)}
                 onPayRent={() => setIsPayModalOpen(true)}
             />
-            <PaymentHistory payments={payments} />
-
-            <MaintenanceRequestForm propertyId={lease?.propertyId || profile?.propertyIds?.[0]} onSubmit={handleRequestSubmit} submitting={requestSubmitting} />
-            <MaintenanceRequests
-                requests={maintenanceRequests}
-                activeStatus={maintenanceFilter}
-                onStatusChange={setMaintenanceFilter}
-            />
-            <LeaseDocuments
-                documents={documents}
-                lease={lease}
-                rentersInsurance={profile?.rentersInsurance}
-                onInsuranceUpdated={refresh}
-            />
-
             <PayRentModal
                 isOpen={isPayModalOpen}
                 onClose={() => setIsPayModalOpen(false)}

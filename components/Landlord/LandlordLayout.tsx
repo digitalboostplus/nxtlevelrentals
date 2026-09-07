@@ -7,6 +7,8 @@ import Header from '@/components/Layout/Header';
 interface LandlordLayoutProps {
   children: ReactNode;
   title?: string;
+  /** Accepted for parity with SiteLayout; the consoles have no footer. */
+  footer?: 'full' | 'compact';
 }
 
 function OverviewIcon() {

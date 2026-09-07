@@ -211,7 +211,7 @@ export default function NotificationCenter() {
                   {notification.maintenanceRequestId ? (
                     <>
                       {' · '}
-                      <Link href={`/portal#maintenance-${notification.maintenanceRequestId}`}>View maintenance request</Link>
+                      <Link href={`/portal/maintenance#maintenance-${notification.maintenanceRequestId}`}>View maintenance request</Link>
                     </>
                   ) : null}
                 </span>

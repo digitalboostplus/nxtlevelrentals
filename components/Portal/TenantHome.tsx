@@ -130,10 +130,10 @@ export default function TenantHome({
           : `${daysUntilDue} day${daysUntilDue === 1 ? '' : 's'} away`;
 
   const actions = [
-    { label: 'Request a repair', href: '#maintenance', icon: <WrenchIcon /> },
+    { label: 'Request a repair', href: '/portal/maintenance', icon: <WrenchIcon /> },
     { label: 'Message us', href: `sms:${company.phoneTel}`, icon: <ChatIcon />, external: true },
-    { label: 'Documents', href: '#documents', icon: <FileIcon /> },
-    { label: 'Payment history', href: '#payments', icon: <CardIcon /> },
+    { label: 'Documents', href: '/portal/documents', icon: <FileIcon /> },
+    { label: 'Payment history', href: '/portal/payments', icon: <CardIcon /> },
   ];
 
   return (
@@ -167,9 +167,9 @@ export default function TenantHome({
               <button type="button" className="primary-button" onClick={onPayRent}>
                 {company.onlinePaymentsEnabled && amountDue !== null ? `Pay ${formatMoney(amountDue)}` : 'How to pay'}
               </button>
-              <a className="outline-button" href="#payments">
+              <Link className="outline-button" href="/portal/payments">
                 Payment history
-              </a>
+              </Link>
             </div>
             <div className="home__rent-foot">
               {lastPayment ? (
@@ -234,7 +234,7 @@ export default function TenantHome({
           <div className="card home__activity">
             <div className="home__card-head">
               <h2>Recent activity</h2>
-              <a href="#payments">See all</a>
+              <Link href="/portal/payments">See all</Link>
             </div>
             {activity.length === 0 ? (
               <p className="home__empty">Payments and repair updates will show up here.</p>
@@ -258,7 +258,7 @@ export default function TenantHome({
             <div className="card">
               <div className="home__card-head">
                 <h2>Documents</h2>
-                <a href="#documents">All documents</a>
+                <Link href="/portal/documents">All documents</Link>
               </div>
               <ul className="home__docs">
                 {documents.slice(0, 2).map((doc) => (
@@ -278,7 +278,7 @@ export default function TenantHome({
                       <strong>Lease agreement</strong>
                       <span>{hasPrivateLeaseDocuments ? 'Private documents available below.' : 'No lease documents recorded. Ask us for a copy.'}</span>
                     </div>
-                    {hasPrivateLeaseDocuments ? <a href="#documents">View</a> : null}
+                    {hasPrivateLeaseDocuments ? <Link href="/portal/documents">View</Link> : null}
                   </li>
                 ) : null}
                 <li className={hasRentersInsurance ? '' : 'home__docs-missing'}>
@@ -286,7 +286,7 @@ export default function TenantHome({
                     <strong>Renters insurance</strong>
                     <span>{hasRentersInsurance ? 'On file' : 'Not on file'}</span>
                   </div>
-                  <a href="#documents">{hasRentersInsurance ? 'View' : 'Upload'}</a>
+                  <Link href="/portal/documents">{hasRentersInsurance ? 'View' : 'Upload'}</Link>
                 </li>
               </ul>
             </div>
@@ -299,7 +299,7 @@ export default function TenantHome({
                   <a href={`tel:${company.phoneTel}`}>{company.phoneDisplay}</a>
                 </div>
                 <div>
-                  <span className="stat-card__label home__contact-emergency">Maintenance contact</span>
+                  <span className="stat-card__label home__contact-emergency">Emergency, any hour</span>
                   <a href={`tel:${emergency.tel}`}>{emergency.display}</a>
                 </div>
               </div>

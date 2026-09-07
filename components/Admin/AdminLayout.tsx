@@ -10,6 +10,8 @@ import { normalizeDate } from '@/lib/date';
 interface AdminLayoutProps {
   children: ReactNode;
   title?: string;
+  /** Accepted for parity with SiteLayout; the consoles have no footer. */
+  footer?: 'full' | 'compact';
 }
 
 function DashboardIcon() {

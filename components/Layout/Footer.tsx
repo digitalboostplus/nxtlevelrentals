@@ -1,7 +1,23 @@
 import Link from 'next/link';
 import { company } from '@/data/site';
 
-export default function Footer() {
+export default function Footer({ variant = 'full' }: { variant?: 'full' | 'compact' }) {
+  if (variant === 'compact') {
+    return (
+      <footer className="site-footer site-footer--compact" id="contact">
+        <div className="site-footer__inner site-footer__inner--compact">
+          <span>
+            {company.name} · {company.streetAddress}, {company.city}, {company.state} {company.postalCode}
+          </span>
+          <span className="site-footer__links">
+            <Link className="site-footer__link" href="/#local-guide">Local guide</Link>
+            <Link className="site-footer__link" href="/#maintenance">Request a repair</Link>
+            <Link className="site-footer__link" href="/login?next=/landlord">Landlord console</Link>
+          </span>
+        </div>
+      </footer>
+    );
+  }
   return (
     <footer className="site-footer" id="contact">
       <div className="site-footer__inner">
