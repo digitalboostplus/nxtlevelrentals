@@ -12,3 +12,11 @@ test('legacy Timestamp and Date values remain readable', () => {
   assert.equal(normalizeDate({ toDate: () => date })?.getTime(), date.getTime());
   assert.equal(formatLocalDate(date), formatLocalDate('2026-09-05'));
 });
+
+test('serialized Firestore timestamps from both SDK shapes become dates', () => {
+  const client = normalizeDate({ seconds: 1_757_200_000, nanoseconds: 500_000_000 });
+  const admin = normalizeDate({ _seconds: 1_757_200_000, _nanoseconds: 500_000_000 });
+  assert.equal(client?.getTime(), 1_757_200_000_500);
+  assert.equal(admin?.getTime(), 1_757_200_000_500);
+  assert.equal(normalizeDate({ seconds: 'soon' }), null);
+});

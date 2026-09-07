@@ -20,6 +20,16 @@ function parseCalendarDateString(value: string): Date | null {
 
 export function normalizeDate(value: unknown): Date | null {
   if (value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') return normalizeDate(value.toDate());
+  // Firestore timestamps arrive as {seconds, nanoseconds} from the client SDK and as
+  // {_seconds, _nanoseconds} once the Admin SDK has serialized them through an API route.
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const seconds = typeof record.seconds === 'number' ? record.seconds : typeof record._seconds === 'number' ? record._seconds : null;
+    if (seconds !== null) {
+      const nanos = typeof record.nanoseconds === 'number' ? record.nanoseconds : typeof record._nanoseconds === 'number' ? record._nanoseconds : 0;
+      return new Date(seconds * 1000 + Math.floor(nanos / 1e6));
+    }
+  }
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? null : value;
   }

@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { getAuthToken } from '@/lib/auth-client';
+import { normalizeDate } from '@/lib/date';
 import type { Notification } from '@/types/notifications';
 
 type FilterType = 'all' | 'unread' | 'read';
 
 export default function NotificationCenter() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const inConsole = role === 'admin' || role === 'super-admin';
+  const eyebrow = role === 'super-admin' ? 'Super admin · Notifications' : role === 'admin' ? 'Admin · Notifications' : role === 'landlord' ? 'Owner portal · Notifications' : 'Tenant portal · Notifications';
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<FilterType>('all');
   const [loading, setLoading] = useState(true);
@@ -107,11 +110,9 @@ export default function NotificationCenter() {
     }
   };
 
-  const formatDate = (timestamp: any): string => {
-    if (!timestamp) return '';
-
-    const time = typeof timestamp === 'number' ? timestamp : timestamp.seconds * 1000;
-    const date = new Date(time);
+  const formatDate = (timestamp: unknown): string => {
+    const date = normalizeDate(timestamp);
+    if (!date) return '';
 
     const today = new Date();
     const yesterday = new Date(today);
@@ -149,10 +150,10 @@ export default function NotificationCenter() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="owner-page notification-center">
+    <div className={`owner-page notification-center${inConsole ? '' : ' notification-center--site'}`}>
       <div className="owner-page__head">
         <div>
-          <p className="section-eyebrow">Notifications</p>
+          <p className="section-eyebrow">{eyebrow}</p>
           <h1>Notifications</h1>
           <p className="owner-page__sub">
             {unreadCount > 0 ? `${unreadCount} unread` : 'You are all caught up'} · maintenance updates land here as they happen.
@@ -228,6 +229,11 @@ export default function NotificationCenter() {
       <style jsx>{`
         .notification-center {
           max-width: 880px;
+        }
+
+        .notification-center--site {
+          margin: 0 auto;
+          max-width: var(--max-width);
         }
 
         .notification-center__loading {
