@@ -143,22 +143,19 @@ const LandlordExpensesPage: NextPageWithAuth = () => {
           <div className="owner-page__grid">
             <div className="owner-page__stack">
               <div className="expenses__filters">
-                <div className="owner-page__chips" role="tablist" aria-label="Filter expenses">
-                  <button type="button" role="tab" aria-selected={statusFilter === 'all'} className={`filter-chip${statusFilter === 'all' ? ' filter-chip--active' : ''}`} onClick={() => setStatusFilter('all')}>
-                    All {expenses.length}
+                <div className="owner-page__chips" role="group" aria-label="Filter expenses">
+                  <button type="button" aria-pressed={filterProperty === 'all'} className={`filter-chip${filterProperty === 'all' ? ' filter-chip--active' : ''}`} onClick={() => setFilterProperty('all')}>
+                    All properties {properties.length}
                   </button>
-                  <button type="button" role="tab" aria-selected={statusFilter === 'pending'} className={`filter-chip${statusFilter === 'pending' ? ' filter-chip--active' : ''}`} onClick={() => setStatusFilter('pending')}>
+                  {properties.map((p) => (
+                    <button key={p.id} type="button" aria-pressed={filterProperty === p.id} className={`filter-chip${filterProperty === p.id ? ' filter-chip--active' : ''}`} onClick={() => setFilterProperty(p.id)}>
+                      {p.name}
+                    </button>
+                  ))}
+                  <button type="button" aria-pressed={statusFilter === 'pending'} className={`filter-chip${statusFilter === 'pending' ? ' filter-chip--active' : ''}`} onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}>
                     Pending {pendingCount}
                   </button>
                 </div>
-                <select className="owner-select" value={filterProperty} onChange={(e) => setFilterProperty(e.target.value)} aria-label="Filter by property">
-                  <option value="all">All properties ({properties.length})</option>
-                  {properties.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               {filtered.length === 0 ? (
