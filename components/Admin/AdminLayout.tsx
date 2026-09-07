@@ -3,6 +3,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@/components/Layout/Header';
+import { useAuth } from '@/context/AuthContext';
+import { getAuthToken } from '@/lib/auth-client';
+import { normalizeDate } from '@/lib/date';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -74,9 +77,40 @@ function MaintenanceIcon() {
   );
 }
 
+type UsersSummary = { counts: Record<string, number>; lastSyncedAt: string | null };
+
+function relativeTime(iso: string | null, now: Date): string {
+  const date = iso ? normalizeDate(iso) : null;
+  if (!date) return 'Never';
+  const minutes = Math.max(0, Math.round((now.getTime() - date.getTime()) / 60000));
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) return `${hours} hr ago`;
+  return `${Math.round(hours / 24)} days ago`;
+}
+
 export default function AdminLayout({ children, title }: AdminLayoutProps) {
   const router = useRouter();
+  const { user, role } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [summary, setSummary] = useState<UsersSummary | null>(null);
+
+  // Sidebar footer: account counts and the last GoHighLevel sync, as designed.
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    void (async () => {
+      try {
+        const token = await getAuthToken();
+        const res = await fetch('/api/admin/users-summary', { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok && active) setSummary(await res.json());
+      } catch {
+        /* the footer is informational; leave it empty on failure */
+      }
+    })();
+    return () => { active = false; };
+  }, [user]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -157,8 +191,8 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           <div className="sidebar-header">
             <div>
-              <h2>Admin console</h2>
-              <span className="sidebar-subtitle">Property management</span>
+              <h2>Admin Menu</h2>
+              <span className="sidebar-subtitle">{role === 'super-admin' ? 'Super admin' : 'Admin'}</span>
             </div>
             <button
               className="close-button"
@@ -185,6 +219,26 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
               ))}
             </ul>
           </nav>
+          {summary ? (
+            <div className="sidebar-foot" aria-label="Account summary">
+              <div className="sidebar-foot__row">
+                <span>GHL sync</span>
+                <strong className={summary.lastSyncedAt ? 'sidebar-foot__ok' : ''}>{relativeTime(summary.lastSyncedAt, new Date())}</strong>
+              </div>
+              <div className="sidebar-foot__row">
+                <span>Users</span>
+                <strong>
+                  {[
+                    summary.counts['super-admin'] ? `${summary.counts['super-admin']} super` : '',
+                    summary.counts.admin ? `${summary.counts.admin} admin` : '',
+                    summary.counts.landlord ? `${summary.counts.landlord} owner${summary.counts.landlord === 1 ? '' : 's'}` : '',
+                    summary.counts.tenant ? `${summary.counts.tenant} tenant${summary.counts.tenant === 1 ? '' : 's'}` : '',
+                  ].filter(Boolean).join(' · ') || 'None yet'}
+                </strong>
+              </div>
+              <Link href="/admin/tenants" className="sidebar-foot__link">Manage tenants</Link>
+            </div>
+          ) : null}
         </aside>
 
         <main className="admin-content">
@@ -271,6 +325,41 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
           border-right: 1px solid var(--color-border);
           padding: 2rem 1rem;
           transition: transform var(--transition-base);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .sidebar-foot {
+          margin-top: auto;
+          padding: 0.85rem 1rem;
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          background: var(--color-background);
+          display: grid;
+          gap: 0.4rem;
+          font-size: 0.8rem;
+        }
+
+        .sidebar-foot__row {
+          display: flex;
+          justify-content: space-between;
+          gap: 0.75rem;
+          color: var(--color-muted);
+        }
+
+        .sidebar-foot__row strong {
+          color: var(--color-text);
+          font-weight: 600;
+          text-align: right;
+        }
+
+        .sidebar-foot__ok {
+          color: var(--tag-success-text) !important;
+        }
+
+        .sidebar-foot :global(.sidebar-foot__link) {
+          color: var(--color-primary);
+          font-weight: 600;
         }
 
         .sidebar-header {

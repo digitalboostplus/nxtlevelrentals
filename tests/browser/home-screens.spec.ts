@@ -162,7 +162,12 @@ test('admin dashboard shows rent status, the queue, public requests and work ord
   await expect(page.getByText('Front door lock sticking').first()).toBeVisible();
   await expect(page.getByText('Unmatched').first()).toBeVisible();
   await expect(page.getByRole('row').filter({ hasText: 'Dishwasher leak' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Unassigned/ })).toBeVisible();
+  await expect(page.getByText('GHL sync')).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/home-admin.png', fullPage: true });
+  await page.getByRole('button', { name: /^Unassigned/ }).click();
+  await expect(page.getByRole('row').filter({ hasText: 'Dishwasher leak' })).toHaveCount(0);
+  await page.getByRole('button', { name: /^All/ }).click();
 
   // Every inner admin page shares the shell and renders with seeded data.
   const inner: [string, RegExp, string][] = [
@@ -204,7 +209,7 @@ test('admin account page shares the admin console shell', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page, 'admin', '/account/');
   await expect(page.getByRole('heading', { level: 1, name: 'Account Settings' })).toBeVisible();
-  await expect(page.getByText('Admin console', { exact: true })).toBeVisible();
+  await expect(page.getByText('Admin Menu', { exact: true })).toBeVisible();
   await expect(page.getByText('Admin · Account')).toBeVisible();
   await expect(page.getByText('Access level')).toBeVisible();
   await expect(page.locator('body')).not.toContainText('lease agreement');
@@ -219,7 +224,8 @@ test('super admin sees the admin console with its own eyebrow', async ({ page })
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page, 'super', '/admin/');
   await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Browser\./ })).toBeVisible();
-  await expect(page.getByText('Super admin', { exact: true })).toBeVisible();
+  await expect(page.locator('.section-eyebrow', { hasText: /^Super admin$/ })).toBeVisible();
+  await expect(page.locator('.sidebar-subtitle', { hasText: /^Super admin$/ })).toBeVisible();
   await expect(page.getByText(/^Loading/)).toHaveCount(0);
   await expect(page.getByText("Today's queue")).toBeVisible();
   await page.screenshot({ path: '.agent-artifacts/home-super-admin.png', fullPage: true });
@@ -233,7 +239,7 @@ test('super admin sees the admin console with its own eyebrow', async ({ page })
   await page.screenshot({ path: '.agent-artifacts/super-admin-account.png', fullPage: true });
   await page.goto('/notifications/');
   await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
-  await expect(page.getByText('Admin console', { exact: true })).toBeVisible();
+  await expect(page.getByText('Admin Menu', { exact: true })).toBeVisible();
   await expect(page.getByText(/^Loading/)).toHaveCount(0);
   await page.screenshot({ path: '.agent-artifacts/super-admin-notifications.png', fullPage: true });
 });
