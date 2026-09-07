@@ -106,10 +106,8 @@ export default function NotificationDropdown({
     <div className="notification-dropdown">
       <div className="dropdown-header">
         <h3>Notifications</h3>
-        <Link href="/notifications">
-          <a className="view-all-link" onClick={onClose}>
-            View All
-          </a>
+        <Link href="/notifications" className="view-all-link" onClick={onClose}>
+          View all
         </Link>
       </div>
 

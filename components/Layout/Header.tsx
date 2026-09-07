@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import NotificationBell from '@/components/Notifications/NotificationBell';
 
 function MenuIcon() {
   return (
@@ -92,6 +93,7 @@ export default function Header() {
               >
                 My Account
               </Link>
+              <NotificationBell />
               <button type="button" className="ghost-button" onClick={() => void handleSignOut()}>
                 Sign out
               </button>
@@ -140,6 +142,9 @@ export default function Header() {
                 </Link>
                 <Link href="/account" className="mobile-nav__link" onClick={closeMobileMenu}>
                   My Account
+                </Link>
+                <Link href="/notifications" className="mobile-nav__link" onClick={closeMobileMenu}>
+                  Notifications
                 </Link>
                 <button type="button" className="mobile-nav__button" onClick={() => void handleSignOut()}>
                   Sign out

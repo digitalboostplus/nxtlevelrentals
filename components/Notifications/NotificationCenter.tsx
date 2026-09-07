@@ -9,7 +9,7 @@ type FilterType = 'all' | 'unread' | 'read';
 
 export default function NotificationCenter() {
   const { user, role } = useAuth();
-  const inConsole = role === 'admin' || role === 'super-admin';
+  const inConsole = role === 'admin' || role === 'super-admin' || role === 'landlord';
   const eyebrow = role === 'super-admin' ? 'Super admin · Notifications' : role === 'admin' ? 'Admin · Notifications' : role === 'landlord' ? 'Owner portal · Notifications' : 'Tenant portal · Notifications';
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<FilterType>('all');
