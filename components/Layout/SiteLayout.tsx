@@ -4,9 +4,11 @@ import Footer from './Footer';
 
 type SiteLayoutProps = {
   children: ReactNode;
+  /** 'compact' is the one-line footer the portal designs use; the landing page keeps the full one. */
+  footer?: 'full' | 'compact';
 };
 
-export default function SiteLayout({ children }: SiteLayoutProps) {
+export default function SiteLayout({ children, footer = 'full' }: SiteLayoutProps) {
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -16,7 +18,7 @@ export default function SiteLayout({ children }: SiteLayoutProps) {
       <main id="main-content" tabIndex={-1}>
         {children}
       </main>
-      <Footer />
+      <Footer variant={footer} />
     </>
   );
 }

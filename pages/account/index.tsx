@@ -279,7 +279,7 @@ const AccountPage: NextPageWithAuth = () => {
   };
 
   return (
-    <Shell title="Account">
+    <Shell title="Account" footer="compact">
       <Head>
         <title>Account Settings - Next Level Rentals</title>
       </Head>

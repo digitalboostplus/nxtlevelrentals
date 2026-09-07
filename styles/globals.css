@@ -744,6 +744,32 @@ img {
   border-top: 1px solid var(--color-border);
 }
 
+.site-footer--compact {
+  background: var(--color-background);
+  padding: 1.25rem 1.5rem;
+}
+
+.site-footer__inner--compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem 2rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.site-footer__inner--compact .site-footer__links {
+  display: flex;
+  gap: 0.5rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+.site-footer__inner--compact .site-footer__link {
+  display: inline;
+  margin: 0;
+}
+
 .site-footer__inner {
   max-width: var(--max-width);
   margin: 0 auto;
@@ -1625,6 +1651,24 @@ img {
 .tenant-portal .section--muted {
   background: transparent;
 }
+.tenant-portal--page {
+  padding-bottom: 1rem;
+}
+
+.tenant-portal__head {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 0;
+}
+
+.tenant-portal--page .section {
+  padding-top: 2rem;
+}
+
+.tenant-portal--page .section + .section {
+  padding-top: 0;
+}
+
 .tenant-portal__status {
   max-width: var(--max-width);
   margin: 1rem auto 0;

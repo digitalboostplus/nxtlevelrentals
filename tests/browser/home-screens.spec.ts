@@ -83,9 +83,23 @@ test('tenant home shows rent, attention items, activity and contact', async ({ p
   await expect(page.getByText('Renters insurance not on file')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Recent activity' })).toBeVisible();
   await expect(page.getByText('Rent payment received, $1,200.00').first()).toBeVisible();
+  await expect(page.getByText('Emergency, any hour')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('Submit a maintenance request');
   await page.screenshot({ path: '.agent-artifacts/home-tenant.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: '.agent-artifacts/home-tenant-phone.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  // The four tiles lead to the portal pages; each carries the shared head.
+  for (const [path, heading, shot] of [
+    ['/portal/payments/', 'Payment history', 'tenant-payments'],
+    ['/portal/maintenance/', 'Maintenance', 'tenant-maintenance'],
+    ['/portal/documents/', 'Documents', 'tenant-documents'],
+  ] as const) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Back to home' })).toBeVisible();
+    await page.screenshot({ path: `.agent-artifacts/${shot}.png`, fullPage: true });
+  }
 });
 
 test('empty tenant account shows missing records without sample claims', async ({ page }) => {
@@ -95,8 +109,11 @@ test('empty tenant account shows missing records without sample claims', async (
   await expect(page.getByText('No balance recorded', { exact: true })).toBeVisible();
   await expect(page.getByText('Not available', { exact: true })).toBeVisible();
   await expect(page.getByText('No payments recorded yet.', { exact: true })).toBeVisible();
+  await page.goto('/portal/payments/');
   await expect(page.getByText('No payments recorded.', { exact: true })).toBeVisible();
+  await page.goto('/portal/documents/');
   await expect(page.getByText('No insurance policy recorded. Check your signed lease for coverage requirements.')).toBeVisible();
+  await page.goto('/portal/');
   await expect(page.locator('body')).not.toContainText('good standing');
   await expect(page.locator('body')).not.toContainText('Julia Chen');
   await expect(page.locator('body')).not.toContainText('$1,450');

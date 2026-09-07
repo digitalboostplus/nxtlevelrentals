@@ -10,7 +10,7 @@ const NotificationsPage: NextPageWithAuth = () => {
   const { role } = useAuth();
   const Shell = role === 'admin' || role === 'super-admin' ? AdminLayout : role === 'landlord' ? LandlordLayout : SiteLayout;
   return (
-    <Shell title="Notifications">
+    <Shell title="Notifications" footer="compact">
       <Head>
         <title>Notifications - Next Level Rentals</title>
         <meta
