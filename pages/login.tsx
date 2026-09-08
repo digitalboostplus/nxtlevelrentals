@@ -3,10 +3,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FormEvent, useEffect, useState } from 'react';
-import { AuthErrorCodes } from 'firebase/auth';
+import { AuthErrorCodes, sendPasswordResetEmail } from 'firebase/auth';
 import SiteLayout from '@/components/Layout/SiteLayout';
 import { useAuth } from '@/context/AuthContext';
 import { company } from '@/data/site';
+import { getFirebaseAuth } from '@/lib/firebase';
 
 const errorMap: Record<string, string> = {
   [AuthErrorCodes.INVALID_PASSWORD]: 'Incorrect email or password. Try again.',
@@ -45,6 +46,8 @@ export default function LoginPage({ next }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
 
   const redirectTarget = typeof router.query.next === 'string' ? router.query.next : next ?? '/portal';
   const audience: 'landlord' | 'admin' | 'tenant' = redirectTarget.startsWith('/landlord')
@@ -101,6 +104,25 @@ export default function LoginPage({ next }: LoginPageProps) {
       console.error('Authentication failed', err);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setResetMessage(null);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setResetMessage('Enter your email address above, then choose Set or reset password.');
+      return;
+    }
+    setResetting(true);
+    try {
+      await sendPasswordResetEmail(getFirebaseAuth(), email.trim());
+      setResetMessage('If an account exists for this email, you will receive a link to choose your password. Check your inbox and spam folder.');
+    } catch (err: any) {
+      setResetMessage(err.code === AuthErrorCodes.USER_DELETED
+        ? 'If an account exists for this email, you will receive a link to choose your password. Check your inbox and spam folder.'
+        : 'Unable to request a reset right now. Please try again later or contact the office.');
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -176,8 +198,12 @@ export default function LoginPage({ next }: LoginPageProps) {
             </form>
             <div className="auth-card__foot">
               <p className="owner-note">
-                Forgot your password? Call or text <a href={`tel:${company.phoneTel}`}>{company.phoneDisplay}</a> and we will send a reset link.
+                First time signing in or forgot your password? Enter your email above to receive a link to choose your password.
               </p>
+              <button type="button" className="secondary-button" onClick={handlePasswordReset} disabled={resetting || submitting || loading}>
+                {resetting ? 'Requesting link...' : 'Set or reset password'}
+              </button>
+              {resetMessage ? <p className="owner-note" role="status">{resetMessage}</p> : null}
               <p className="owner-note">
                 Just need to report a repair? <Link href="/#maintenance">Use the public form</Link>, no sign-in needed.
               </p>
