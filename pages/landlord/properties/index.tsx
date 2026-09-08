@@ -21,7 +21,7 @@ const monthStatusTag: Record<MonthStatus, string> = {
 };
 
 const LandlordPropertiesPage: NextPageWithAuth = () => {
-  const { properties, leases, ledger, expenses, payouts, maintenanceRequests, loading, error, refresh } = useLandlordData();
+  const { properties, tenants, leases, ledger, expenses, payouts, maintenanceRequests, loading, error, refresh } = useLandlordData();
   const now = useMemo(() => new Date(), []);
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
@@ -41,13 +41,14 @@ const LandlordPropertiesPage: NextPageWithAuth = () => {
           .filter((d): d is Date => Boolean(d))
           .sort((a, b) => a.getTime() - b.getTime())[0] ?? null;
         const openWork = maintenanceRequests.filter((request) => request.propertyId === property.id && isOpenRequest(request)).length;
-        const tenant = propertyLeases.length > 1 ? `${propertyLeases.length} tenants` : propertyLeases[0]?.tenantName || (leased ? 'Tenant' : 'Vacant');
+        const residents = tenants.filter(t => t.propertyId === property.id);
+        const tenant = residents.length ? residents.map(t => t.name).join(', ') : propertyLeases.length > 1 ? `${propertyLeases.length} tenants` : propertyLeases[0]?.tenantName || (leased ? 'Tenant' : 'Vacant');
         const monthRow = monthByProperty.get(property.id);
         const monthStatus: MonthStatus = monthRow?.monthStatus ?? (leased ? 'none' : 'vacant');
         const monthLabel = monthRow?.monthLabel ?? (leased ? 'No charge posted' : 'Vacant');
         return { property, leased, rent, leaseEnd, openWork, tenant, monthStatus, monthLabel, attention: !leased || openWork > 0 || monthStatus === 'late' };
       });
-  }, [properties, leases, ledger, expenses, payouts, maintenanceRequests, now]);
+  }, [properties, tenants, leases, ledger, expenses, payouts, maintenanceRequests, now]);
 
   const counts = {
     all: rows.length,
