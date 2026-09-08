@@ -1694,6 +1694,9 @@ img {
   gap: 0.5rem;
 }
 .account-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   text-align: left;
   padding: 0.85rem 1.25rem;
   border-radius: var(--radius-md);
