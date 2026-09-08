@@ -26,6 +26,12 @@ export async function loadOwnerData(db: Firestore, uid: string, propertyId?: str
     landlordExpenses: ['propertyId', 'propertyName', 'landlordId', 'amount', 'category', 'expenseType', 'date', 'paidDate', 'status', 'vendor', 'description', 'fileIds']
   };
   const collected: Record<string, DocumentData[]> = {};
+  const tenantLists = await Promise.all(propertyDocs.map(d => db.collection('ghlTenantDirectory').where('propertyId', '==', d.id).get()));
+  const tenants = tenantLists.flatMap(list => list.docs.filter(d => d.data().status === 'active').map(d => {
+    const entry = d.data();
+    return { id: d.id, ...pick(entry, ['propertyId', 'name', 'email', 'phone']),
+      tenantId: entry.linkedUserUid || entry.legacyUserIds?.[0] || null };
+  }));
   await Promise.all(Object.entries(fields).map(async ([collection, keys]) => {
     const lists = await Promise.all(propertyDocs.map(d => db.collection(collection).where('propertyId', '==', d.id).get()));
     collected[collection] = lists.flatMap(list => list.docs.filter(d => !d.data().landlordId || d.data().landlordId === uid)
@@ -41,7 +47,7 @@ export async function loadOwnerData(db: Firestore, uid: string, propertyId?: str
   for (const p of payouts.docs) {
     if (typeof p.data().netAmount !== 'number' || !Number.isFinite(p.data().netAmount)) throw new Error('Invalid payout amount');
   }
-  return serializeOwnerData({ properties, leases: collected.leases, ledger: collected.ledger,
+  return serializeOwnerData({ properties, tenants, leases: collected.leases, ledger: collected.ledger,
     maintenanceRequests: collected.maintenanceRequests, expenses: collected.landlordExpenses,
     managementFee: profile.data()?.managementFee || null,
     payouts: payouts.docs.map(d => ({ id: d.id, processedDate: d.data().processedDate || d.data().completedDate || null, ...pick(d.data(), ['netAmount', 'rentCollected', 'managementFees', 'totalDeductions', 'payoutMethod', 'status', 'scheduledDate', 'processedDate', 'completedDate', 'payoutPeriodStart', 'payoutPeriodEnd']) })),

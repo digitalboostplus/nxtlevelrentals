@@ -23,10 +23,11 @@ const paymentTag = (status: string) => (['paid', 'completed', 'succeeded'].inclu
 const LandlordPropertyDetailPage: NextPageWithAuth = () => {
   const router = useRouter();
   const propertyId = typeof router.query.id === 'string' ? router.query.id : '';
-  const { properties, leases, maintenanceRequests, payments, ledger, expenses, loading, error, refresh } = useLandlordData(propertyId || undefined);
+  const { properties, tenants, leases, maintenanceRequests, payments, ledger, expenses, loading, error, refresh } = useLandlordData(propertyId || undefined);
 
   const property = properties.find((p) => p.id === propertyId) || null;
   const activeLeases = leases.filter((lease) => lease.isActive && lease.status === 'active');
+  const residents = tenants.filter(tenant => tenant.propertyId === propertyId);
   const openRequests = maintenanceRequests.filter(isOpenRequest);
   const statement = ownerStatement(ledger, expenses, 'all-time');
 
@@ -152,6 +153,21 @@ const LandlordPropertyDetailPage: NextPageWithAuth = () => {
 
         <div className="owner-page__grid">
           <div className="owner-page__stack">
+            <section className="owner-card" aria-label="Current tenants">
+              <h2>Current tenants</h2>
+              {residents.length ? (
+                <ul className="owner-list">
+                  {residents.map(tenant => (
+                    <li key={tenant.id}>
+                      <div className="owner-list__text">
+                        <strong>{tenant.name}</strong>
+                        <span>{[tenant.email, tenant.phone].filter(Boolean).join(' · ') || 'Contact details not on file'}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="owner-empty">No residents are listed for this property.</p>}
+            </section>
             <div className="owner-card">
               <h2>{activeLeases.length > 1 ? 'Current leases' : 'Current lease'}</h2>
               {activeLeases.length === 0 ? (

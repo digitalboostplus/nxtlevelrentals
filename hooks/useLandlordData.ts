@@ -10,12 +10,13 @@ export interface OwnerDocument {
   fileSize?: number; updatedAt?: string; createdAt?: string; downloadable: boolean;
 }
 export interface OwnerRecords {
+  tenants: { id: string; propertyId: string; name: string; email?: string | null; phone?: string | null; tenantId: string | null }[];
   properties: Property[]; leases: Lease[]; ledger: FinancialRecord[];
   expenses: LandlordExpense[]; payouts: Payout[]; documents: OwnerDocument[];
   maintenanceRequests: MaintenanceRequest[];
   managementFee: { type: string; amount: number } | null;
 }
-const empty: OwnerRecords = { properties: [], leases: [], ledger: [], expenses: [], payouts: [], documents: [], maintenanceRequests: [], managementFee: null };
+const empty: OwnerRecords = { properties: [], tenants: [], leases: [], ledger: [], expenses: [], payouts: [], documents: [], maintenanceRequests: [], managementFee: null };
 export function useLandlordData(propertyId?: string) {
   const { user, profile } = useAuth();
   const sequence = useRef(0);
@@ -34,7 +35,7 @@ export function useLandlordData(propertyId?: string) {
       if (!res.ok) throw new Error(data.message || 'Owner records unavailable');
       // Refuse to present corrupt financial data as a zero balance.
       ownerStatement(data.ledger, data.expenses, 'all-time');
-      if (request === sequence.current) setState({ records: data, ownerUid: user.uid, loading: false, error: null });
+      if (request === sequence.current) setState({ records: { ...data, tenants: data.tenants || [] }, ownerUid: user.uid, loading: false, error: null });
     } catch (error) {
       if (request === sequence.current) setState({ records: empty, ownerUid: user.uid, loading: false, error: error instanceof Error ? error.message : 'Owner records unavailable' });
     }
@@ -51,7 +52,10 @@ export function useLandlordData(propertyId?: string) {
     totalRentCollected: statement.rent, totalExpenses: statement.totalExpenses, netIncome: statement.net,
     pendingPayouts: records.payouts.filter(p => p.status === 'scheduled').reduce((sum, p) => sum + moneyToCents(p.netAmount), 0) / 100,
     propertyCount: records.properties.length,
-    tenantCount: new Set(records.leases.filter(l => l.isActive && l.status === 'active').map(l => l.tenantId)).size
+    tenantCount: new Set([
+      ...records.tenants.map(t => t.tenantId || `directory:${t.id}`),
+      ...records.leases.filter(l => l.isActive && l.status === 'active').map(l => l.tenantId),
+    ]).size
   } : null;
   return { ...records, payments, summary, loading: state.loading || (!state.error && state.ownerUid !== user?.uid), error: state.error, refresh: fetchData };
 }

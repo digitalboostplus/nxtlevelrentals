@@ -145,6 +145,8 @@ test('two owners receive only their own projections and cannot forge fee or docu
     await auth.createUser({ uid: owner, email: `${owner}@example.com`, password: 'Emulator-only-123!' });
     const suffix = owner.slice(-1);
     await db.doc(`properties/property-${suffix}`).set({ name: suffix, landlordId: owner, status: 'occupied' });
+    await db.doc(`ghlTenantDirectory/resident-${suffix}`).set({ propertyId: `property-${suffix}`, status: 'active', name: `Resident ${suffix}`, email: `${suffix}@example.com`, phone: '555-0100', linkedUserUid: `tenant-${suffix}`, landlordId: 'owner-a', warnings: ['private-import-warning'], sourcePayload: 'private-source-data' });
+    await db.doc(`ghlTenantDirectory/inactive-${suffix}`).set({ propertyId: `property-${suffix}`, status: 'inactive', name: 'Inactive resident' });
     await db.doc(`landlords/${owner}`).set({ managementFee: { type: 'percentage', amount: 7 }, bankingInformation: { accountNumber: 'private-bank-data' } });
     await db.doc(`leases/lease-${suffix}`).set({ landlordId: owner, propertyId: `property-${suffix}`, tenantId: `tenant-${suffix}`, tenantName: suffix, isActive: true, status: 'active' });
     await db.doc(`ledger/rent-${suffix}`).set({ propertyId: `property-${suffix}`, tenantId: `tenant-${suffix}`, type: 'payment', category: 'rent', status: 'completed', amount: 1000, date: '2026-08-01' });
@@ -155,6 +157,11 @@ test('two owners receive only their own projections and cannot forge fee or docu
   const data = await loadOwnerData(db, 'owner-a');
   assert.deepEqual(data.properties.map((p: any) => p.id), ['property-a']);
   assert.deepEqual(data.leases.map((l: any) => l.tenantId), ['tenant-a']);
+  assert.deepEqual(data.tenants, [{ id: 'resident-a', propertyId: 'property-a', name: 'Resident a', email: 'a@example.com', phone: '555-0100', tenantId: 'tenant-a' }]);
+  assert.deepEqual((await loadOwnerData(db, 'owner-b')).tenants.map((t: any) => t.id), ['resident-b']);
+  assert.deepEqual((await loadOwnerData(db, 'owner-a', 'property-a')).tenants, data.tenants);
+  assert.ok(!JSON.stringify(data).includes('private-source-data'));
+  assert.ok(!JSON.stringify(data).includes('private-import-warning'));
   assert.deepEqual(data.ledger.map((l: any) => l.id), ['rent-a']);
   assert.deepEqual(data.payouts.map((p: any) => p.id), ['payout-a']);
   assert.deepEqual(data.documents.map((d: any) => d.id), ['document-a']);
@@ -164,7 +171,7 @@ test('two owners receive only their own projections and cannot forge fee or docu
   await assert.rejects(loadOwnerData(db, 'tenant'), /Owner access/);
   const client = env.authenticatedContext('owner-a').firestore();
   await assertSucceeds(getDocs(query(collection(client, 'properties'), where('landlordId', '==', 'owner-a'))));
-  for (const path of ['properties/property-b', 'leases/lease-b', 'ledger/rent-b', 'landlordExpenses/expense-b', 'payouts/payout-b', 'landlordDocuments/document-b', 'users/tenant']) {
+  for (const path of ['properties/property-b', 'leases/lease-b', 'ledger/rent-b', 'landlordExpenses/expense-b', 'payouts/payout-b', 'landlordDocuments/document-b', 'users/tenant', 'ghlTenantDirectory/resident-a']) {
     await assertFails(getDoc(doc(client, path)));
   }
   await assertFails(updateDoc(doc(client, 'landlords/owner-a'), { managementFee: { type: 'percentage', amount: 0 } }));
@@ -178,7 +185,7 @@ test('two owners receive only their own projections and cannot forge fee or docu
   assert.ok(!(await loadOwnerData(db, 'owner-a')).leases.some((l: any) => l.id === 'stale'));
   await db.doc('users/empty-owner').set({ role: 'landlord' });
   const emptyOwner = await loadOwnerData(db, 'empty-owner');
-  for (const field of ['properties', 'leases', 'ledger', 'expenses', 'payouts', 'documents']) assert.deepEqual(emptyOwner[field], []);
+  for (const field of ['properties', 'tenants', 'leases', 'ledger', 'expenses', 'payouts', 'documents']) assert.deepEqual(emptyOwner[field], []);
 });
 
 test('owner files download through authenticated API; wrong-owner and anonymous access fail', async () => {
