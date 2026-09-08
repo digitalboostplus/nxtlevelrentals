@@ -75,6 +75,21 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Approved contractors and their message history. Written only by the
+    // reviewed server routes; staff read them in the admin console.
+    match /contractors/{contractorId} {
+      allow read: if isAdmin();
+      allow write: if false;
+      match /contactLog/{logId} {
+        allow read: if isAdmin();
+        allow write: if false;
+      }
+    }
+    match /settings/{settingId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     match /fileAttachments/{fileId} {
       allow read, write: if false;
     }

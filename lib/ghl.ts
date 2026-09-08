@@ -269,3 +269,108 @@ export async function sendGHLEmail(
     body: { type: 'Email', contactId, subject, html },
   });
 }
+
+// ---------------------------------------------------------------------------
+// Contractor messaging: SMS, workflow enrollment (voicemail drops and calls),
+// contact assignment, and the lookups the setup screen needs.
+// ---------------------------------------------------------------------------
+
+/** CARIV rejects bursts with 403s; every multi-call flow waits this long between calls. */
+export const GHL_THROTTLE_MS = 500;
+
+export function ghlThrottle(ms: number = GHL_THROTTLE_MS): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/** Send an SMS to a contact from the location's default number. */
+export async function sendGHLSMS(
+  contactId: string,
+  message: string
+): Promise<{ messageId?: string; conversationId?: string }> {
+  const data = await ghlFetch('/conversations/messages', {
+    method: 'POST',
+    body: { type: 'SMS', contactId, message },
+  });
+  return { messageId: data.messageId || data.msg || data.id, conversationId: data.conversationId };
+}
+
+/**
+ * Enroll a contact in a published workflow. This is how the app triggers the
+ * Voicemail and Call actions, which are not reachable as plain API messages.
+ */
+export async function enrollGHLContactInWorkflow(
+  contactId: string,
+  workflowId: string,
+  eventStartTime: string = new Date().toISOString()
+): Promise<any> {
+  return ghlFetch(`/contacts/${contactId}/workflow/${workflowId}`, {
+    method: 'POST',
+    body: { eventStartTime },
+  });
+}
+
+/** Point a contact at a GHL user; the workflow Call action rings that user first. */
+export async function setGHLContactAssignedUser(contactId: string, userId: string): Promise<void> {
+  await ghlFetch(`/contacts/${contactId}`, {
+    method: 'PUT',
+    body: { assignedTo: userId },
+  });
+}
+
+/** Update basic fields on an existing contact. Undefined keys are left alone. */
+export async function updateGHLContact(
+  contactId: string,
+  input: { firstName?: string; lastName?: string; phone?: string; email?: string; companyName?: string }
+): Promise<void> {
+  const body: Record<string, unknown> = { ...input };
+  Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
+  if (!Object.keys(body).length) return;
+  await ghlFetch(`/contacts/${contactId}`, { method: 'PUT', body });
+}
+
+/** Create a contact that has no email (upsert needs one). Returns the id. */
+export async function createGHLContact(input: {
+  firstName?: string;
+  lastName?: string;
+  phone: string;
+  email?: string;
+  companyName?: string;
+  tags?: string[];
+}): Promise<string> {
+  const { locationId } = getCredentials();
+  const body: Record<string, unknown> = { locationId, ...input };
+  Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
+  const data = await ghlFetch('/contacts/', { method: 'POST', body });
+  return data.contact?.id || data.id;
+}
+
+/** Find a contact by exact E.164 phone. */
+export async function getGHLContactByPhone(phone: string): Promise<GHLContact | null> {
+  const { locationId } = getCredentials();
+  const data = await ghlFetch('/contacts/search', {
+    method: 'POST',
+    body: { locationId, query: phone },
+  });
+  const digits = phone.replace(/\D/g, '');
+  const contact = data.contacts?.find((c: any) => String(c.phone || '').replace(/\D/g, '') === digits);
+  return contact ? parseGHLContact(contact) : null;
+}
+
+export type GHLWorkflowSummary = { id: string; name: string; status: string };
+export type GHLUserSummary = { id: string; name: string; email: string };
+
+export async function listGHLWorkflows(): Promise<GHLWorkflowSummary[]> {
+  const { locationId } = getCredentials();
+  const data = await ghlFetch(`/workflows/?locationId=${encodeURIComponent(locationId || '')}`);
+  return (data.workflows || []).map((w: any) => ({ id: w.id, name: w.name, status: w.status || '' }));
+}
+
+export async function listGHLUsers(): Promise<GHLUserSummary[]> {
+  const { locationId } = getCredentials();
+  const data = await ghlFetch(`/users/?locationId=${encodeURIComponent(locationId || '')}`);
+  return (data.users || []).map((u: any) => ({
+    id: u.id,
+    name: u.name || [u.firstName, u.lastName].filter(Boolean).join(' '),
+    email: u.email || '',
+  }));
+}

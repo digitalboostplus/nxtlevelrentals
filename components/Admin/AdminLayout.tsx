@@ -65,6 +65,20 @@ function PaymentsIcon() {
   );
 }
 
+function ContractorsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 20v-1a4 4 0 014-4h4a4 4 0 014 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM17 8h4M19 6v4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function MaintenanceIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -137,6 +151,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     { label: 'Tenants', path: '/admin/tenants', icon: <TenantsIcon /> },
     { label: 'Rent Payments', path: '/admin/rent-payments', icon: <PaymentsIcon /> },
     { label: 'Maintenance', path: '/admin/maintenance', icon: <MaintenanceIcon /> },
+    { label: 'Contractors', path: '/admin/contractors', icon: <ContractorsIcon /> },
     { label: 'Operations', path: '/admin/operations', icon: <MaintenanceIcon /> }
   ];
 
@@ -146,6 +161,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     properties: 'Properties',
     tenants: 'Tenants',
     maintenance: 'Maintenance',
+    contractors: 'Contractors',
     'rent-payments': 'Rent Payments',
     ledger: 'Ledger'
   };

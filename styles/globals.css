@@ -1869,6 +1869,11 @@ img {
   border-color: var(--color-primary);
 }
 
+.owner-small-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .owner-photo {
   height: 150px;
   background: linear-gradient(160deg, var(--color-surface-elevated), var(--color-surface));
