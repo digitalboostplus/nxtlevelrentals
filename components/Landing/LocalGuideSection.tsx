@@ -79,8 +79,7 @@ export default function LocalGuideSection() {
       <style jsx>{`
         .guide {
           padding: clamp(3.5rem, 7vw, 5rem) 1.5rem;
-          background: var(--color-background);
-          border-top: 1px solid var(--color-border);
+          background: var(--color-surface);
           scroll-margin-top: var(--header-height);
         }
 
@@ -123,7 +122,7 @@ export default function LocalGuideSection() {
         .guide__tabs :global(.filter-chip) {
           flex: none;
           min-height: 44px;
-          background: var(--color-surface);
+          background: var(--color-background);
         }
 
         .guide__tabs :global(.filter-chip--active) {
@@ -144,8 +143,7 @@ export default function LocalGuideSection() {
         .guide-card {
           padding: 1.5rem;
           border-radius: var(--radius-lg);
-          background: var(--color-surface);
-          box-shadow: var(--shadow-sm);
+          background: var(--color-background);
           border: 1px solid var(--color-border);
           display: grid;
           gap: 0.5rem;
