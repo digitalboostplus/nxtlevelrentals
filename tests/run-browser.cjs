@@ -21,7 +21,7 @@ const log = fs.createWriteStream('.agent-artifacts/browser-server.log'); server.
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     if (!ready) throw new Error('Browser test server did not become ready');
-    const test = spawn(process.execPath, ['node_modules/@playwright/test/cli.js', 'test'], { env, stdio: 'inherit', windowsHide: true });
+    const test = spawn(process.execPath, ['node_modules/@playwright/test/cli.js', 'test', ...process.argv.slice(2)], { env, stdio: 'inherit', windowsHide: true });
     process.exitCode = await new Promise(resolve => test.on('exit', code => resolve(code ?? 1)));
   } catch (error) { console.error(error.message); process.exitCode = 1; }
   finally { if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(server.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' }); else server.kill('SIGTERM'); log.end(); }

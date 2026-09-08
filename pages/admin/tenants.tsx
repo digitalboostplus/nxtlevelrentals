@@ -1,18 +1,16 @@
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/Admin/AdminLayout';
+import GhlTenantDirectory from '@/components/Admin/GhlTenantDirectory';
 import { adminUtils } from '@/lib/firebase-utils';
-import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import type { NextPageWithAuth } from '../_app';
 
 const TenantsPage: NextPageWithAuth = () => {
-    const { user } = useAuth();
     const [tenants, setTenants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [syncing, setSyncing] = useState<string | null>(null); // 'all' or a tenant id
-    const [syncMessage, setSyncMessage] = useState<string | null>(null);
-    const [importing, setImporting] = useState(false);
+    const [represented, setRepresented] = useState<string[]>([]);
+    const [loadError, setLoadError] = useState('');
 
     const fetchTenants = async () => {
         try {
@@ -20,6 +18,7 @@ const TenantsPage: NextPageWithAuth = () => {
             setTenants(data);
         } catch (error) {
             console.error('Error fetching tenants:', error);
+            setLoadError('Could not load app profiles.');
         } finally {
             setLoading(false);
         }
@@ -28,59 +27,6 @@ const TenantsPage: NextPageWithAuth = () => {
     useEffect(() => {
         fetchTenants();
     }, []);
-
-    // Import active tenants (contacts tagged "active") from GoHighLevel as new
-    // tenant records. De-duplicates by email; best-effort links to a property.
-    const handleImport = async () => {
-        if (!user) return;
-        setImporting(true);
-        setSyncMessage(null);
-        try {
-            const token = await user.getIdToken();
-            const res = await fetch('/api/admin/import-tenants', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ tag: 'active' }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || 'Import failed');
-            setSyncMessage(data.message || 'Import complete');
-            await fetchTenants();
-        } catch (err: any) {
-            setSyncMessage(err.message || 'Import failed');
-        } finally {
-            setImporting(false);
-        }
-    };
-
-    // Pull tenant data from GoHighLevel. Pass a uid to sync one, omit for all.
-    const handleSync = async (uid?: string) => {
-        if (!user) return;
-        setSyncing(uid || 'all');
-        setSyncMessage(null);
-        try {
-            const token = await user.getIdToken();
-            const res = await fetch('/api/admin/sync-ghl', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(uid ? { uid } : { all: true }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || 'Sync failed');
-            setSyncMessage(data.message || 'Sync complete');
-            await fetchTenants();
-        } catch (err: any) {
-            setSyncMessage(err.message || 'Sync failed');
-        } finally {
-            setSyncing(null);
-        }
-    };
 
     return (
         <AdminLayout title="Tenants">
@@ -95,26 +41,10 @@ const TenantsPage: NextPageWithAuth = () => {
                         <h1>Tenants</h1>
                         <p className="owner-page__sub">Manage your residents and view their payment history.</p>
                     </div>
-                    <div className="owner-page__actions">
-                        <button
-                            type="button"
-                            className="outline-button"
-                            onClick={handleImport}
-                            disabled={importing || syncing !== null}
-                        >
-                            {importing ? 'Importing…' : 'Import active from GHL'}
-                        </button>
-                        <button
-                            type="button"
-                            className="primary-button"
-                            onClick={() => handleSync()}
-                            disabled={importing || syncing !== null}
-                        >
-                            {syncing === 'all' ? 'Syncing…' : 'Sync all from GHL'}
-                        </button>
-                    </div>
                 </div>
-                {syncMessage && <p className="owner-note" role="status">{syncMessage}</p>}
+                <GhlTenantDirectory onRepresented={setRepresented} />
+                <h2>Other app profiles</h2>
+                {loadError && <p role="alert">{loadError}</p>}
 
                 {loading ? (
                     <div className="loading-state">Loading tenants...</div>
@@ -131,7 +61,7 @@ const TenantsPage: NextPageWithAuth = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {tenants.map((tenant) => (
+                                {tenants.filter(tenant => !tenant.ghlContactId && !represented.includes(tenant.id)).map((tenant) => (
                                     <tr key={tenant.id}>
                                         <td>
                                             <div className="tenant-info">
@@ -143,7 +73,7 @@ const TenantsPage: NextPageWithAuth = () => {
                                         <td>{tenant.unit || 'Not assigned'}</td>
                                         <td>{tenant.email}</td>
                                         <td>
-                                            <span className="tag tag--success">Active</span>
+                                            <span className="tag">App profile</span>
                                         </td>
                                         <td>
                                             <div className="owner-page__chips">
@@ -153,13 +83,7 @@ const TenantsPage: NextPageWithAuth = () => {
                                             <Link href={`/admin/ledger/${tenant.id}`} className="view-link">
                                                 Ledger
                                             </Link>
-                                            <button
-                                                className="sync-link"
-                                                onClick={() => handleSync(tenant.id)}
-                                                disabled={syncing !== null}
-                                            >
-                                                {syncing === tenant.id ? 'Syncing…' : 'Sync GHL'}
-                                            </button>
+
                                             </div>
                                         </td>
                                     </tr>
@@ -171,6 +95,10 @@ const TenantsPage: NextPageWithAuth = () => {
             </div>
 
             <style jsx>{`
+        .owner-page {
+          min-width: 0;
+          grid-template-columns: minmax(0, 1fr);
+        }
 
         .tenant-name {
           font-weight: 600;

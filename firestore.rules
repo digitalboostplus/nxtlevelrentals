@@ -31,6 +31,15 @@ service cloud.firestore {
         get(/databases/$(database)/documents/properties/$(propertyId)).data.landlordId == request.auth.uid;
     }
 
+    // Directory membership grants no portal access. Writes use the reviewed server workflow.
+    match /ghlTenantDirectory/{entryId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /ghlImportRuns/{runId} {
+      allow read, write: if false;
+    }
+
     // Users collection - users can read/write their own data
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
