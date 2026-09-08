@@ -119,14 +119,14 @@ export default function NotificationCenter() {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      return `Today at ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      return `Yesterday at ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
     } else {
       return date.toLocaleString([], {
         month: 'short',
         day: 'numeric',
-        hour: '2-digit',
+        hour: 'numeric',
         minute: '2-digit'
       });
     }
@@ -228,7 +228,8 @@ export default function NotificationCenter() {
 
       <style jsx>{`
         .notification-center {
-          max-width: 880px;
+          /* Console pages span the content column; the site shell variant below caps and centres itself. */
+          max-width: none;
         }
 
         .notification-center--site {
