@@ -105,7 +105,7 @@ export default function LoginPage({ next }: LoginPageProps) {
   };
 
   return (
-    <SiteLayout>
+    <SiteLayout footer="compact">
       <Head>
         <title>{audience === 'landlord' ? 'Landlord console sign in' : audience === 'admin' ? 'Admin sign in' : 'Sign in'} - Next Level Rentals</title>
         <meta
@@ -189,7 +189,7 @@ export default function LoginPage({ next }: LoginPageProps) {
         .auth {
           max-width: var(--max-width);
           margin: 0 auto;
-          min-height: calc(100vh - var(--header-height) - 320px);
+          min-height: calc(100vh - var(--header-height) - 72px);
         }
 
         .auth__grid {
