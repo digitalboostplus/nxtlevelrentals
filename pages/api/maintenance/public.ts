@@ -9,6 +9,7 @@ import {
   upsertGHLContact,
 } from '@/lib/ghl';
 import { maintenanceCategories, maintenancePriorities } from '@/data/site';
+import { normalizePhoneE164 } from '@/lib/phone';
 
 // Public (unauthenticated) maintenance intake from the landing page.
 //
@@ -48,13 +49,6 @@ function rateLimited(key: string): boolean {
   return hits.length > RATE_MAX;
 }
 
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, '');
-  if (digits.length === 10) return `+1${digits}`;
-  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
-  return digits ? `+${digits}` : '';
-}
-
 function clean(value: unknown, max: number): string {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
 }
@@ -81,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const name = clean(body.name, 120);
   const phoneRaw = clean(body.phone, 40);
-  const phone = normalizePhone(phoneRaw);
+  const phone = normalizePhoneE164(phoneRaw);
   const email = clean(body.email, 160).toLowerCase();
   const address = clean(body.address, 240);
   const category = clean(body.category, 40);

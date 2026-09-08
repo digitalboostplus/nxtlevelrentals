@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import assert from 'node:assert/strict';
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -52,6 +53,8 @@ test.beforeAll(async () => {
 
   await db.doc('landlordExpenses/browser-expense-paid').set({ landlordId: 'browser-landlord', propertyId: 'browser-property', propertyName: 'Browser Property', expenseType: 'repair', category: 'repair', amount: 250, vendor: 'Ace Plumbing', description: 'Faucet cartridge', date: monthStart, paidDate: monthStart, status: 'paid', createdAt: new Date(), updatedAt: new Date() });
   await db.doc('landlordExpenses/browser-expense-pending').set({ landlordId: 'browser-landlord', propertyId: 'browser-vacant', propertyName: 'Browser Vacant', expenseType: 'repair', category: 'repair', amount: 900, vendor: 'Roof Co', description: 'roof patch', date: now, status: 'pending', createdAt: new Date(), updatedAt: new Date() });
+  await db.doc('contractors/browser-contractor-pat').set({ name: 'Pat Plumber', company: 'Pat & Sons', trades: ['plumbing', 'hvac'], phone: '+18165550142', email: 'pat@example.com', notes: '', status: 'approved', consentAt: Date.now(), ghlContactId: 'dry-run:browser-contractor-pat', ghlSyncError: null, ghlSyncedAt: Date.now(), searchKey: 'pat plumber pat & sons +18165550142 18165550142 pat@example.com', createdAt: Date.now(), updatedAt: Date.now(), createdBy: 'browser-admin', updatedBy: 'browser-admin' });
+  await db.doc('contractors/browser-contractor-roof').set({ name: 'Rae Roofer', company: 'Roof Co', trades: ['roofing'], phone: '+18165550143', email: '', notes: '', status: 'approved', consentAt: null, ghlContactId: null, ghlSyncError: null, ghlSyncedAt: null, searchKey: 'rae roofer roof co +18165550143 18165550143', createdAt: Date.now(), updatedAt: Date.now(), createdBy: 'browser-admin', updatedBy: 'browser-admin' });
   await db.doc('payouts/browser-payout').set({ landlordId: 'browser-landlord', amount: 950, netAmount: 700, status: 'scheduled', scheduledDate: daysFromNow(9), createdAt: new Date() });
 });
 
@@ -61,6 +64,7 @@ test.afterAll(async () => {
     'leases/browser-lease', 'ledger/browser-charge-now', 'ledger/browser-charge-last', 'ledger/browser-payment-last', 'payments/browser-payment-last',
     'maintenanceRequests/browser-open', 'maintenanceRequests/browser-done', 'maintenanceRequests/browser-public',
     'landlordExpenses/browser-expense-paid', 'landlordExpenses/browser-expense-pending', 'payouts/browser-payout', 'properties/browser-vacant',
+    'contractors/browser-contractor-pat', 'contractors/browser-contractor-roof',
   ];
   await Promise.all(seeded.map(path => db.doc(path).delete()));
 });
@@ -197,6 +201,7 @@ test('admin dashboard shows rent status, the queue, public requests and work ord
     ['/admin/ledger/browser-tenant/', /Browser tenant/, 'admin-ledger'],
     ['/admin/leases/new/', /Create Lease Agreement/, 'admin-lease-new'],
     ['/admin/operations/', /Delivery and upload operations/, 'admin-operations'],
+    ['/admin/contractors/', /Approved contractors/, 'admin-contractors'],
     ['/admin/properties/browser-property/edit/', /Edit property and units/, 'admin-property-edit'],
   ];
   for (const [path, heading, shot] of inner) {
@@ -205,6 +210,48 @@ test('admin dashboard shows rent status, the queue, public requests and work ord
     await expect(page.getByText(/^Loading/)).toHaveCount(0);
     await page.screenshot({ path: `.agent-artifacts/${shot}.png`, fullPage: true });
   }
+});
+
+test('contractors page filters the roster, explains disabled actions and adds a contractor', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page, 'admin', '/admin/contractors/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Approved contractors' })).toBeVisible();
+  await expect(page.getByText('GoHighLevel sending is off in this environment.')).toBeVisible();
+  await expect(page.getByRole('row').filter({ hasText: 'Pat Plumber' })).toBeVisible();
+  const roofRow = page.getByRole('row').filter({ hasText: 'Rae Roofer' });
+  await expect(roofRow).toBeVisible();
+  await expect(roofRow.getByRole('button', { name: 'Text' })).toBeDisabled();
+  await expect(roofRow.getByRole('button', { name: 'Retry sync' })).toBeVisible();
+  await expect(roofRow.getByText('Not synced to GoHighLevel yet')).toBeVisible();
+  await page.getByRole('button', { name: 'Roofing' }).click();
+  await expect(page.getByRole('row').filter({ hasText: 'Pat Plumber' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'All trades' }).click();
+  await page.getByLabel('Search contractors').fill('pat');
+  await expect(page.getByRole('row').filter({ hasText: 'Rae Roofer' })).toHaveCount(0);
+  await expect(page.getByRole('row').filter({ hasText: 'Pat Plumber' })).toBeVisible();
+  await page.getByLabel('Search contractors').fill('');
+  await page.screenshot({ path: '.agent-artifacts/admin-contractors-filtered.png', fullPage: true });
+
+  await roofRow.getByRole('button', { name: 'Retry sync' }).click();
+  await expect(page.getByText('Rae Roofer is synced to GoHighLevel.')).toBeVisible();
+  await expect(roofRow.getByRole('button', { name: 'Text' })).toBeEnabled();
+
+  await page.getByRole('button', { name: 'Add contractor' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Name').fill('Browser Electric');
+  await dialog.getByLabel('Mobile').fill('816-555-0177');
+  await expect(dialog.getByText('Saved as +18165550177')).toBeVisible();
+  await dialog.getByLabel('Electrical').check();
+  await dialog.getByLabel('Has agreed to automated texts and voicemail from NXT Level Mgmt').check();
+  await dialog.getByRole('button', { name: 'Add contractor' }).click();
+  await expect(page.getByText('Browser Electric saved.')).toBeVisible();
+  const added = page.getByRole('row').filter({ hasText: 'Browser Electric' });
+  await expect(added.getByText('On file')).toBeVisible();
+  await expect(added.getByText('Synced')).toBeVisible();
+  const snapshot = await db.collection('contractors').where('name', '==', 'Browser Electric').get();
+  assert.equal(snapshot.size, 1);
+  assert.equal(snapshot.docs[0].data().phone, '+18165550177');
+  await Promise.all(snapshot.docs.map(d => d.ref.delete()));
 });
 
 test('landlord account page shares the owner console shell', async ({ page }) => {
