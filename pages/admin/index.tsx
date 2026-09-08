@@ -61,7 +61,7 @@ const statusLabel: Record<string, string> = {
 };
 
 const AdminPage: NextPageWithAuth = () => {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const [rentStatuses, setRentStatuses] = useState<RentStatus[]>([]);
   const [requests, setRequests] = useState<PublicRequest[]>([]);
   const [leases, setLeases] = useState<Lease[]>([]);
@@ -71,8 +71,6 @@ const AdminPage: NextPageWithAuth = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isRecordPaymentModalOpen, setIsRecordPaymentModalOpen] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const refreshData = useCallback(async () => {
     try {
@@ -101,28 +99,6 @@ const AdminPage: NextPageWithAuth = () => {
   useEffect(() => {
     void refreshData();
   }, [refreshData]);
-
-  const handleSync = async () => {
-    if (!user) return;
-    setSyncing(true);
-    setSyncMessage(null);
-    try {
-      const token = await user.getIdToken();
-      const res = await fetch('/api/admin/sync-ghl', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ all: true }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Sync failed');
-      setSyncMessage(data.message || 'Sync complete');
-      await refreshData();
-    } catch (error) {
-      setSyncMessage(error instanceof Error ? error.message : 'Sync failed');
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   const now = useMemo(() => new Date(), []);
 
@@ -282,19 +258,13 @@ const AdminPage: NextPageWithAuth = () => {
             <button type="button" className="outline-button" onClick={() => setIsAddModalOpen(true)}>
               Add tenant
             </button>
-            <button type="button" className="outline-button" onClick={() => void handleSync()} disabled={syncing}>
-              {syncing ? 'Syncing...' : 'Sync from GHL'}
-            </button>
+            <Link className="outline-button" href="/admin/tenants/">Review GHL import</Link>
             <button type="button" className="primary-button" onClick={() => setIsRecordPaymentModalOpen(true)}>
               Record payment
             </button>
           </div>
         </div>
-        {syncMessage ? (
-          <p className="admin-home__sync" role="status">
-            {syncMessage}
-          </p>
-        ) : null}
+
 
         {loading ? (
           <LoadingState message="Loading the dashboard..." />
