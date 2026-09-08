@@ -12,6 +12,23 @@ type AccountTab = 'profile' | 'vehicles' | 'pets' | 'payments' | 'notifications'
 
 
 
+function Icon({ d }: { d: string }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
+  );
+}
+const ICON = {
+  user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  car: 'M5 17h14M6 17l1.5-5h9L18 17M5 17v2h2v-2M17 17v2h2v-2M8 12l1-3h6l1 3',
+  paw: 'M12 21c-3 0-5-2-5-4s2-3 5-3 5 1 5 3-2 4-5 4zM6 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM15 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+  card: 'M3 5h18v14H3zM3 10h18',
+  bell: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0',
+  bank: 'M3 10h18M5 10v9M19 10v9M9 10v9M15 10v9M3 19h18M12 3l9 7H3z',
+  alert: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
+};
+
 const AccountPage: NextPageWithAuth = () => {
   const { user, profile, role, refreshProfile } = useAuth();
   const audience: 'tenant' | 'landlord' | 'admin' = role === 'landlord' ? 'landlord' : role === 'admin' || role === 'super-admin' ? 'admin' : 'tenant';
@@ -303,7 +320,7 @@ const AccountPage: NextPageWithAuth = () => {
                   onClick={() => setActiveTab('profile')}
                   className={`account-nav__item${activeTab === 'profile' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'profile' ? 'page' : undefined}
                 >
-                  👤 {copy.profileTab}
+                  <Icon d={ICON.user} /> {copy.profileTab}
                 </button>
 
                 {role === 'tenant' && (
@@ -313,7 +330,7 @@ const AccountPage: NextPageWithAuth = () => {
                       onClick={() => setActiveTab('vehicles')}
                       className={`account-nav__item${activeTab === 'vehicles' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'vehicles' ? 'page' : undefined}
                     >
-                      🚗 Vehicles & Parking
+                      <Icon d={ICON.car} /> Vehicles & Parking
                     </button>
 
                     <button
@@ -321,7 +338,7 @@ const AccountPage: NextPageWithAuth = () => {
                       onClick={() => setActiveTab('pets')}
                       className={`account-nav__item${activeTab === 'pets' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'pets' ? 'page' : undefined}
                     >
-                      🐾 Registered Pets
+                      <Icon d={ICON.paw} /> Registered Pets
                     </button>
 
                     <button
@@ -329,7 +346,7 @@ const AccountPage: NextPageWithAuth = () => {
                       onClick={() => setActiveTab('payments')}
                       className={`account-nav__item${activeTab === 'payments' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'payments' ? 'page' : undefined}
                     >
-                      💳 Payment Methods
+                      <Icon d={ICON.card} /> Payment Methods
                     </button>
                   </>
                 )}
@@ -339,117 +356,84 @@ const AccountPage: NextPageWithAuth = () => {
                   onClick={() => setActiveTab('notifications')}
                   className={`account-nav__item${activeTab === 'notifications' ? ' account-nav__item--active' : ''}`} aria-current={activeTab === 'notifications' ? 'page' : undefined}
                 >
-                  🔔 Notifications
+                  <Icon d={ICON.bell} /> Notifications
                 </button>
               </nav>
             </aside>
 
             {/* Main Content Pane */}
             <main className="owner-card account-page__main">
-              {/* Profile Tab */}
               {activeTab === 'profile' && (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div className="account-pane">
+                  <div className="owner-card__head">
                     <div>
-                      <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Personal Information</h2>
-                      <p style={{ color: 'var(--color-muted)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>{copy.profileSub}</p>
+                      <h2>Personal Information</h2>
+                      <p className="owner-note">{copy.profileSub}</p>
                     </div>
-                    <button
-                      type="button"
-                      className="primary-button"
-                      onClick={() => setIsEditProfileOpen(true)}
-                      style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}
-                    >
+                    <button type="button" className="owner-small-button owner-small-button--primary" onClick={() => setIsEditProfileOpen(true)}>
                       Edit Profile
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
-                    <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Legal Name</span>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.displayName || copy.nameFallback}</div>
+                  <div className="owner-page__stats">
+                    <div className="stat-card">
+                      <div className="stat-card__label">Full Legal Name</div>
+                      <div className="stat-card__value stat-card__value--text">{profile?.displayName || copy.nameFallback}</div>
                     </div>
-
-                    <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email Address</span>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{user?.email}</div>
+                    <div className="stat-card">
+                      <div className="stat-card__label">Email Address</div>
+                      <div className="stat-card__value stat-card__value--text">{user?.email}</div>
                     </div>
-
-                    <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Phone</span>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.phoneNumber || 'Not provided'}</div>
+                    <div className="stat-card">
+                      <div className="stat-card__label">Contact Phone</div>
+                      <div className="stat-card__value stat-card__value--text">{profile?.phoneNumber || 'Not provided'}</div>
                     </div>
-
                     {audience === 'tenant' ? (
-                      <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit / Apartment</span>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{profile?.unit || 'Assigned via Lease'}</div>
+                      <div className="stat-card">
+                        <div className="stat-card__label">Unit / Apartment</div>
+                        <div className="stat-card__value stat-card__value--text">{profile?.unit || 'Assigned via Lease'}</div>
                       </div>
                     ) : audience === 'landlord' ? (
-                      <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Homes we manage for you</span>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{homesCount > 0 ? (homesCount === 1 ? '1 home' : homesCount + ' homes') : 'See My Properties'}</div>
+                      <div className="stat-card">
+                        <div className="stat-card__label">Homes we manage for you</div>
+                        <div className="stat-card__value stat-card__value--text">{homesCount > 0 ? (homesCount === 1 ? '1 home' : homesCount + ' homes') : 'See My Properties'}</div>
                       </div>
                     ) : (
-                      <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Access level</span>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.35rem' }}>{role === 'super-admin' ? 'Super admin' : 'Admin'}</div>
+                      <div className="stat-card">
+                        <div className="stat-card__label">Access level</div>
+                        <div className="stat-card__value stat-card__value--text">{role === 'super-admin' ? 'Super admin' : 'Admin'}</div>
                       </div>
                     )}
                   </div>
 
-                  {/* Emergency Contact Section */}
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.75rem' }}>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{audience === 'tenant' ? '🚨 ' : ''}{copy.contactTitle}</h3>
-                    <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
-                      {copy.contactSub}
-                    </p>
+                  {/* Emergency / backup contact */}
+                  <div className="account-pane__section">
+                    <div className="owner-card__head">
+                      <div>
+                        <h2>{copy.contactTitle}</h2>
+                        <p className="owner-note">{copy.contactSub}</p>
+                      </div>
+                      {profile?.emergencyContact?.name ? (
+                        <button type="button" className="owner-small-button" onClick={() => setIsEditProfileOpen(true)}>Edit</button>
+                      ) : null}
+                    </div>
 
                     {profile?.emergencyContact?.name ? (
-                      <div style={{
-                        background: 'var(--color-background)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '8px',
-                        padding: '1.25rem',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                        gap: '1rem',
-                      }}>
-                        <div>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>Contact Name</span>
-                          <strong style={{ display: 'block', fontSize: '1rem' }}>{profile.emergencyContact.name}</strong>
-                        </div>
-                        <div>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>Relationship</span>
-                          <strong style={{ display: 'block', fontSize: '1rem' }}>{profile.emergencyContact.relationship || 'Emergency Contact'}</strong>
-                        </div>
-                        <div>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>Phone</span>
-                          <strong style={{ display: 'block', fontSize: '1rem' }}>{profile.emergencyContact.phone}</strong>
-                        </div>
-                        <div>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>Email</span>
-                          <strong style={{ display: 'block', fontSize: '1rem' }}>{profile.emergencyContact.email || 'N/A'}</strong>
-                        </div>
+                      <div className="owner-kv">
+                        <div><span>Contact name</span><span>{profile.emergencyContact.name}</span></div>
+                        <div><span>Relationship</span><span>{profile.emergencyContact.relationship || 'Emergency contact'}</span></div>
+                        <div><span>Phone</span><span>{profile.emergencyContact.phone}</span></div>
+                        <div><span>Email</span><span>{profile.emergencyContact.email || 'Not provided'}</span></div>
                       </div>
                     ) : (
-                      <div style={{
-                        padding: '1.5rem',
-                        borderRadius: '8px',
-                        border: '1px dashed var(--color-border)',
-                        textAlign: 'center',
-                        color: 'var(--color-muted)',
-                      }}>
-                        <p style={{ margin: '0 0 0.75rem' }}>{copy.contactEmpty}</p>
-                        <button
-                          type="button"
-                          className="outline-button"
-                          onClick={() => setIsEditProfileOpen(true)}
-                          style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}
-                        >
-                          {copy.contactAdd}
-                        </button>
-                      </div>
+                      <>
+                        <p className="owner-empty">{copy.contactEmpty}</p>
+                        <div>
+                          <button type="button" className="owner-small-button" onClick={() => setIsEditProfileOpen(true)}>
+                            {copy.contactAdd}
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -457,275 +441,110 @@ const AccountPage: NextPageWithAuth = () => {
 
               {/* Vehicles & Parking Tab */}
               {activeTab === 'vehicles' && (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div className="account-pane">
+                  <div className="owner-card__head">
                     <div>
-                      <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Registered Vehicles & Parking</h2>
-                      <p style={{ color: 'var(--color-muted)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>
-                        Register vehicles to prevent towing and ensure authorized resident parking permits.
-                      </p>
+                      <h2>Registered Vehicles & Parking</h2>
+                      <p className="owner-note">Register vehicles to prevent towing and ensure authorized resident parking permits.</p>
                     </div>
-                    <button
-                      type="button"
-                      className="primary-button"
-                      onClick={() => setIsAddVehicleOpen(true)}
-                      style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}
-                    >
-                      + Register Vehicle
+                    <button type="button" className="owner-small-button owner-small-button--primary" onClick={() => setIsAddVehicleOpen(true)}>
+                      Register vehicle
                     </button>
                   </div>
 
                   {(!profile?.vehicles || profile.vehicles.length === 0) ? (
-                    <div style={{
-                      padding: '2.5rem',
-                      borderRadius: '8px',
-                      border: '1px dashed var(--color-border)',
-                      textAlign: 'center',
-                      color: 'var(--color-muted)',
-                    }}>
-                      <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🚗</div>
-                      <h3 style={{ margin: '0 0 0.5rem', color: 'var(--color-text)' }}>No Vehicles Registered</h3>
-                      <p style={{ margin: '0 0 1rem', fontSize: '0.9rem' }}>
-                        Add your vehicle make, model, and license plate number so property security recognizes your car.
-                      </p>
-                      <button
-                        type="button"
-                        className="outline-button"
-                        onClick={() => setIsAddVehicleOpen(true)}
-                      >
-                        Register New Vehicle
-                      </button>
-                    </div>
+                    <>
+                      <p className="owner-empty">No vehicles registered. Add your vehicle make, model and license plate so property security recognizes your car.</p>
+                      <div>
+                        <button type="button" className="owner-small-button" onClick={() => setIsAddVehicleOpen(true)}>Register new vehicle</button>
+                      </div>
+                    </>
                   ) : (
-                    <div style={{ display: 'grid', gap: '1rem' }}>
+                    <ul className="owner-list">
                       {profile.vehicles.map((v, idx) => (
-                        <div key={idx} style={{
-                          background: 'var(--color-background)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '10px',
-                          padding: '1.25rem 1.5rem',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          flexWrap: 'wrap',
-                          gap: '1rem',
-                        }}>
-                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            <div style={{
-                              width: '44px',
-                              height: '44px',
-                              borderRadius: '8px',
-                              background: 'var(--tag-info-bg)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '1.3rem',
-                            }}>
-                              🚘
-                            </div>
-                            <div>
-                              <h4 style={{ margin: 0, fontSize: '1.1rem' }}>{v.year} {v.make} {v.model}</h4>
-                              <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-muted)' }}>
-                                Plate: <strong style={{ color: 'var(--color-text)' }}>{v.licensePlate}</strong> {v.state ? `(${v.state})` : ''} • Color: {v.color || 'Standard'}
-                              </p>
-                            </div>
+                        <li key={idx}>
+                          <span className="owner-list__icon" aria-hidden="true"><Icon d={ICON.car} /></span>
+                          <div className="owner-list__text">
+                            <strong>{[v.year, v.make, v.model].filter(Boolean).join(' ')}</strong>
+                            <span>Plate {v.licensePlate}{v.state ? ` (${v.state})` : ''} · {v.color || 'Color not recorded'}</span>
                           </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <span className="tag tag--success" style={{ fontSize: '0.75rem' }}>Permit Active</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveVehicle(idx)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'var(--color-error)',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                              }}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
+                          <span className="tag tag--success">Permit active</span>
+                          <button type="button" className="owner-small-button" onClick={() => handleRemoveVehicle(idx)}>Remove</button>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   )}
                 </div>
               )}
 
               {/* Pets Tab */}
               {activeTab === 'pets' && (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div className="account-pane">
+                  <div className="owner-card__head">
                     <div>
-                      <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Registered Household Pets</h2>
-                      <p style={{ color: 'var(--color-muted)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>
-                        Ensure all pets are registered on your lease file in compliance with pet policies.
-                      </p>
+                      <h2>Registered Household Pets</h2>
+                      <p className="owner-note">Keep every pet on your lease file so maintenance staff can enter safely.</p>
                     </div>
-                    <button
-                      type="button"
-                      className="primary-button"
-                      onClick={() => setIsAddPetOpen(true)}
-                      style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}
-                    >
-                      + Register Pet
+                    <button type="button" className="owner-small-button owner-small-button--primary" onClick={() => setIsAddPetOpen(true)}>
+                      Register pet
                     </button>
                   </div>
 
                   {(!profile?.pets || profile.pets.length === 0) ? (
-                    <div style={{
-                      padding: '2.5rem',
-                      borderRadius: '8px',
-                      border: '1px dashed var(--color-border)',
-                      textAlign: 'center',
-                      color: 'var(--color-muted)',
-                    }}>
-                      <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🐾</div>
-                      <h3 style={{ margin: '0 0 0.5rem', color: 'var(--color-text)' }}>No Pets Registered</h3>
-                      <p style={{ margin: '0 0 1rem', fontSize: '0.9rem' }}>
-                        If you have dogs, cats, or service animals, keep them registered so maintenance personnel can enter safely.
-                      </p>
-                      <button
-                        type="button"
-                        className="outline-button"
-                        onClick={() => setIsAddPetOpen(true)}
-                      >
-                        Register Pet
-                      </button>
-                    </div>
+                    <>
+                      <p className="owner-empty">No pets registered. If you have dogs, cats or service animals, register them here.</p>
+                      <div>
+                        <button type="button" className="owner-small-button" onClick={() => setIsAddPetOpen(true)}>Register pet</button>
+                      </div>
+                    </>
                   ) : (
-                    <div style={{ display: 'grid', gap: '1rem' }}>
+                    <ul className="owner-list">
                       {profile.pets.map((pet, idx) => (
-                        <div key={idx} style={{
-                          background: 'var(--color-background)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '10px',
-                          padding: '1.25rem 1.5rem',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          flexWrap: 'wrap',
-                          gap: '1rem',
-                        }}>
-                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            <div style={{
-                              width: '44px',
-                              height: '44px',
-                              borderRadius: '8px',
-                              background: 'var(--tag-success-bg)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '1.3rem',
-                            }}>
-                              {pet.type === 'cat' ? '🐱' : pet.type === 'dog' ? '🐶' : '🐾'}
-                            </div>
-                            <div>
-                              <h4 style={{ margin: 0, fontSize: '1.1rem' }}>{pet.name}</h4>
-                              <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-muted)' }}>
-                                {pet.breed || 'Breed'} • {pet.type.toUpperCase()} • {pet.weight ? `${pet.weight} lbs` : 'Standard'}
-                              </p>
-                            </div>
+                        <li key={idx}>
+                          <span className="owner-list__icon" aria-hidden="true"><Icon d={ICON.paw} /></span>
+                          <div className="owner-list__text">
+                            <strong>{pet.name}</strong>
+                            <span>{[pet.type, pet.breed, pet.weight ? `${pet.weight} lbs` : ''].filter(Boolean).join(' · ')}</span>
                           </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <span className="tag tag--neutral" style={{ fontSize: '0.75rem' }}>Approved</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePet(idx)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'var(--color-error)',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                              }}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
+                          <span className="tag tag--neutral">Approved</span>
+                          <button type="button" className="owner-small-button" onClick={() => handleRemovePet(idx)}>Remove</button>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   )}
                 </div>
               )}
 
               {/* Payment Methods Tab */}
               {activeTab === 'payments' && (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div className="account-pane">
+                  <div className="owner-card__head">
                     <div>
-                      <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Saved Payment Methods</h2>
-                      <p style={{ color: 'var(--color-muted)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>
-                        Online payments and saved payment methods are unavailable. Contact management for payment instructions.
-                      </p>
+                      <h2>Saved Payment Methods</h2>
+                      <p className="owner-note">Online payments and saved payment methods are unavailable. Contact management for payment instructions.</p>
                     </div>
-                    <button
-                      type="button"
-                      className="primary-button"
-                      disabled
-                      style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}
-                    >
-                      + Add Payment Method
+                    <button type="button" className="owner-small-button owner-small-button--primary" disabled>
+                      Add payment method
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gap: '1rem' }}>
-                    {savedMethods.map((pm) => (
-                      <div key={pm.id} style={{
-                        background: 'var(--color-background)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '10px',
-                        padding: '1.25rem 1.5rem',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        gap: '1rem',
-                      }}>
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                          <div style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '8px',
-                            background: pm.type === 'ach' ? 'var(--tag-info-bg)' : 'var(--tag-neutral-bg)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1.3rem',
-                          }}>
-                            {pm.type === 'ach' ? '🏦' : '💳'}
+                  {savedMethods.length === 0 ? (
+                    <p className="owner-empty">No saved payment methods. Rent is paid by the methods the office gives you until online payments open.</p>
+                  ) : (
+                    <ul className="owner-list">
+                      {savedMethods.map((pm) => (
+                        <li key={pm.id}>
+                          <span className="owner-list__icon" aria-hidden="true"><Icon d={pm.type === 'ach' ? ICON.bank : ICON.card} /></span>
+                          <div className="owner-list__text">
+                            <strong>{pm.label}</strong>
+                            <span>Ending in {pm.last4} · {pm.type === 'ach' ? 'ACH direct debit' : 'Card'}</span>
                           </div>
-                          <div>
-                            <h4 style={{ margin: 0, fontSize: '1.05rem' }}>{pm.label}</h4>
-                            <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-muted)' }}>
-                              Account ending in •••• {pm.last4} {pm.type === 'ach' ? '(ACH Direct Debit)' : '(Card)'}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          {pm.isDefault && <span className="tag tag--info" style={{ fontSize: '0.75rem' }}>Default</span>}
-                          <button
-                            type="button"
-                            onClick={() => handleRemovePaymentMethod(pm.id)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: 'var(--color-error)',
-                              cursor: 'pointer',
-                              fontSize: '0.85rem',
-                            }}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                          {pm.isDefault && <span className="tag tag--info">Default</span>}
+                          <button type="button" className="owner-small-button" onClick={() => handleRemovePaymentMethod(pm.id)}>Remove</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
 
@@ -1371,6 +1190,30 @@ const AccountPage: NextPageWithAuth = () => {
       )}
 
       <style jsx>{`
+        .account-pane {
+          display: grid;
+          gap: 1.5rem;
+        }
+        .account-pane :global(.owner-card__head) {
+          align-items: flex-start;
+        }
+        .account-pane :global(.owner-card__head h2) {
+          margin: 0 0 0.25rem;
+          font-size: 1.25rem;
+        }
+        .account-pane__section {
+          display: grid;
+          gap: 1rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid var(--color-border);
+        }
+        .account-pane :global(.owner-page__stats) {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .account-pane :global(.stat-card__value--text) {
+          font-size: 1.05rem;
+          overflow-wrap: anywhere;
+        }
         .account-grid-layout {
           display: grid;
           grid-template-columns: 240px minmax(0, 1fr);
