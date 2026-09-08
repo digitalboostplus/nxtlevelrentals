@@ -12,6 +12,7 @@ const required = [
   '/api/admin/update-property', '/api/landlord/data',
   '/api/landlord/expense', '/api/files/[id]', '/api/files/upload',
   '/api/notifications/preferences', '/api/payments/pay-rent',
+  '/login', '/admin/tenants', '/api/admin/import-tenants', '/api/admin/sync-ghl',
 ];
 const missing = required.filter(route => !manifest[route] ||
   !fs.existsSync(path.join(buildDir, 'server', manifest[route])));

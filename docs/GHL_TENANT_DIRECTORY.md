@@ -20,6 +20,16 @@ The old admin Sync GHL endpoint now returns a preview. Tenant lease refreshes re
 
 ## CLI
 
+### Provision portal accounts after directory import
+
+`npm run provision:ghl-tenants -- --operator-email ADMIN_EMAIL` previews property reconciliation and account setup. Add `--apply` to apply. This trusted local CLI requires an enabled existing admin and fresh complete GHL reads. It syncs all property identities and occupancy while preserving app-owned financial data, ownership and images.
+
+Account creation reuses a linked legacy UID when present and refuses email collisions, elevated roles, conflicting assignments and previously disabled accounts. Accounts without an email remain directory-only. New accounts start disabled and receive access only after their tenant profile and property assignment are committed. A failed profile write leaves the account disabled; retry resumes the recorded provisioning attempt. Existing passwords are preserved. New passwords are random and are never printed or saved.
+
+Tenants choose **Set or reset password** on the login page to receive Firebase's password setup email. Provisioning itself sends no messages and creates no leases, charges or GHL writes. Reports are saved under the git-ignored `.agent-artifacts/` directory.
+
+The deployed backend requires `roles/firebaseauth.viewer` for revoked-token checks and account lookup. Missing Auth read access can appear as a 401 even for valid tokens. Keep the check enabled and fix runtime IAM; do not weaken authentication.
+
 Use existing environment credentials; never put tokens in command arguments.
 
 ```powershell
@@ -43,3 +53,11 @@ Deploy app changes with the updated Firestore rules. Review a fresh live preview
 - Production build passed. Lint passed with existing warnings; the new directory modules and component have no lint warnings.
 - Live GHL and Firestore reads produced 35 proposed creates and two exclusions with no assignment conflicts. The read-only result is `.agent-artifacts/ghl-live-preview.json`; audit persistence was intercepted for this validation, so its preview ID cannot be applied.
 - No production imports, account changes or deployment were performed.
+
+## Production account setup, September 7, 2026 (subsequent run)
+
+The directory release was deployed and its Firestore rules verified. Production imports reconciled 35 eligible contacts; two active-tagged contacts without Tenant relationships were excluded. A three-contact pilot, idempotent replay and remaining batch completed. All 28 GHL properties now have the source occupancy state: 25 occupied and three vacant.
+
+The separate provisioning CLI created 29 enabled Firebase accounts and linked their tenant profiles to the correct property. Six eligible contacts lack email and remain directory-only. All account identities and property assignments were checked, and 12 live tenant access-boundary checks passed. Existing leases, ledger entries, payments, Stripe mappings and unrelated profile history were preserved. No invitations were sent.
+
+Four provisioning emulator tests passed, including partial-failure recovery. A provisioned tenant's portal was checked with a custom-token sign-in at desktop and 390 px; password setup UI delivery was mocked, so customer email delivery is not claimed. Detailed customer-specific follow-up and evidence are in the ignored `.agent-artifacts/GHL_SETUP_REPORT.md`.
