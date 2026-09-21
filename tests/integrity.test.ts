@@ -261,6 +261,7 @@ test('work orders persist scheduling and bind invoices exactly once without trea
   await updateWorkOrder(db, 'admin', input);
   const saved = (await db.doc('maintenanceRequests/work-order').get()).data()!;
   assert.equal(saved.scheduledTime, '10:30'); assert.equal(saved.assignedVendorName, 'Test Vendor');
+  assert.equal((await db.doc('ghlSyncJobs/work-order').get()).data()?.status, 'pending', 'a status change queues the GoHighLevel custom-object mirror');
   await db.doc('fileAttachments/invoice-test').set({ createdBy: 'admin', propertyId: 'one', kind: 'expense', boundTo: null });
   const complete = { ...input, operationId: 'complete-work-order-123', status: 'completed', actualCost: 125.50, adminNotes: 'Repaired', fileIds: ['invoice-test'] };
   const results = await Promise.all([updateWorkOrder(db, 'admin', complete), updateWorkOrder(db, 'admin', complete)]);

@@ -23,12 +23,13 @@
     "deploy:hosting": "npm run build:firebase && npx --yes firebase-tools@15.29.0 deploy --only hosting",
     "deploy:rules": "npx --yes firebase-tools@15.29.0 deploy --only firestore:rules,firestore:indexes,storage",
     "emulators": "firebase emulators:start",
-    "test": "tsx --test lib/ledger.test.ts lib/date.test.ts lib/activateLease.test.ts lib/ownerFinancials.test.ts lib/stage4.test.ts lib/console-home.test.ts lib/ghlTenantEligibility.test.ts lib/phone.test.ts lib/contractors.test.ts",
-    "test:emulators": "npx --yes firebase-tools@15.29.0 emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"tsx --test --test-concurrency=1 tests/integrity.test.ts tests/ghl-directory.test.ts tests/ghl-provisioning.test.ts tests/contractors.test.ts\"",
+    "test": "tsx --test lib/ledger.test.ts lib/date.test.ts lib/activateLease.test.ts lib/ownerFinancials.test.ts lib/stage4.test.ts lib/console-home.test.ts lib/ghlTenantEligibility.test.ts lib/phone.test.ts lib/contractors.test.ts lib/maintenanceNormalize.test.ts lib/ghlMaintenanceSchema.test.ts lib/ghl-maintenance-object.test.ts lib/ghlWebhookParse.test.ts",
+    "test:emulators": "npx --yes firebase-tools@15.29.0 emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"tsx --test --test-concurrency=1 tests/integrity.test.ts tests/ghl-directory.test.ts tests/ghl-provisioning.test.ts tests/contractors.test.ts tests/ghl-maintenance.test.ts\"",
     "test:browser": "npx --yes firebase-tools@15.29.0 emulators:exec --project demo-nlr-integrity --config firebase.test.json --only firestore,auth,storage \"node tests/run-browser.cjs\"",
     "build:firebase": "npm run lint && next build && npm run verify:release",
     "verify:release": "node scripts/verify-release.cjs",
-    "test:live": "node tests/live-smoke.cjs"
+    "test:live": "node tests/live-smoke.cjs",
+    "setup:ghl-maintenance-object": "tsx scripts/setup-ghl-maintenance-object.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -6,6 +6,7 @@ import { requestActor } from '@/lib/serverRequest';
 import { processNotifications } from '@/lib/notificationQueue';
 import { cleanupUploads } from '@/lib/uploadCleanup';
 import { sendEmailNotification, sendPushNotification } from '@/lib/notifications';
+import { GHL_SYNC_JOBS, processGhlSyncJobs } from '@/lib/ghlSyncJobs';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'private, no-store');
@@ -17,7 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!scheduled || req.method === 'GET') await requestActor(req, ['admin', 'super-admin']);
     if (req.method === 'GET') {
       const counts = await Promise.all(['pending', 'processing', 'sent', 'skipped', 'failed'].map(async status => [status, (await adminDb.collection('notificationJobs').where('status', '==', status).count().get()).data().count]));
-      return res.status(200).json({ counts: Object.fromEntries(counts) });
+      const ghlSync = await Promise.all(['pending', 'processing', 'sent', 'failed'].map(async status => [status, (await adminDb.collection(GHL_SYNC_JOBS).where('status', '==', status).count().get()).data().count]));
+      return res.status(200).json({ counts: Object.fromEntries(counts), ghlSync: Object.fromEntries(ghlSync) });
     }
     const notifications = await processNotifications(adminDb, async (_id, job, email) => {
       if (job.channel === 'push') return sendPushNotification(job.userId, job.title, job.message, { maintenanceRequestId: job.requestId });
@@ -30,6 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!bucket) throw new Error('Storage bucket required');
       await getStorage(adminAuth.app).bucket(bucket).file(path).delete({ ignoreNotFound: true });
     }, req.body?.cleanup === true);
-    return res.status(200).json({ notifications, cleanup });
+    // Retry maintenance tickets whose GoHighLevel custom-object mirror did not land inline.
+    const ghlSync = await processGhlSyncJobs(adminDb, { db: adminDb }, { limit: 10, budgetMs: 15000 });
+    return res.status(200).json({ notifications, cleanup, ghlSync });
   } catch { return res.status(403).json({ message: 'Operations require authorization and configured services' }); }
 }

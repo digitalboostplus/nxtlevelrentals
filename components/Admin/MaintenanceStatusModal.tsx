@@ -34,6 +34,9 @@ export default function MaintenanceStatusModal({
   const [timeZone, setTimeZone] = useState('America/Chicago');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // GoHighLevel custom-object mirror state, refreshed by the Resync button.
+  const [ghl, setGhl] = useState<{ ghlRecordId?: string | null; ghlSyncError?: string | null; ghlSyncedAt?: number | null }>({});
+  const [resyncing, setResyncing] = useState(false);
   // Public-form tickets arrive unlinked; the admin links them to a property (and tenant) here.
   const publicRequest = request as MaintenanceRequest & { addressText?: string; tenantName?: string; tenantPhone?: string; contactEmail?: string };
   const unmatched = request.tenantId === 'public' || request.propertyId === 'unassigned';
@@ -72,10 +75,29 @@ export default function MaintenanceStatusModal({
       setScheduledTime(request.scheduledTime || '');
       setTechnicianName(request.assignedVendorName || '');
       setError(null);
+      setGhl({ ghlRecordId: request.ghlRecordId, ghlSyncError: request.ghlSyncError, ghlSyncedAt: request.ghlSyncedAt });
     }
   }, [isOpen, request]);
 
   if (!isOpen) return null;
+
+  const handleResync = async () => {
+    setResyncing(true);
+    setError(null);
+    try {
+      const token = await getAuthToken();
+      const response = await fetch(`/api/admin/maintenance/${encodeURIComponent(request.id)}/resync`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Resync failed');
+      setGhl({ ghlRecordId: data.ghlRecordId, ghlSyncError: data.ghlSyncError, ghlSyncedAt: data.ghlSyncedAt });
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setResyncing(false);
+    }
+  };
+  const synced = Boolean(ghl.ghlRecordId) && !ghl.ghlSyncError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,13 +192,39 @@ export default function MaintenanceStatusModal({
             </div>
             <div className="detail-item">
               <span className="detail-label">Submitted:</span>
-              <span className="detail-value">{formatDate(request.createdAt)}</span>
+              <span className="detail-value">{formatDate(request.createdAt)}{request.source ? ` · ${request.source}` : ''}</span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">GoHighLevel:</span>
+              <span className="detail-value ghl-state">
+                {synced ? (
+                  <span className="tag tag--success" title={ghl.ghlRecordId || ''}>Synced{ghl.ghlSyncedAt ? ` ${formatDate(ghl.ghlSyncedAt)}` : ''}</span>
+                ) : ghl.ghlSyncError ? (
+                  <span className="tag tag--error" title={ghl.ghlSyncError}>Sync failed</span>
+                ) : (
+                  <span className="tag tag--neutral">Not synced</span>
+                )}
+                <button type="button" className="link-button" onClick={handleResync} disabled={resyncing || loading}>
+                  {resyncing ? 'Syncing...' : 'Resync'}
+                </button>
+              </span>
             </div>
           </div>
+          {ghl.ghlSyncError ? <p className="ghl-error">GoHighLevel: {ghl.ghlSyncError}</p> : null}
           <div className="description-section">
             <span className="detail-label">Description:</span>
             <p className="description-text">{request.description}</p>
           </div>
+          {request.attachmentUrls?.length ? (
+            <div className="description-section">
+              <span className="detail-label">Photos from the website form:</span>
+              <ul className="attachment-links">
+                {request.attachmentUrls.map((url, index) => (
+                  <li key={url}><a href={url} target="_blank" rel="noreferrer">Attachment {index + 1}</a></li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {request.adminNotes && (
             <div className="notes-section">
               <span className="detail-label">Previous Notes:</span>
@@ -297,6 +345,45 @@ export default function MaintenanceStatusModal({
         </form>
 
         <style jsx>{`
+          .ghl-state {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+          }
+
+          .link-button {
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--color-primary);
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+          }
+
+          .link-button:disabled {
+            color: var(--color-muted);
+            cursor: default;
+          }
+
+          .ghl-error {
+            margin: 0.5rem 0 0;
+            font-size: 0.85rem;
+            color: var(--color-error);
+          }
+
+          .attachment-links {
+            margin: 0.25rem 0 0;
+            padding-left: 1.1rem;
+            font-size: 0.9rem;
+          }
+
+          .attachment-links a {
+            color: var(--color-primary);
+          }
+
           .modal-overlay {
             position: fixed;
             top: 0;

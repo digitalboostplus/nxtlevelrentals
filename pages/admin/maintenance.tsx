@@ -183,7 +183,14 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
                     <td>
                       <div className="request-info">
                         <strong>{request.title}</strong>
-                        <span className="request-id">ID: {request.id}</span>
+                        <span className="request-id">
+                          ID: {request.id}
+                          {request.ghlSyncError ? (
+                            <span className="tag tag--error" title={request.ghlSyncError}>GHL !</span>
+                          ) : request.ghlRecordId ? (
+                            <span className="tag tag--success" title="Mirrored to GoHighLevel">GHL</span>
+                          ) : null}
+                        </span>
                       </div>
                     </td>
                     <td>
@@ -319,6 +326,10 @@ const AdminMaintenancePage: NextPageWithAuth = () => {
         .request-id {
           font-size: 0.813rem;
           color: var(--color-muted);
+        }
+
+        .request-id :global(.tag) {
+          margin-left: 0.5rem;
         }
 
         .status-badge,

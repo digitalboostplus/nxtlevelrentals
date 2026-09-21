@@ -4,6 +4,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { requestActor, recordId } from '@/lib/serverRequest';
 import { attachmentRefs } from '@/lib/attachments';
 import { queueMaintenance } from '@/lib/notificationQueue';
+import { attemptGhlSync, enqueueGhlSync } from '@/lib/ghlSyncJobs';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
   try {
@@ -19,14 +20,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!profile?.propertyIds?.includes(propertyId) || !property || property.archived) throw new Error('Property not assigned to this tenant');
       const files = await attachmentRefs(tx, adminDb, input.fileIds || [], actor.uid, 'maintenance', propertyId, ref.path);
       await queueMaintenance(tx, adminDb, ref.id, { ...input, id: ref.id, tenantId: actor.uid }, ['requestConfirmation']);
+      enqueueGhlSync(tx, adminDb, ref.id, 'created');
       tx.create(ref, { tenantId: actor.uid, propertyId, title: input.title.trim().slice(0,200), description: input.description.trim().slice(0,5000),
         category: String(input.category || 'other'), priority: input.priority, status: 'submitted', permissionToEnter: input.permissionToEnter === true,
-        hasPets: input.hasPets === true, preferredTime: String(input.preferredTime || '').slice(0, 300), fingerprint,
+        hasPets: input.hasPets === true, preferredTime: String(input.preferredTime || '').slice(0, 300), fingerprint, source: 'portal',
         fileIds: input.fileIds || [], createdAt: Date.now(), updatedAt: Date.now() });
       for (const file of files) tx.update(file, { boundTo: ref.path });
       return true;
     });
+    // Mirror into the GoHighLevel custom object now; the job is durable, so a miss is retried by run-operations.
+    const ghl = created ? await attemptGhlSync(adminDb, ref.id) : null;
 
-    return res.status(200).json({ success: true, requestId: ref.id, notificationsQueued: created });
+    return res.status(200).json({ success: true, requestId: ref.id, notificationsQueued: created, ghl });
   } catch (error) { return res.status(400).json({ message: error instanceof Error ? error.message : 'Request failed' }); }
 }

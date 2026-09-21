@@ -10,6 +10,8 @@ import {
 } from '@/lib/ghl';
 import { maintenanceCategories, maintenancePriorities } from '@/data/site';
 import { normalizePhoneE164 } from '@/lib/phone';
+import { intakeTitle, matchTenantByContact } from '@/lib/maintenanceIntake';
+import { attemptGhlSync, enqueueGhlSync } from '@/lib/ghlSyncJobs';
 
 // Public (unauthenticated) maintenance intake from the landing page.
 //
@@ -105,52 +107,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Match to a known tenant so the request lands on their record.
-    let tenantId = 'public';
-    let propertyId = 'unassigned';
-    let matchedUser: FirebaseFirestore.DocumentData | undefined;
-
-    if (email) {
-      const byEmail = await adminDb.collection('users').where('email', '==', email).limit(1).get();
-      if (!byEmail.empty) {
-        tenantId = byEmail.docs[0].id;
-        matchedUser = byEmail.docs[0].data();
-      }
-    }
-    if (tenantId === 'public' && phone) {
-      const byPhone = await adminDb.collection('users').where('phoneNumber', '==', phone).limit(1).get();
-      if (!byPhone.empty) {
-        tenantId = byPhone.docs[0].id;
-        matchedUser = byPhone.docs[0].data();
-      }
-    }
-    if (matchedUser?.propertyIds?.[0]) {
-      propertyId = matchedUser.propertyIds[0];
-    }
+    const { tenantId, propertyId } = await matchTenantByContact(adminDb, { email, phone });
 
     const now = Date.now();
-    const title = `${category}: ${description.slice(0, 60)}${description.length > 60 ? '...' : ''}`;
-    const requestRef = await adminDb.collection('maintenanceRequests').add({
-      tenantId,
-      tenantName: name,
-      tenantPhone: phone || null,
-      contactEmail: email || null,
-      addressText: address,
-      propertyId,
-      title,
-      description,
-      // Stored lowercase to match the portal's create route ('low' | 'medium' | 'high').
-      priority: priority.toLowerCase(),
-      category,
-      status: 'submitted',
-      permissionToEnter: Boolean(body.permissionToEnter),
-      hasPets: Boolean(body.hasPets),
-      images,
-      source: 'public-form',
-      createdAt: now,
-      updatedAt: now,
+    const title = intakeTitle(category, description);
+    const requestRef = adminDb.collection('maintenanceRequests').doc();
+    await adminDb.runTransaction(async (tx) => {
+      // The custom-object mirror job commits with the ticket; a CRM outage cannot lose it.
+      enqueueGhlSync(tx, adminDb, requestRef.id, 'created', now);
+      tx.create(requestRef, {
+        tenantId,
+        tenantName: name,
+        tenantPhone: phone || null,
+        contactEmail: email || null,
+        addressText: address,
+        propertyId,
+        title,
+        description,
+        // Stored lowercase to match the portal's create route ('low' | 'medium' | 'high').
+        priority: priority.toLowerCase(),
+        category,
+        status: 'submitted',
+        permissionToEnter: Boolean(body.permissionToEnter),
+        hasPets: Boolean(body.hasPets),
+        images,
+        source: 'public-form',
+        createdAt: now,
+        updatedAt: now,
+      });
     });
 
-    // Reflect it in the CRM. Never let a CRM hiccup fail the tenant's submission.
+    // Reflect it on the CRM contact. Never let a CRM hiccup fail the tenant's submission.
     try {
       if (tenantId !== 'public') {
         await pushMaintenanceToGHL({ tenantId, title, description, priority, status: 'submitted' });
@@ -176,6 +163,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
         if (contactId) {
+          // Remember the contact so the custom-object record links to it.
+          await requestRef.set({ ghlContactId: contactId }, { merge: true });
           await addGHLContactNote(contactId, note);
           await addGHLContactTags(contactId, ['maintenance-open']);
         }
@@ -184,7 +173,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.error('Public maintenance GHL sync failed:', ghlError);
     }
 
-    return res.status(200).json({ success: true, requestId: requestRef.id, matched: tenantId !== 'public' });
+    // One record per request in the Maintenance Requests custom object.
+    const ghl = await attemptGhlSync(adminDb, requestRef.id);
+
+    return res.status(200).json({ success: true, requestId: requestRef.id, matched: tenantId !== 'public', ghl });
   } catch (error: any) {
     console.error('Error creating public maintenance request:', error);
     return res.status(500).json({ message: 'Something went wrong on our end. Please call us.' });
