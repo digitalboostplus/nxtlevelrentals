@@ -1,6 +1,7 @@
 import { adminDb } from './firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { pushMaintenanceToGHL } from './ghl-sync';
+import { attemptGhlSync, enqueueGhlSync } from './ghlSyncJobs';
 import type { FunctionCallResult } from '@/types/chat';
 
 // Execute a function call from the AI
@@ -102,17 +103,22 @@ async function submitMaintenanceRequest(
     };
   }
 
-  // Create the maintenance request
-  const requestRef = await adminDb.collection('maintenanceRequests').add({
-    tenantId: userId,
-    propertyId,
-    title,
-    description,
-    priority,
-    category,
-    status: 'submitted',
-    createdAt: FieldValue.serverTimestamp(),
-    updatedAt: FieldValue.serverTimestamp()
+  // Create the maintenance request; the custom-object mirror job commits with it.
+  const requestRef = adminDb.collection('maintenanceRequests').doc();
+  await adminDb.runTransaction(async (tx) => {
+    enqueueGhlSync(tx, adminDb, requestRef.id, 'created');
+    tx.create(requestRef, {
+      tenantId: userId,
+      propertyId,
+      title,
+      description,
+      priority,
+      category,
+      status: 'submitted',
+      source: 'ai-chat',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    });
   });
 
   // Reflect the request on the tenant's GHL contact (non-blocking on failure)
@@ -123,6 +129,8 @@ async function submitMaintenanceRequest(
     priority: String(priority),
     status: 'submitted',
   });
+  // And as its own record in the Maintenance Requests custom object.
+  await attemptGhlSync(adminDb, requestRef.id);
 
   return {
     success: true,

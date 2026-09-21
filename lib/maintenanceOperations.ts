@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import type { Firestore } from 'firebase-admin/firestore';
 import { attachmentRefs } from './attachments';
 import { moneyToCents } from './ledger';
+import { enqueueGhlSync } from './ghlSyncJobs';
 export async function updateWorkOrder(db: Firestore, uid: string, input: any) {
   if (!/^[\w-]{1,128}$/.test(input.requestId) || !/^[\w-]{16,128}$/.test(input.operationId)) throw new Error('Request and operation IDs required');
   if (!['submitted', 'in_progress', 'completed', 'cancelled'].includes(input.status)) throw new Error('Invalid status');
@@ -59,6 +60,7 @@ export async function updateWorkOrder(db: Firestore, uid: string, input: any) {
     if (input.adminNotes?.trim()) events.push('notesAdded');
     if (input.scheduledDate && ['scheduledDate', 'scheduledTime', 'timeZone'].some(key => input[key] !== previous[key]) || input.scheduledDate && input.technicianName !== previous.assignedVendorName) events.push('technicianScheduled');
     await queueMaintenance(tx, db, `${input.requestId}:${input.operationId}`, { ...updated, id: input.requestId, newNotes: input.adminNotes }, events);
+    enqueueGhlSync(tx, db, input.requestId, 'status');
     tx.set(ref, updated);
     if (expense && input.fileIds?.length) throw new Error('Invoice already recorded; reconcile attachments with accounting');
     if (!expense && input.status === 'completed' && cost > 0) {

@@ -137,6 +137,14 @@ Run with: `node scripts/<script-name>.js [args]`
 
 - **Lease Webhook** (`pages/api/ghl/lease.ts`): Receives lease updates from GHL
 
+- **Maintenance Requests custom object** (`custom_objects.maintenance_request`, CARIV): every ticket is mirrored as one record linked to the tenant Contact and the Property record.
+  - Firestore `maintenanceRequests` is the source of truth. Routes never call the Objects API directly: they `enqueueGhlSync()` inside the same transaction as the business change (`lib/ghlSyncJobs.ts`), then run one inline attempt (`attemptGhlSync`); `POST /api/admin/run-operations` retries the rest (Cloud Run gives no CPU after the response, so fire-and-forget is not an option).
+  - Mirror logic: `lib/ghl-maintenance-object.ts` (port + `buildRecordProperties` + `mirrorMaintenanceToGHL`); value mapping in `lib/maintenanceNormalize.ts`; schema in `lib/ghlMaintenanceSchema.ts`. Sync state lives on the ticket (`ghlRecordId`, `ghlSyncError`, `ghlSyncedAt`, `ghlRelations`).
+  - Setup: `npm run setup:ghl-maintenance-object` (idempotent; `-- --dry-run`, `-- --probe`). GHL reserves `description` as a standard field key, hence `issue_description`. Records store option values as keys (`plumbing`, `in_progress`); DELETE record wants `locationId` in the body.
+  - Website form: the production CARIV site is a GHL AI Studio site whose form writes contact custom fields and enrolls workflow **MR01 - Maintenance Request**. MR01's Webhook action posts to `POST /api/ghl/maintenance-webhook?token=$GHL_WEBHOOK_SECRET` (`lib/ghlWebhookParse.ts` resolves fields by id, key or name; raw payloads are kept in `ghlWebhookEvents`). Tickets from it carry `source: 'ghl-site-form'` and `attachmentUrls`.
+  - Admin: `POST /api/admin/maintenance/[id]/resync` and `POST /api/admin/maintenance/resync-all` (backfill); the status modal shows sync state with a Resync button.
+  - `lib/maintenance.ts` `createMaintenanceRequest` is legacy client code with no callers; do not add hooks there.
+
 ### Page Structure
 
 - **Public**: `/` (landing), `/login`

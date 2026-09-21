@@ -220,27 +220,9 @@ export async function pushMaintenanceToGHL(params: {
   });
 }
 
-/** Reflect a maintenance status change on the tenant's GHL contact. */
-export async function pushMaintenanceStatusToGHL(params: {
-  tenantId: string;
-  title: string;
-  status: string;
-  note?: string;
-}): Promise<void> {
-  const { tenantId, title, status, note } = params;
-  await safeSync(`pushMaintenanceStatus(${tenantId})`, async () => {
-    const contactId = await resolveContactId(tenantId);
-    if (!contactId) return;
-
-    await addGHLContactNote(
-      contactId,
-      `Maintenance request "${title}" updated to ${status}.` + (note ? ` Note: ${note}` : '')
-    );
-    if (status === 'completed') {
-      await addGHLContactTags(contactId, ['maintenance-resolved']);
-    }
-  });
-}
+// Status changes reach GoHighLevel through the Maintenance Requests custom
+// object (lib/ghl-maintenance-object.ts via the ghlSyncJobs queue), not as
+// contact notes.
 
 // ---------------------------------------------------------------------------
 // Pull: GHL Properties custom object -> Firestore `properties`

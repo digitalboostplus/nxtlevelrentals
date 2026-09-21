@@ -34,3 +34,6 @@ automation/state/
 .next-test/
 playwright-report/
 test-results/
+
+# Temporary skill downloads
+.tmp_google_skills/
